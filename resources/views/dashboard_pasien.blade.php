@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sahaduta | Portal Pasien</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <style>
+    html { scroll-behavior: smooth; }
+    .card-hover { transition: all 0.3s cubic-bezier(0.15,0.75,0.45,1); }
+    .card-hover:hover { transform: translateY(-6px); box-shadow: 0 20px 40px -12px rgba(30,58,138,0.2); }
+    .btn-anim { transition: all 0.25s ease; }
+    .btn-anim:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -8px rgba(30,58,138,0.4); }
+    .float-anim { animation: floatY 6s ease-in-out infinite; }
+    @keyframes floatY { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    .pulse-bg { animation: pulseBg 5s infinite; }
+    @keyframes pulseBg { 0%,100%{opacity:.15} 50%{opacity:.3} }
+    /* Tab active */
+    .tab-btn.active { background:#1e3a8a; color:#fff; }
+    /* Antrian number */
+    .no-antrian { font-size:5rem; font-weight:900; line-height:1; }
+    /* Status badge */
+    .status-menunggu { background:#fef3c7; color:#92400e; }
+    .status-selesai  { background:#d1fae5; color:#065f46; }
+    .status-batal    { background:#fee2e2; color:#991b1b; }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans antialiased text-gray-700 overflow-x-hidden">
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="bg-white/90 backdrop-blur-sm sticky top-0 z-30 border-b border-blue-900/10 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <!-- Logo -->
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 bg-blue-900 rounded-xl flex items-center justify-center">
+            <i class="fas fa-clinic-medical text-white"></i>
+          </div>
+          <span class="font-semibold text-xl text-gray-800">Sahaduta</span>
+        </div>
+
+        <!-- Nav Links -->
+        <nav class="hidden md:flex space-x-6 text-sm font-medium">
+          <a href="#beranda"  class="text-gray-700 hover:text-blue-900 transition">Beranda</a>
+          <a href="#antrian"  class="text-gray-700 hover:text-blue-900 transition">Antrian</a>
+          <a href="#profil"   class="text-gray-700 hover:text-blue-900 transition">Profil</a>
+          <a href="#riwayat"  class="text-gray-700 hover:text-blue-900 transition">Riwayat</a>
+        </nav>
+
+        <!-- User + Logout -->
+        <div class="flex items-center gap-3">
+          <div class="hidden sm:flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-3 py-1.5">
+            <div class="w-6 h-6 bg-blue-900 rounded-full flex items-center justify-center text-white text-xs font-bold" id="avatarInitial">{{ $pasien ? strtoupper(substr($pasien->no_rm, 0, 2)) : 'P' }}</div>
+            <span class="text-sm font-semibold text-blue-900" id="namaUser">{{ $pasien->nama ?? 'Pasien' }}</span>
+          </div>
+          <form method="POST" action="/logout" id="logoutForm">
+            @csrf
+            <button type="submit" class="btn-anim bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5">
+              <i class="fas fa-sign-out-alt"></i>
+              <span class="hidden sm:inline">Logout</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ===== HERO / GREETING ===== -->
+    <section id="beranda" class="relative bg-gradient-to-br from-blue-50 via-white to-white overflow-hidden py-14 md:py-20">
+      <div class="absolute top-10 right-0 w-80 h-80 bg-blue-900/5 rounded-full blur-3xl float-anim"></div>
+      <div class="absolute bottom-0 left-0 w-64 h-64 bg-blue-900/8 rounded-full blur-2xl pulse-bg"></div>
+
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="grid md:grid-cols-2 gap-10 items-center">
+          <!-- kiri -->
+          <div class="space-y-5" data-aos="fade-right">
+            <span class="inline-block bg-blue-100 text-blue-900 px-4 py-1.5 rounded-full text-sm font-semibold">👋 Selamat datang kembali</span>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+              Halo, <span class="text-blue-900" id="greetName">{{ $pasien->nama ?? 'Pasien' }}</span>! <br>
+              Ada yang bisa kami bantu hari ini?
+            </h1>
+            <p class="text-gray-500 text-base max-w-md">Ambil antrian online, lihat riwayat kunjungan, atau perbarui data profil Anda dengan mudah.</p>
+            <div class="flex flex-wrap gap-3 pt-2">
+              <a href="#antrian" class="btn-anim bg-blue-900 hover:bg-blue-800 text-white px-6 py-3 rounded-2xl font-semibold shadow-md flex items-center gap-2">
+                <i class="fas fa-ticket-alt"></i> Ambil Antrian
+              </a>
+              <a href="#riwayat" class="btn-anim bg-white border border-blue-900/30 hover:border-blue-900 text-blue-900 px-6 py-3 rounded-2xl font-semibold shadow-sm flex items-center gap-2">
+                <i class="fas fa-history"></i> Lihat Riwayat
+              </a>
+            </div>
+          </div>
+
+          <!-- kanan — info cards -->
+          <div class="grid grid-cols-2 gap-4" data-aos="fade-left">
+            <div class="card-hover bg-white p-5 rounded-3xl shadow-md border border-blue-900/15">
+              <div class="w-11 h-11 bg-blue-100 text-blue-900 rounded-2xl flex items-center justify-center mb-3 text-xl">
+                <i class="fas fa-ticket-alt"></i>
+              </div>
+              <div class="text-2xl font-bold text-blue-900" id="noAntrianKu">—</div>
+              <div class="text-xs text-gray-500 mt-0.5">Antrian Aktif Saya</div>
+            </div>
+            <div class="card-hover bg-white p-5 rounded-3xl shadow-md border border-blue-900/15">
+              <div class="w-11 h-11 bg-green-100 text-green-700 rounded-2xl flex items-center justify-center mb-3 text-xl">
+                <i class="fas fa-users"></i>
+              </div>
+              <div class="text-2xl font-bold text-green-700" id="antrianSkrg">3</div>
+              <div class="text-xs text-gray-500 mt-0.5">Antrian Sedang Dilayani</div>
+            </div>
+            <div class="card-hover bg-white p-5 rounded-3xl shadow-md border border-blue-900/15">
+              <div class="w-11 h-11 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mb-3 text-xl">
+                <i class="fas fa-clock"></i>
+              </div>
+              <div class="text-2xl font-bold text-amber-700" id="estimasi">~15 mnt</div>
+              <div class="text-xs text-gray-500 mt-0.5">Estimasi Tunggu</div>
+            </div>
+            <div class="card-hover bg-white p-5 rounded-3xl shadow-md border border-blue-900/15">
+              <div class="w-11 h-11 bg-purple-100 text-purple-700 rounded-2xl flex items-center justify-center mb-3 text-xl">
+                <i class="fas fa-calendar-check"></i>
+              </div>
+              <div class="text-2xl font-bold text-purple-700" id="totalKunjungan">5</div>
+              <div class="text-xs text-gray-500 mt-0.5">Total Kunjungan</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== FITUR ANTRIAN ===== -->
+    <section id="antrian" class="py-16 bg-white">
+      <div class="max-w-4xl mx-auto px-4">
+        <div class="text-center mb-10" data-aos="fade-up">
+          <span class="text-blue-900 font-semibold uppercase text-xs tracking-widest">Online Queue</span>
+          <h2 class="text-3xl font-bold text-gray-800 mt-2">Antrian <span class="text-blue-900">Online</span></h2>
+          <p class="text-gray-500 mt-2 text-sm">Ambil nomor antrian tanpa perlu menunggu lama di klinik.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8 items-start">
+          <!-- Panel Ambil Antrian -->
+          <div class="bg-white border-2 border-blue-900/15 rounded-3xl p-7 shadow-md" data-aos="fade-right">
+            <h3 class="font-bold text-gray-800 text-lg mb-5 flex items-center gap-2">
+              <i class="fas fa-plus-circle text-blue-900"></i> Ambil Nomor Antrian
+            </h3>
+
+            <div id="formAntrian" class="space-y-4">
+              <div>
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Jenis Layanan</label>
+                <select id="jenisLayanan" class="mt-1.5 w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-blue-900 focus:ring-2 focus:ring-blue-900/10 outline-none bg-gray-50">
+                  <option value="">— Pilih Layanan —</option>
+                  <option value="Konsultasi Umum">Konsultasi Umum</option>
+                  <option value="Klinik Gigi">Klinik Gigi</option>
+                  <option value="Laboratorium">Laboratorium</option>
+                  <option value="Imunisasi / Vaksin">Imunisasi / Vaksin</option>
+                  <option value="KIA / KB">KIA / KB</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Keluhan (opsional)</label>
+                <textarea id="keluhan" rows="3" placeholder="Deskripsikan keluhan Anda..." class="mt-1.5 w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-blue-900 outline-none resize-none bg-gray-50"></textarea>
+              </div>
+              <button onclick="ambilAntrian()" class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-3 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 shadow-md">
+                <i class="fas fa-ticket-alt"></i> Ambil Antrian Sekarang
+              </button>
+            </div>
+
+            <!-- Hasil antrian -->
+            <div id="hasilAntrian" class="hidden text-center">
+              <div class="w-16 h-16 bg-green-100 text-green-700 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <p class="text-sm text-gray-500 mb-1">Nomor Antrian Anda</p>
+              <div class="no-antrian text-blue-900" id="nomorAntrian">A-07</div>
+              <p class="text-xs text-gray-500 mt-2 mb-1" id="layananDipilih">Konsultasi Umum</p>
+              <div class="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2 rounded-full text-sm font-semibold mt-2">
+                <i class="fas fa-clock"></i> Estimasi: <span id="estimasiHasil">~20 mnt</span>
+              </div>
+              <button onclick="batalAntrian()" class="mt-4 w-full border border-red-300 text-red-600 hover:bg-red-50 py-2.5 rounded-xl text-sm font-semibold transition">
+                <i class="fas fa-times"></i> Batalkan Antrian
+              </button>
+            </div>
+          </div>
+
+          <!-- Status Antrian Real-time -->
+          <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-3xl p-7 text-white shadow-xl" data-aos="fade-left">
+            <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+              <i class="fas fa-broadcast-tower"></i> Status Antrian Hari Ini
+            </h3>
+            <div class="text-center py-4">
+              <p class="text-blue-200 text-sm mb-1">Sedang Dilayani</p>
+              <div class="text-7xl font-black text-white leading-none" id="antrianDisplay">003</div>
+              <p class="text-blue-200 text-sm mt-2">Konsultasi Umum</p>
+            </div>
+            <div class="grid grid-cols-3 gap-3 mt-4">
+              <div class="bg-white/10 rounded-2xl p-3 text-center">
+                <div class="text-xl font-bold" id="totalAntrianHari">12</div>
+                <div class="text-xs text-blue-200 mt-0.5">Total</div>
+              </div>
+              <div class="bg-white/10 rounded-2xl p-3 text-center">
+                <div class="text-xl font-bold text-green-300" id="sudahDilayani">3</div>
+                <div class="text-xs text-blue-200 mt-0.5">Selesai</div>
+              </div>
+              <div class="bg-white/10 rounded-2xl p-3 text-center">
+                <div class="text-xl font-bold text-amber-300" id="menunggu">9</div>
+                <div class="text-xs text-blue-200 mt-0.5">Menunggu</div>
+              </div>
+            </div>
+            <div class="mt-4 p-3 bg-white/10 rounded-2xl text-xs text-blue-200 flex items-center gap-2">
+              <i class="fas fa-info-circle"></i>
+              Update otomatis setiap 30 detik
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PROFIL & RIWAYAT ===== -->
+    <section id="profil" class="py-16 bg-gradient-to-b from-white to-blue-50/50">
+      <div class="max-w-5xl mx-auto px-4">
+        <div class="text-center mb-10" data-aos="fade-up">
+          <span class="text-blue-900 font-semibold uppercase text-xs tracking-widest">Akun Saya</span>
+          <h2 class="text-3xl font-bold text-gray-800 mt-2">Profil & <span class="text-blue-900">Riwayat</span></h2>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex gap-2 mb-6 bg-gray-100 p-1.5 rounded-2xl w-fit mx-auto">
+          <button onclick="switchTab('profil')" id="tab-profil" class="tab-btn active px-5 py-2.5 rounded-xl text-sm font-semibold transition-all">
+            <i class="fas fa-user mr-1.5"></i> Data Profil
+          </button>
+          <button onclick="switchTab('riwayat')" id="tab-riwayat" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-600 transition-all">
+            <i class="fas fa-history mr-1.5"></i> Riwayat Pemesanan
+          </button>
+        </div>
+
+        <!-- Tab: Profil -->
+        <div id="panel-profil" data-aos="fade-up">
+          <div class="bg-white rounded-3xl shadow-md border border-blue-900/10 overflow-hidden">
+            <!-- Header profil -->
+            <div class="bg-gradient-to-r from-blue-900 to-blue-700 p-8 flex items-center gap-6">
+              <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-white text-3xl font-black flex-shrink-0" id="avatarBesar">{{ $pasien ? strtoupper(substr($pasien->no_rm, 0, 2)) : 'P' }}</div>
+              <div>
+                <div class="text-white font-bold text-xl" id="namaLengkap">{{ $pasien->nama ?? '-' }}</div>
+                <div class="text-blue-200 text-sm mt-0.5">No. RM: <span class="font-mono font-semibold text-white" id="noRm">{{ $pasien->no_rm ?? '-' }}</span></div>
+                <div class="mt-2 inline-flex items-center gap-1.5 bg-green-400/20 border border-green-300/40 text-green-100 px-3 py-1 rounded-full text-xs font-semibold">
+                  <span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> Pasien Aktif
+                </div>
+              </div>
+            </div>
+
+            <!-- Form data diri -->
+            <div class="p-7">
+              <div class="flex items-center justify-between mb-5">
+                <h3 class="font-bold text-gray-800">Data Diri</h3>
+                <button onclick="toggleEditProfil()" id="btnEdit" class="btn-anim bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5">
+                  <i class="fas fa-edit"></i> Edit Profil
+                </button>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="gridProfil">
+                <!-- Field tampilan/edit -->
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Nama Lengkap</label>
+                  <input type="text" id="fNamaLengkap" value="{{ $pasien->nama ?? '' }}" readonly class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                </div>
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">No. Rekam Medik</label>
+                  <input type="text" value="{{ $pasien->no_rm ?? '' }}" readonly class="w-full border border-gray-200 bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-500 cursor-not-allowed outline-none">
+                </div>
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">NIK</label>
+                  <input type="text" id="fNik" value="{{ $pasien->nik ?? '' }}" readonly class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                </div>
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Tanggal Lahir</label>
+                  <input type="date" id="fTglLahir" value="{{ $pasien->tgl_lahir ?? '' }}" readonly class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                </div>
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Jenis Kelamin</label>
+                  <input type="text" id="fJenkel" value="{{ $pasien->jenis_kelamin ?? '' }}" readonly class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                </div>
+                <div class="space-y-1 sm:col-span-2">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Alamat</label>
+                  <input type="text" id="fAlamat" value="{{ $pasien->alamat ?? '' }}" readonly class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                </div>
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Golongan Darah</label>
+                  <input type="text" id="fDarah" value="{{ $pasien->golongan_darah ?? '' }}" readonly class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                </div>
+              </div>
+
+              <!-- Tombol simpan (hidden saat readonly) -->
+              <div id="btnSaveRow" class="hidden mt-5 flex gap-3 justify-end">
+                <button onclick="batalEditProfil()" class="border border-gray-300 text-gray-600 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">Batal</button>
+                <button onclick="simpanProfil()" class="btn-anim bg-blue-900 hover:bg-blue-800 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-md">
+                  <i class="fas fa-save mr-1"></i> Simpan Perubahan
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Riwayat -->
+        <div id="panel-riwayat" class="hidden" data-aos="fade-up">
+          <div id="riwayat" class="bg-white rounded-3xl shadow-md border border-blue-900/10 overflow-hidden">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h3 class="font-bold text-gray-800 text-lg">Riwayat Pemesanan</h3>
+                <p class="text-sm text-gray-400">Semua kunjungan dan antrian yang pernah Anda buat</p>
+              </div>
+              <div class="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2">
+                <i class="fas fa-search text-gray-400 text-xs"></i>
+                <input type="text" id="searchRiwayat" placeholder="Cari layanan..." class="bg-transparent text-sm outline-none w-36">
+              </div>
+            </div>
+            <div class="divide-y divide-gray-100" id="listRiwayat"></div>
+            <div class="p-4 text-center text-sm text-gray-400" id="riwayatEmpty" style="display:none">Tidak ada riwayat kunjungan</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== LAYANAN SECTION ===== -->
+    <section class="py-16 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-10" data-aos="fade-up">
+          <span class="text-blue-900 font-semibold uppercase text-xs tracking-widest">Layanan</span>
+          <h2 class="text-3xl font-bold text-gray-800 mt-2">Pilih <span class="text-blue-900">Layanan</span> Anda</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          @php
+            $layanan = [
+              ['icon'=>'fa-heartbeat','warna'=>'blue','nama'=>'Konsultasi Umum','desc'=>'Dokter umum siap melayani konsultasi kesehatan Anda.'],
+              ['icon'=>'fa-tooth','warna'=>'green','nama'=>'Klinik Gigi','desc'=>'Perawatan gigi modern dengan alat standar internasional.'],
+              ['icon'=>'fa-flask','warna'=>'purple','nama'=>'Laboratorium','desc'=>'Pengecekan lab cepat, akurat, dan steril.'],
+              ['icon'=>'fa-syringe','warna'=>'amber','nama'=>'Imunisasi / Vaksin','desc'=>'Program vaksinasi lengkap untuk semua usia.'],
+              ['icon'=>'fa-baby','warna'=>'pink','nama'=>'KIA / KB','desc'=>'Layanan kesehatan ibu dan anak serta KB.'],
+              ['icon'=>'fa-truck-medical','warna'=>'red','nama'=>'Gawat Darurat','desc'=>'Penanganan darurat 24 jam oleh tenaga ahli.'],
+            ];
+          @endphp
+          @foreach($layanan as $i => $l)
+          <div class="card-hover bg-white border border-blue-900/15 rounded-3xl p-7 shadow-sm cursor-pointer"
+               data-aos="fade-up" data-aos-delay="{{ ($i%3+1)*100 }}"
+               onclick="pilihLayanan('{{ $l['nama'] }}')">
+            <div class="w-14 h-14 bg-{{ $l['warna'] }}-100 text-{{ $l['warna'] }}-700 rounded-2xl flex items-center justify-center mb-4 text-2xl">
+              <i class="fas {{ $l['icon'] }}"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ $l['nama'] }}</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">{{ $l['desc'] }}</p>
+            <div class="mt-4 flex items-center text-blue-900 text-sm font-medium gap-1 hover:gap-2 transition-all">
+              Ambil Antrian <i class="fas fa-arrow-right text-xs"></i>
+            </div>
+          </div>
+          @endforeach
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="bg-white border-t border-blue-900/10 py-8">
+    <div class="max-w-7xl mx-auto px-4 text-center text-gray-400 text-sm">
+      <div class="flex justify-center space-x-6 mb-3">
+        <a href="#" class="text-blue-900 hover:text-blue-700 transition"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="text-blue-900 hover:text-blue-700 transition"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="text-blue-900 hover:text-blue-700 transition"><i class="fab fa-whatsapp"></i></a>
+      </div>
+      <p>&copy; 2025 Sahaduta — Portal Pasien</p>
+    </div>
+  </footer>
+
+  <!-- Toast notification -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-green-700 text-white px-5 py-3 rounded-2xl shadow-xl font-semibold text-sm flex items-center gap-2 z-50 opacity-0 translate-y-4 transition-all duration-300 pointer-events-none">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMsg">Berhasil</span>
+  </div>
+
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    AOS.init({ once: true, duration: 700, offset: 80 });
+
+    // ================================================================
+    // DATA PASIEN (dari server via Blade)
+    // ================================================================
+    // Data sudah dirender langsung via Blade di HTML, tidak perlu set via JS
+
+    // ================================================================
+    // DATA RIWAYAT
+    // ================================================================
+    const riwayatData = [
+      { id:1, tanggal:'2025-02-14', layanan:'Konsultasi Umum', dokter:'dr. Megawati', noAntrian:'A-04', status:'selesai', keluhan:'Demam dan batuk' },
+      { id:2, tanggal:'2025-01-22', layanan:'Laboratorium',    dokter:'—',           noAntrian:'L-07', status:'selesai', keluhan:'Cek darah rutin' },
+      { id:3, tanggal:'2024-12-10', layanan:'Klinik Gigi',     dokter:'drg. Masyitah',noAntrian:'G-02', status:'selesai', keluhan:'Gigi berlubang' },
+      { id:4, tanggal:'2024-11-05', layanan:'Konsultasi Umum', dokter:'dr. Megawati', noAntrian:'A-11', status:'batal',  keluhan:'Sakit kepala' },
+      { id:5, tanggal:'2024-09-20', layanan:'Imunisasi / Vaksin',dokter:'—',          noAntrian:'V-03', status:'selesai', keluhan:'Vaksin flu' },
+    ];
+
+    document.getElementById('totalKunjungan').textContent = riwayatData.filter(r=>r.status==='selesai').length;
+
+    function renderRiwayat(filter='') {
+      const list = document.getElementById('listRiwayat');
+      const empty = document.getElementById('riwayatEmpty');
+      const items = riwayatData.filter(r => !filter || r.layanan.toLowerCase().includes(filter.toLowerCase()));
+      if (!items.length) { list.innerHTML=''; empty.style.display='block'; return; }
+      empty.style.display='none';
+      const statusCls = { selesai:'status-selesai', batal:'status-batal', menunggu:'status-menunggu' };
+      const statusLbl = { selesai:'Selesai', batal:'Batal', menunggu:'Menunggu' };
+      list.innerHTML = items.map(r => `
+        <div class="p-5 flex items-center justify-between gap-4 hover:bg-gray-50 transition group">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 bg-blue-100 text-blue-900 rounded-2xl flex items-center justify-center flex-shrink-0 text-sm font-bold group-hover:bg-blue-900 group-hover:text-white transition">
+              ${r.noAntrian.split('-')[0]}
+            </div>
+            <div>
+              <div class="font-semibold text-gray-800 text-sm">${r.layanan}</div>
+              <div class="text-xs text-gray-400 mt-0.5">${r.tanggal} · Antrian ${r.noAntrian} · ${r.dokter}</div>
+              <div class="text-xs text-gray-500 mt-0.5 italic">${r.keluhan}</div>
+            </div>
+          </div>
+          <span class="text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0 ${statusCls[r.status]}">${statusLbl[r.status]}</span>
+        </div>`).join('');
+    }
+    renderRiwayat();
+    document.getElementById('searchRiwayat').addEventListener('input', e => renderRiwayat(e.target.value));
+
+    // ================================================================
+    // TAB SWITCH
+    // ================================================================
+    function switchTab(tab) {
+      ['profil','riwayat'].forEach(t => {
+        document.getElementById('panel-'+t).classList.toggle('hidden', t!==tab);
+        document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+        if(t!==tab) document.getElementById('tab-'+t).classList.add('text-gray-600');
+        else document.getElementById('tab-'+t).classList.remove('text-gray-600');
+      });
+    }
+
+    // ================================================================
+    // ANTRIAN
+    // ================================================================
+    let antrianAktif = null;
+    let noAntrianCounter = 6; // giliran berikutnya
+
+    function ambilAntrian() {
+      const layanan = document.getElementById('jenisLayanan').value;
+      if (!layanan) { showToast('Pilih jenis layanan terlebih dahulu!', 'red'); return; }
+      antrianAktif = { nomor: 'A-0'+noAntrianCounter, layanan };
+      noAntrianCounter++;
+      document.getElementById('nomorAntrian').textContent = antrianAktif.nomor;
+      document.getElementById('layananDipilih').textContent = layanan;
+      document.getElementById('noAntrianKu').textContent = antrianAktif.nomor;
+      document.getElementById('estimasiHasil').textContent = '~' + ((noAntrianCounter-4)*5) + ' mnt';
+      document.getElementById('formAntrian').classList.add('hidden');
+      document.getElementById('hasilAntrian').classList.remove('hidden');
+      // Update statistik
+      const total = parseInt(document.getElementById('totalAntrianHari').textContent)+1;
+      const tunggu = parseInt(document.getElementById('menunggu').textContent)+1;
+      document.getElementById('totalAntrianHari').textContent = total;
+      document.getElementById('menunggu').textContent = tunggu;
+      // Tambah ke riwayat
+      riwayatData.unshift({ id:Date.now(), tanggal:new Date().toLocaleDateString('id-ID'), layanan, dokter:'—', noAntrian:antrianAktif.nomor, status:'menunggu', keluhan: document.getElementById('keluhan').value || '—' });
+      document.getElementById('totalKunjungan').textContent = riwayatData.filter(r=>r.status==='selesai').length;
+      showToast('Antrian berhasil diambil!');
+    }
+
+    function batalAntrian() {
+      if (!confirm('Batalkan antrian ' + antrianAktif?.nomor + '?')) return;
+      // update status di riwayat
+      const item = riwayatData.find(r => r.noAntrian === antrianAktif?.nomor && r.status==='menunggu');
+      if (item) item.status = 'batal';
+      antrianAktif = null;
+      document.getElementById('noAntrianKu').textContent = '—';
+      document.getElementById('jenisLayanan').value = '';
+      document.getElementById('keluhan').value = '';
+      document.getElementById('formAntrian').classList.remove('hidden');
+      document.getElementById('hasilAntrian').classList.add('hidden');
+      showToast('Antrian dibatalkan', 'red');
+    }
+
+    function pilihLayanan(nama) {
+      document.getElementById('jenisLayanan').value = nama;
+      document.querySelector('#antrian').scrollIntoView({behavior:'smooth'});
+    }
+
+    // ================================================================
+    // EDIT PROFIL
+    // ================================================================
+    function toggleEditProfil() {
+      const inputs = document.querySelectorAll('.profil-input');
+      inputs.forEach(i => { i.readOnly = false; i.classList.add('border-blue-300','bg-white'); i.classList.remove('bg-gray-50'); });
+      document.getElementById('btnEdit').classList.add('hidden');
+      document.getElementById('btnSaveRow').classList.remove('hidden');
+    }
+    function batalEditProfil() {
+      const inputs = document.querySelectorAll('.profil-input');
+      inputs.forEach(i => { i.readOnly = true; i.classList.remove('border-blue-300','bg-white'); i.classList.add('bg-gray-50'); });
+      document.getElementById('btnEdit').classList.remove('hidden');
+      document.getElementById('btnSaveRow').classList.add('hidden');
+    }
+    function simpanProfil() {
+      const nama = document.getElementById('fNamaLengkap').value.trim();
+      if (!nama) return;
+      document.getElementById('namaLengkap').textContent = nama;
+      document.getElementById('namaUser').textContent = nama;
+      document.getElementById('greetName').textContent = nama;
+      batalEditProfil();
+      showToast('Profil berhasil diperbarui!');
+    }
+
+    // ================================================================
+    // TOAST
+    // ================================================================
+    function showToast(msg, color='green') {
+      const t = document.getElementById('toast');
+      const colorMap = { green:'bg-green-700', red:'bg-red-700', amber:'bg-amber-600' };
+      t.className = `fixed bottom-5 right-5 ${colorMap[color]||'bg-green-700'} text-white px-5 py-3 rounded-2xl shadow-xl font-semibold text-sm flex items-center gap-2 z-50 transition-all duration-300 pointer-events-none opacity-100 translate-y-0`;
+      document.getElementById('toastMsg').textContent = msg;
+      setTimeout(() => { t.classList.add('opacity-0','translate-y-4'); t.classList.remove('opacity-100','translate-y-0'); }, 3000);
+    }
+
+    // ================================================================
+    // SIMULASI UPDATE ANTRIAN (setiap 30 detik)
+    // ================================================================
+    setInterval(() => {
+      let now = parseInt(document.getElementById('antrianDisplay').textContent);
+      if (now < parseInt(document.getElementById('totalAntrianHari').textContent)) {
+        now++;
+        document.getElementById('antrianDisplay').textContent = String(now).padStart(3,'0');
+        document.getElementById('antrianSkrg').textContent = now;
+        document.getElementById('sudahDilayani').textContent = now;
+        const tunggu = parseInt(document.getElementById('totalAntrianHari').textContent) - now;
+        document.getElementById('menunggu').textContent = Math.max(0, tunggu);
+        document.getElementById('estimasi').textContent = '~' + Math.max(0, tunggu*5) + ' mnt';
+      }
+    }, 30000);
+  </script>
+</body>
+</html>

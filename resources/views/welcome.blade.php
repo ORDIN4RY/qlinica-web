@@ -165,7 +165,7 @@
 
   <main>
     <!-- ===== HERO SECTION ===== dengan responsive layout ===== -->
-    <section id="home" class="relative bg-gradient-to-br from-blue-50 via-white to-white overflow-hidden">
+    <section id="home" class="relative bg-linear-to-br from-blue-50 via-white to-white overflow-hidden">
       <!-- background elements -->
       <div class="absolute top-20 right-0 w-96 h-96 bg-blue-900/5 rounded-full blur-3xl float-subtle"></div>
       <div class="absolute bottom-0 left-0 w-80 h-80 bg-blue-900/10 rounded-full blur-2xl pulse-soft"></div>
@@ -174,7 +174,6 @@
         <div class="grid md:grid-cols-2 gap-12 items-center">
           <!-- left content - responsive text center on mobile -->
           <div class="space-y-6 hero-content" data-aos="fade-right" data-aos-duration="1000">
-            <span class="inline-block bg-blue-100 text-blue-900 px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide">✨ Klinik dengan standar higienis</span>
             <h1 class="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">Kesehatan Anda <br><span class="text-blue-900">Prioritas Utama</span> Kami</h1>
             <p class="text-lg text-gray-600 max-w-lg mx-auto md:mx-0" data-aos="fade-up" data-aos-delay="200">Dilengkapi tenaga medis profesional dan fasilitas modern. Suasana nyaman, putih bersih, dengan sentuhan biru tua yang menenangkan.</p>
             
@@ -198,20 +197,7 @@
           <!-- right image - hidden on mobile, visible on md -->
           <div class="relative hidden md:block" data-aos="fade-left" data-aos-duration="1200">
             <div class="relative w-full h-96 bg-blue-50 rounded-3xl shadow-xl overflow-hidden border-8 border-white/80 transition-all duration-700 hover:shadow-2xl hover-scale-subtle">
-              <div class="absolute inset-0 bg-[url('https://placehold.co/800x600/blue/white?text=+')] opacity-5"></div>
-              
-              <div class="absolute top-8 left-8 w-32 h-32 bg-white/95 rounded-2xl shadow-lg flex items-center justify-center text-blue-900 border border-blue-900/20 float-subtle">
-                <i class="fas fa-hospital text-5xl"></i>
-              </div>
-              
-              <div class="absolute bottom-8 right-8 w-48 h-32 bg-white rounded-2xl shadow-xl p-4 border-l-4 border-blue-900 transition-all duration-300 hover:shadow-2xl">
-                <div class="flex items-center gap-2 text-blue-900"><i class="fas fa-check-circle"></i> <span class="font-semibold">Ruangan steril</span></div>
-                <div class="flex items-center gap-2 mt-2 text-blue-900"><i class="fas fa-check-circle"></i> <span class="font-semibold">Alat modern</span></div>
-                <div class="flex items-center gap-2 mt-2 text-blue-900"><i class="fas fa-check-circle"></i> <span class="font-semibold">Suhu nyaman</span></div>
-              </div>
-              
-              <div class="absolute -bottom-8 -left-8 w-40 h-40 bg-blue-900/20 rounded-full blur-2xl pulse-soft"></div>
-              <div class="absolute -top-10 -right-10 w-40 h-40 bg-blue-900/20 rounded-full blur-3xl float-subtle"></div>
+              <img src="{{ asset('bg-right.jpg') }}" alt="Klinik Sahaduta" class="absolute inset-0 w-full h-full object-cover">
             </div>
           </div>
         </div>
@@ -269,7 +255,7 @@
     </section>
 
     <!-- ===== TENTANG SECTION ===== dengan layout responsive ===== -->
-    <section id="tentang" class="py-20 bg-gradient-to-b from-white to-blue-50/50">
+    <section id="tentang" class="py-20 bg-linear-to-b from-white to-blue-50/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid md:grid-cols-2 gap-16 items-center">
           <!-- kiri - grid icon (responsive) -->
@@ -386,8 +372,7 @@
         <a href="#" class="text-blue-900 hover:text-blue-700 transition-all duration-300 hover:scale-110"><i class="fab fa-instagram"></i></a>
         <a href="#" class="text-blue-900 hover:text-blue-700 transition-all duration-300 hover:scale-110"><i class="fab fa-twitter"></i></a>
       </div>
-      <p>&copy; 2025 Sahaduta. Didominasi warna putih & biru tua — nuansa klinik bersih dan profesional.</p>
-      <p class="mt-1">Dibangun dengan <i class="fas fa-heart text-blue-400 text-xs"></i> menggunakan Tailwind CSS</p>
+      <p>&copy; 2025 Sahaduta.</p>
     </div>
   </footer>
 
@@ -395,10 +380,10 @@
   <div id="loginModal" class="auth-modal fixed inset-0 bg-black/50 flex items-center justify-center z-50 opacity-0 invisible transition-all duration-300">
     <div class="modal-content bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-8 m-4">
       <div class="flex justify-between items-center mb-6">
-        <h3 class="text-2xl font-bold text-gray-800">Masuk ke <span class="text-blue-900">Sahaduta</span></h3>
+        <h3 class="text-2xl font-bold text-gray-800">SIGN IN</h3>
         <button class="close-modal text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
       </div>
-      
+
       @if($errors->any())
         <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
           <i class="fas fa-exclamation-circle mr-2"></i>{{ $errors->first() }}
@@ -408,10 +393,10 @@
       <form id="loginForm" method="POST" action="/login" class="space-y-5">
         @csrf
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input type="email" name="email" value="{{ old('email') }}" required
+          <label class="block text-sm font-medium text-gray-700 mb-1">No. Rekam Medik</label>
+          <input type="text" name="login_id" value="{{ old('login_id') }}" required
             class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-blue-900"
-            placeholder="admin@sahaduta.com">
+            placeholder="RM-YYYYMMDD-XXXX">
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
@@ -424,14 +409,16 @@
             <input type="checkbox" name="remember" class="rounded border-gray-300"> Ingat saya
           </label>
         </div>
-        <button type="submit" class="w-full btn-subtle bg-blue-900 hover:bg-blue-800 text-white py-3 rounded-xl font-semibold text-lg mt-4">
-          <i class="fas fa-sign-in-alt mr-2"></i> Login
+
+        <p class="text-sm text-gray-500 text-center">
+          Belum punya No. Rekam Medik? Silahkan datang langsung ke Klinik Sahaduta.
+        </p>
+
+        <button type="submit" class="w-full btn-subtle bg-blue-900 hover:bg-blue-800 text-white py-3 rounded-xl font-semibold text-lg mt-2">
+          Login
         </button>
       </form>
-      
-      <div class="mt-6 text-center text-sm text-gray-500">
-        <i class="fas fa-info-circle mr-1"></i> Gunakan: <strong>admin@sahaduta.com</strong> / <strong>password</strong>
-      </div>
+
     </div>
   </div>
 
@@ -456,6 +443,7 @@
       e.preventDefault();
       loginModal.classList.add('show');
     });
+
 
     // Close modals with close button
     closeButtons.forEach(btn => {
