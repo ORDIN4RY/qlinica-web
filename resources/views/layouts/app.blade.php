@@ -48,6 +48,10 @@
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pasien*') ? 'active' : '' }}">
         <i class="fas fa-user-injured w-5 text-center"></i> Data Pasien
       </a>
+      <a href="{{ route('admin.pemesanan') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pasien*') ? 'active' : '' }}">
+        <i class="fas fa-user-injured w-5 text-center"></i> Pemesanan
+      </a>
     </nav>
 
     <!-- User + Logout -->
@@ -90,6 +94,12 @@
         <div class="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-5 py-4 rounded-2xl shadow-sm">
           <i class="fas fa-check-circle text-green-500 text-lg"></i>
           <span>{{ session('success') }}</span>
+        </div>
+      @endif
+      @if(session('error'))
+        <div class="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-2xl shadow-sm">
+          <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+          <span>{{ session('error') }}</span>
         </div>
       @endif
       @yield('content')

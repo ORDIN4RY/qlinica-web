@@ -206,4 +206,16 @@ class PasienController extends Controller
         return redirect()->route('admin.pasien')
             ->with('success', 'Pasien berhasil dihapus.');
     }
+
+    /** Search pasien untuk autocomplete. */
+    public function search(Request $request)
+    {
+        $q = $request->input('q');
+        $pasiens = Pasien::where('nama', 'like', "%{$q}%")
+            ->orWhere('no_rm', 'like', "%{$q}%")
+            ->limit(10)
+            ->get(['id', 'nama', 'no_rm']);
+
+        return response()->json($pasiens);
+    }
 }
