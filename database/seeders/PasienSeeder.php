@@ -28,12 +28,12 @@ class PasienSeeder extends Seeder
         }
 
         // Buat data pasien hanya jika belum ada
-        $exists = DB::table('pasien')->where('no_rm', 'RM-20260101-0001')->exists();
+        $exists = DB::table('pasien')->where('no_rm', 'RM-240101-001')->exists();
 
         if (!$exists) {
             DB::table('pasien')->insert([
                 'user_id'       => $userId,
-                'no_rm'         => 'RM-20260101-0001',
+                'no_rm'         => 'RM-240101-001',
                 'nik'           => '3201010101010001',
                 'nama'          => 'Pasien Demo',
                 'tgl_lahir'     => '1990-01-01',

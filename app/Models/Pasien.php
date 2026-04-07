@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -28,8 +29,38 @@ class Pasien extends Model
         'pekerjaan_id',
     ];
 
+    protected $casts = [
+        'tgl_lahir' => 'date',
+    ];
+
+    /** Relasi ke tabel users */
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Relasi ke tabel agama */
+    public function agama()
+    {
+        return $this->belongsTo(\App\Models\Agama::class, 'agama_id');
+    }
+
+    /** Relasi ke tabel pendidikan */
+    public function pendidikan()
+    {
+        return $this->belongsTo(\App\Models\Pendidikan::class, 'pendidikan_id');
+    }
+
+    /** Relasi ke tabel pekerjaan */
+    public function pekerjaan()
+    {
+        return $this->belongsTo(\App\Models\Pekerjaan::class, 'pekerjaan_id');
+    }
+
+    /** Accessor: hitung umur otomatis dari tgl_lahir */
+    public function getUmurAttribute(): ?int
+    {
+        if (!$this->tgl_lahir) return null;
+        return Carbon::parse($this->tgl_lahir)->age;
     }
 }

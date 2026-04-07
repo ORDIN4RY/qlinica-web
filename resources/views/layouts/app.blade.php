@@ -44,8 +44,8 @@
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('beranda_admin') ? 'active' : '' }}">
         <i class="fas fa-chart-pie w-5 text-center"></i> Dashboard
       </a>
-      <a href="{{ route('patients.index') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('patients.*') ? 'active' : '' }}">
+      <a href="{{ route('admin.pasien') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pasien*') ? 'active' : '' }}">
         <i class="fas fa-user-injured w-5 text-center"></i> Data Pasien
       </a>
     </nav>

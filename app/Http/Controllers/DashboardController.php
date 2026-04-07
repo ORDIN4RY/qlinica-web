@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Patient;
+use App\Models\Pasien;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,51 +11,57 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $totalPatients = Patient::count();
+        // Total pasien terdaftar
+        $totalPasien = Pasien::count();
 
-        $todayVisits = Patient::whereDate('visit_date', today())->count();
+        // Pasien baru hari ini (berdasarkan created_at)
+        $todayNew = Pasien::whereDate('created_at', today())->count();
 
-        $totalDiseases = Patient::distinct('disease')->count('disease');
+        // Distribusi jenis kelamin
+        $lakiLaki   = Pasien::where('jenis_kelamin', 'L')->count();
+        $perempuan  = Pasien::where('jenis_kelamin', 'P')->count();
 
-        // Top diseases for donut chart
-        $diseaseData = Patient::select('disease', DB::raw('count(*) as total'))
-            ->groupBy('disease')
+        // Distribusi golongan darah
+        $golDarah = Pasien::select('golongan_darah', DB::raw('count(*) as total'))
+            ->whereNotNull('golongan_darah')
+            ->groupBy('golongan_darah')
             ->orderByDesc('total')
-            ->limit(8)
             ->get();
 
-        // Monthly visits for current year (line chart)
+        // Pendaftaran pasien per bulan tahun ini (line/bar chart)
         $year = Carbon::now()->year;
-        $monthlyRaw = Patient::selectRaw('MONTH(visit_date) as month, COUNT(*) as total')
-            ->whereYear('visit_date', $year)
+        $monthlyRaw = Pasien::selectRaw('MONTH(created_at) as month, COUNT(*) as total')
+            ->whereYear('created_at', $year)
             ->groupBy('month')
             ->orderBy('month')
             ->pluck('total', 'month');
 
-        $monthlyVisits = [];
+        $monthlyData = [];
         for ($m = 1; $m <= 12; $m++) {
-            $monthlyVisits[] = $monthlyRaw->get($m, 0);
+            $monthlyData[] = $monthlyRaw->get($m, 0);
         }
 
-        $recentPatients = Patient::latest()->limit(10)->get();
+        // Pasien terbaru
+        $recentPasiens = Pasien::with(['user'])->latest()->limit(10)->get();
 
-        // CRUD Pasien
+        // CRUD Pasien — search & paginate
         $search = $request->input('search');
-        $patients = Patient::when($search, function ($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
+        $Pasiens = Pasien::when($search, function ($q) use ($search) {
+            $q->where('nama', 'like', "%{$search}%")
               ->orWhere('nik', 'like', "%{$search}%")
-              ->orWhere('disease', 'like', "%{$search}%");
+              ->orWhere('no_rm', 'like', "%{$search}%");
         })->latest()->paginate(10)->withQueryString();
 
         return view('beranda_admin', compact(
-            'totalPatients',
-            'todayVisits',
-            'totalDiseases',
-            'diseaseData',
-            'monthlyVisits',
+            'totalPasien',
+            'todayNew',
+            'lakiLaki',
+            'perempuan',
+            'golDarah',
+            'monthlyData',
             'year',
-            'recentPatients',
-            'patients',
+            'recentPasiens',
+            'Pasiens',
             'search'
         ));
     }
