@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PasienController;
 use App\Http\Controllers\PegawaiController;
+use App\Http\Controllers\AntrianController;
 
 // Public
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
@@ -19,12 +20,18 @@ Route::post('/login-petugas', [AuthController::class, 'loginPetugas'])->name('lo
 // Protected Routes Khusus Admin
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('beranda_admin');
-    Route::get('/admin/pemesanan', function () { return view('pemesanan'); })->name('admin.pemesanan');
-    Route::get('/admin/komentar',  function () { return view('komentar'); })->name('admin.komentar');
+    Route::get('/admin/pemesanan', [AntrianController::class, 'index'])->name('admin.pemesanan');
+    Route::post('/admin/antrian', [AntrianController::class, 'store'])->name('admin.antrian.store');
+    Route::patch('/admin/antrian/{id}/status', [AntrianController::class, 'updateStatus'])->name('admin.antrian.status');
+    Route::patch('/admin/antrian/{id}/panggil', [AntrianController::class, 'updateStatus'])->name('admin.antrian.panggil');
+    Route::patch('/admin/antrian/{id}/dilayani', [AntrianController::class, 'updateStatus'])->name('admin.antrian.dilayani');
+    Route::patch('/admin/antrian/{id}/selesai', [AntrianController::class, 'updateStatus'])->name('admin.antrian.selesai');
+    // Route::get('/admin/komentar',  function () { return view('komentar'); })->name('admin.komentar');
     Route::get('/admin/laporan',   function () { return view('laporan'); })->name('admin.laporan');
 
     // Pasien CRUD
     Route::get('/admin/pasien',         [PasienController::class, 'index'])->name('admin.pasien');
+    Route::get('/admin/pasien/search',  [PasienController::class, 'search'])->name('admin.pasien.search');
     Route::post('/admin/pasien',        [PasienController::class, 'store'])->name('admin.pasien.store');
     Route::put('/admin/pasien/{id}',    [PasienController::class, 'update'])->name('admin.pasien.update');
     Route::delete('/admin/pasien/{id}', [PasienController::class, 'destroy'])->name('admin.pasien.destroy');

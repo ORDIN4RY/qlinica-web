@@ -30,13 +30,22 @@ class Antrian extends Model
         return $this->belongsTo(Pasien::class, 'pasien_id');
     }
 
-    public function jadwalDokter()
+    public function getNomorAntrianAttribute()
     {
-        return $this->belongsTo(JadwalDokter::class, 'jadwal_dokter_id');
+        return $this->attributes['no_antrian'] ?? null;
     }
 
-    public function rekamMedis()
+    public function getJenisPemesanAttribute()
     {
-        return $this->hasOne(RekamMedis::class, 'antrian_id');
+        return $this->attributes['jenis'] ?? null;
+    }
+
+    public function getStatusAttribute($value)
+    {
+        if ($value === 'Dipanggil') {
+            return 'Terpanggil';
+        }
+
+        return $value;
     }
 }
