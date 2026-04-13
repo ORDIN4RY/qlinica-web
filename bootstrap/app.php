@@ -12,7 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'role'            => \App\Http\Middleware\RoleMiddleware::class,
+            'session.timeout' => \App\Http\Middleware\SessionTimeout::class,
+        ]);
+
+        // Terapkan SessionTimeout ke semua request web
+        $middleware->web(append: [
+            \App\Http\Middleware\SessionTimeout::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

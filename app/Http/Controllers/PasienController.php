@@ -32,7 +32,7 @@ class PasienController extends Controller
         $pendidikans = Pendidikan::orderBy('pendidikan')->get(['id', 'pendidikan']);
         $pekerjaans  = Pekerjaan::orderBy('pekerjaan')->get(['id', 'pekerjaan']);
 
-        return view('pasien', compact('pasiens', 'search', 'agamas', 'pendidikans', 'pekerjaans'));
+        return view('admin.pasien', compact('pasiens', 'search', 'agamas', 'pendidikans', 'pekerjaans'));
     }
 
     /** Ambil semua data pasien (AJAX). */
@@ -99,9 +99,9 @@ class PasienController extends Controller
             'password.min'    => 'Password minimal 6 karakter.',
         ]);
 
-        DB::transaction(function () use ($request) {
+        DB::transaction(function () use ($request, &$newUser, &$newPasien) {
             // Buat akun user untuk pasien
-            $user = User::create([
+            $newUser = User::create([
                 'name'      => $request->nama,
                 'email'     => 'pasien_' . $request->no_rm . '@sahaduta.local',
                 'password'  => Hash::make($request->password),
@@ -110,8 +110,8 @@ class PasienController extends Controller
                 'is_active' => true,
             ]);
 
-            Pasien::create([
-                'user_id'        => $user->id,
+            $newPasien = Pasien::create([
+                'user_id'        => $newUser->id,
                 'no_rm'          => $request->no_rm,
                 'nik'            => $request->nik,
                 'nama'           => $request->nama,
@@ -129,7 +129,9 @@ class PasienController extends Controller
         });
 
         return redirect()->route('admin.pasien')
-            ->with('success', 'Pasien berhasil ditambahkan.');
+            ->with('success', 'Pasien berhasil ditambahkan.')
+            ->with('new_pasien_id', $newPasien->id)
+            ->with('new_pasien_rm', $newPasien->no_rm);
     }
 
     /** Update data pasien. */
@@ -205,6 +207,34 @@ class PasienController extends Controller
 
         return redirect()->route('admin.pasien')
             ->with('success', 'Pasien berhasil dihapus.');
+    }
+
+    /** Buat akun login untuk pasien yang belum punya akun. */
+    public function createAccount(Request $request, $id)
+    {
+        $pasien = Pasien::findOrFail($id);
+
+        if ($pasien->user) {
+            return redirect()->route('admin.pasien')
+                ->with('warning', 'Pasien "' . $pasien->nama . '" sudah memiliki akun login.');
+        }
+
+        $defaultPassword = 'pasien' . now()->year;
+
+        $user = User::create([
+            'name'      => $pasien->nama,
+            'email'     => 'pasien_' . $pasien->no_rm . '@sahaduta.local',
+            'password'  => Hash::make($defaultPassword),
+            'role'      => 'pasien',
+            'is_active' => true,
+        ]);
+
+        $pasien->update(['user_id' => $user->id]);
+
+        return redirect()->route('admin.pasien')
+            ->with('success', 'Akun login berhasil dibuat untuk pasien "' . $pasien->nama . '". Password default: ' . $defaultPassword)
+            ->with('new_pasien_id', $pasien->id)
+            ->with('new_pasien_rm', $pasien->no_rm);
     }
 
     /** Search pasien untuk autocomplete. */

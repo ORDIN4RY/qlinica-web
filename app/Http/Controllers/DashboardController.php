@@ -106,7 +106,7 @@ class DashboardController extends Controller
             $tahunList = [Carbon::now()->year];
         }
 
-        return view('beranda_admin', compact(
+        return view('admin.beranda_admin', compact(
             'year',
             'month',
             'totalTahun',

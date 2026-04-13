@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('no_sip', 60)->nullable()->comment('Nomor Surat Izin Praktik dokter');
             $table->text('alamat')->nullable();
             $table->string('no_hp', 15)->nullable();
+            $table->text('foto')->nullable()->comment('Path atau URL foto profil pegawai');
             $table->timestamps();
             $table->softDeletes();
         });
