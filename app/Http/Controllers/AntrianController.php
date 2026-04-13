@@ -19,6 +19,7 @@ class AntrianController extends Controller
             'antrians' => $antrians,
             'jumlahAntrian' => $antrians->count(),
             'terpanggil' => $antrians->where('status', 'Dipanggil')->count(),
+            'selesai' => $antrians->where('status', 'Selesai')->count(),
         ]);
     }
 
