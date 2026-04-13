@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Antrian;
+use App\Models\Icdx;
 use App\Models\Pasien;
+use App\Models\RekamMedis;
+use App\Models\RekamMedisDiagnosa;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,58 +15,113 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Total pasien terdaftar
-        $totalPasien = Pasien::count();
+        $year  = (int) $request->input('year', Carbon::now()->year);
+        $month = (int) $request->input('month', Carbon::now()->month - 1); // 0-indexed untuk JS
 
-        // Pasien baru hari ini (berdasarkan created_at)
-        $todayNew = Pasien::whereDate('created_at', today())->count();
+        // ── KPI: Kunjungan per tahun ──────────────────────────────────
+        $visitsByYear = Antrian::selectRaw('
+                SUM(CASE WHEN p.jenis_kelamin = "L" THEN 1 ELSE 0 END) as laki,
+                SUM(CASE WHEN p.jenis_kelamin = "P" THEN 1 ELSE 0 END) as perempuan,
+                COUNT(*) as total
+            ')
+            ->join('pasien as p', 'p.id', '=', 'antrian.pasien_id')
+            ->whereYear('antrian.tanggal', $year)
+            ->whereNull('antrian.deleted_at')
+            ->first();
 
-        // Distribusi jenis kelamin
-        $lakiLaki   = Pasien::where('jenis_kelamin', 'L')->count();
-        $perempuan  = Pasien::where('jenis_kelamin', 'P')->count();
+        $totalTahun     = $visitsByYear->total ?? Pasien::count();
+        $lakiTahun      = $visitsByYear->laki ?? Pasien::where('jenis_kelamin', 'L')->count();
+        $perempuanTahun = $visitsByYear->perempuan ?? Pasien::where('jenis_kelamin', 'P')->count();
 
-        // Distribusi golongan darah
-        $golDarah = Pasien::select('golongan_darah', DB::raw('count(*) as total'))
-            ->whereNotNull('golongan_darah')
-            ->groupBy('golongan_darah')
-            ->orderByDesc('total')
-            ->get();
+        // ── KPI: Kunjungan per bulan (12 bulan untuk chart) ──────────
+        $monthlyRaw = Antrian::selectRaw('
+                MONTH(tanggal) as bulan,
+                SUM(CASE WHEN p.jenis_kelamin = "L" THEN 1 ELSE 0 END) as laki,
+                SUM(CASE WHEN p.jenis_kelamin = "P" THEN 1 ELSE 0 END) as perempuan
+            ')
+            ->join('pasien as p', 'p.id', '=', 'antrian.pasien_id')
+            ->whereYear('antrian.tanggal', $year)
+            ->whereNull('antrian.deleted_at')
+            ->groupBy('bulan')
+            ->orderBy('bulan')
+            ->get()
+            ->keyBy('bulan');
 
-        // Pendaftaran pasien per bulan tahun ini (line/bar chart)
-        $year = Carbon::now()->year;
-        $monthlyRaw = Pasien::selectRaw('MONTH(created_at) as month, COUNT(*) as total')
-            ->whereYear('created_at', $year)
-            ->groupBy('month')
-            ->orderBy('month')
-            ->pluck('total', 'month');
-
-        $monthlyData = [];
+        // Selalu 12 slot
+        $dataLaki      = [];
+        $dataPerempuan = [];
+        $bulanAdaData  = [];
         for ($m = 1; $m <= 12; $m++) {
-            $monthlyData[] = $monthlyRaw->get($m, 0);
+            $row = $monthlyRaw->get($m);
+            $l   = $row ? (int) $row->laki : 0;
+            $p   = $row ? (int) $row->perempuan : 0;
+            $dataLaki[]      = $l;
+            $dataPerempuan[] = $p;
+            if ($l + $p > 0) {
+                $bulanAdaData[] = $m - 1; // 0-index untuk JS
+            }
         }
 
-        // Pasien terbaru
-        $recentPasiens = Pasien::with(['user'])->latest()->limit(10)->get();
+        // ── Top 10 Penyakit ──────────────────────────────────────────
+        $topPenyakit = RekamMedisDiagnosa::select('icdx_id', DB::raw('COUNT(*) as n'))
+            ->groupBy('icdx_id')
+            ->orderByDesc('n')
+            ->limit(10)
+            ->with('icdx')
+            ->get()
+            ->map(fn($d) => [
+                'nama' => $d->icdx ? $d->icdx->nama : 'Tidak Diketahui',
+                'n'    => $d->n,
+            ])
+            ->values();
 
-        // CRUD Pasien — search & paginate
-        $search = $request->input('search');
-        $Pasiens = Pasien::when($search, function ($q) use ($search) {
-            $q->where('nama', 'like', "%{$search}%")
-              ->orWhere('nik', 'like', "%{$search}%")
-              ->orWhere('no_rm', 'like', "%{$search}%");
-        })->latest()->paginate(10)->withQueryString();
+        // Fallback: jika rekam_medis_diagnosa kosong, ambil dari icdx tanpa frekuensi
+        if ($topPenyakit->isEmpty()) {
+            $topPenyakit = Icdx::limit(10)->get()->map(fn($i) => [
+                'nama' => $i->nama,
+                'n'    => 0,
+            ])->values();
+        }
+
+        // ── Distribusi Gender (Pasien terdaftar) ─────────────────────
+        $lakiTotal      = Pasien::where('jenis_kelamin', 'L')->count();
+        $perempuanTotal = Pasien::where('jenis_kelamin', 'P')->count();
+        $totalPasien    = $lakiTotal + $perempuanTotal ?: 1;
+        $lakiPct        = round($lakiTotal / $totalPasien * 100, 1);
+        $perempuanPct   = round(100 - $lakiPct, 1);
+
+        // ── Kepuasan Pasien (tabel feedback jika ada) ─────────────
+        // Sementara dummy karena belum ada model Feedback aktif
+        $kepuasanData = [78, 14, 5, 2, 1];
+
+        // ── Tahun tersedia (untuk date-picker) ───────────────────────
+        $tahunList = Antrian::selectRaw('YEAR(tanggal) as tahun')
+            ->whereNull('deleted_at')
+            ->groupBy('tahun')
+            ->orderByDesc('tahun')
+            ->pluck('tahun')
+            ->toArray();
+
+        if (empty($tahunList)) {
+            $tahunList = [Carbon::now()->year];
+        }
 
         return view('beranda_admin', compact(
-            'totalPasien',
-            'todayNew',
-            'lakiLaki',
-            'perempuan',
-            'golDarah',
-            'monthlyData',
             'year',
-            'recentPasiens',
-            'Pasiens',
-            'search'
+            'month',
+            'totalTahun',
+            'lakiTahun',
+            'perempuanTahun',
+            'dataLaki',
+            'dataPerempuan',
+            'bulanAdaData',
+            'topPenyakit',
+            'lakiTotal',
+            'perempuanTotal',
+            'lakiPct',
+            'perempuanPct',
+            'kepuasanData',
+            'tahunList'
         ));
     }
 }

@@ -203,9 +203,9 @@
             {{-- Jenis Kelamin --}}
             <td class="px-5 py-4">
               @if($p->jenis_kelamin === 'L')
-                <span class="badge-l text-xs font-bold px-3 py-1 rounded-full">♂ Laki-laki</span>
+                <span class="badge-l text-xs font-bold px-3 py-1 rounded-full">Laki-laki</span>
               @else
-                <span class="badge-p text-xs font-bold px-3 py-1 rounded-full">♀ Perempuan</span>
+                <span class="badge-p text-xs font-bold px-3 py-1 rounded-full">Perempuan</span>
               @endif
             </td>
             {{-- Golongan Darah --}}
@@ -226,6 +226,12 @@
             {{-- Aksi --}}
             <td class="px-5 py-4">
               <div class="flex items-center gap-2">
+                <button
+                  onclick="openInfo({{ $p->id }})"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+                  title="Info">
+                  <i class="fas fa-info text-xs"></i>
+                </button>
                 <button
                   onclick="openEdit({{ $p->id }})"
                   class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition"
@@ -309,7 +315,7 @@
      MODAL TAMBAH / EDIT
 ══════════════════════════════════════════════════════════════ --}}
 <div class="modal-overlay" id="modalOverlay">
-  <div class="modal-box">
+  <div class="modal-box" >
     <div class="modal-head">
       <h2 class="text-lg font-bold text-gray-800" id="modalTitle">Tambah Pasien</h2>
       <button onclick="closeModal()" class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition text-gray-500">
@@ -317,7 +323,7 @@
       </button>
     </div>
 
-    <form id="pasienForm" method="POST" action="{{ route('admin.pasien.store') }}">
+    <form id="pasienForm" method="POST" action="{{ route('admin.pasien.store') }}" style="overflow-y: scroll;">
       @csrf
       <input type="hidden" name="_method" id="formMethod" value="POST">
       <input type="hidden" name="_pasien_id" id="formPasienId" value="">
@@ -493,6 +499,80 @@
       </form>
     </div>
   </div>
+</div>{{-- ═══════════════════════════════════════════════════════════
+     MODAL INFO
+══════════════════════════════════════════════════════════════ --}}
+<div class="modal-overlay" id="infoOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 class="text-lg font-bold text-gray-800">Detail Pasien</h2>
+      <button onclick="closeInfo()" class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition text-gray-500">
+        <i class="fas fa-times text-sm"></i>
+      </button>
+    </div>
+    <div class="modal-body bg-gray-50/50">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-6">
+        
+        <div class="col-span-1 md:col-span-2 pb-5 mb-2 border-b border-gray-200">
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center text-3xl font-bold shadow-sm">
+              <i class="fas fa-user"></i>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800" id="infoNama">Nama Pasien</h3>
+              <p class="text-sm text-gray-500 font-mono font-semibold" id="infoRm">RM-000000</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-400 uppercase mb-1">NIK</label>
+          <div class="text-[15px] font-semibold text-gray-800" id="infoNik">-</div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Nama Kepala Keluarga</label>
+          <div class="text-[15px] font-semibold text-gray-800" id="infoKk">-</div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Tanggal Lahir</label>
+          <div class="text-[15px] font-semibold text-gray-800" id="infoTgl">-</div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Jenis Kelamin</label>
+          <div class="text-[15px] font-semibold text-gray-800" id="infoJenkel">-</div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Golongan Darah</label>
+          <div class="text-[15px] font-semibold text-gray-800" id="infoDarah">-</div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-400 uppercase mb-1">No HP</label>
+          <div class="text-[15px] font-semibold text-gray-800" id="infoHp">-</div>
+        </div>
+        
+
+        <div>
+          <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Agama</label>
+          <div class="text-[15px] font-semibold text-gray-800" id="infoAgama">-</div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Pendidikan</label>
+          <div class="text-[15px] font-semibold text-gray-800" id="infoPendidikan">-</div>
+        </div>
+        <div class="col-span-1 md:col-span-2">
+          <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Pekerjaan</label>
+          <div class="text-[15px] font-semibold text-gray-800" id="infoPekerjaan">-</div>
+        </div>
+        <div class="col-span-1 md:col-span-2">
+          <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Alamat Lengkap</label>
+          <div class="text-[15px] font-semibold text-gray-800" id="infoAlamat">-</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot bg-gray-50/50">
+      <button type="button" onclick="closeInfo()" class="px-6 py-2.5 rounded-xl bg-blue-900 border text-white text-sm font-bold shadow-md hover:bg-blue-800 transition">Tutup Detail</button>
+    </div>
+  </div>
 </div>
 
 {{-- Data JSON pasien untuk form edit --}}
@@ -527,6 +607,7 @@
   /* ── MODAL TAMBAH/EDIT ── */
   function openAdd() {
     editingId = null;
+    document.body.style.overflow = 'hidden';
     document.getElementById('modalTitle').textContent = 'Tambah Pasien';
     document.getElementById('pasienForm').action      = '{{ route("admin.pasien.store") }}';
     document.getElementById('formMethod').value       = 'POST';
@@ -569,10 +650,12 @@
     document.getElementById('fPassword').value    = '';
 
     document.getElementById('modalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
   }
 
   function closeModal() {
     document.getElementById('modalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
   }
 
   function clearForm() {
@@ -601,10 +684,55 @@
     document.getElementById('delMsg').textContent    = 'Pasien "' + nama + '" akan dihapus.';
     document.getElementById('delForm').action        = BASE_URL + '/' + id;
     document.getElementById('delOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
   }
 
   function closeDel() {
     document.getElementById('delOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  /* ── MODAL INFO ── */
+  function openInfo(id) {
+    var p = pasienMap[id];
+    if (!p) return;
+    
+    document.getElementById('infoNama').textContent = p.nama || '-';
+    document.getElementById('infoRm').textContent = p.no_rm || '-';
+    document.getElementById('infoNik').textContent = p.nik || '-';
+    document.getElementById('infoKk').textContent = p.nama_kk || '-';
+    document.getElementById('infoTgl').textContent = p.tgl_lahir ? p.tgl_lahir : '-';
+    document.getElementById('infoJenkel').textContent = p.jenis_kelamin === 'L' ? 'Laki-laki' : (p.jenis_kelamin === 'P' ? 'Perempuan' : '-');
+    document.getElementById('infoDarah').textContent = p.golongan_darah || '-';
+    document.getElementById('infoHp').textContent = p.no_hp || '-';
+    
+    var fullAlamat = [];
+    if(p.alamat) fullAlamat.push(p.alamat);
+    if(p.desa) fullAlamat.push(p.desa);
+    if(p.kota) fullAlamat.push(p.kota);
+    document.getElementById('infoAlamat').textContent = fullAlamat.length > 0 ? fullAlamat.join(', ') : '-';
+    
+    var getSelectText = function(selectId, val) {
+      if(!val) return '-';
+      var sel = document.getElementById(selectId);
+      if(!sel) return '-';
+      for(var i=0; i<sel.options.length; i++) {
+        if(sel.options[i].value == val) return sel.options[i].text;
+      }
+      return '-';
+    };
+    
+    document.getElementById('infoAgama').textContent = getSelectText('fAgama', p.agama_id);
+    document.getElementById('infoPendidikan').textContent = getSelectText('fPendidikan', p.pendidikan_id);
+    document.getElementById('infoPekerjaan').textContent = getSelectText('fPekerjaan', p.pekerjaan_id);
+
+    document.getElementById('infoOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeInfo() {
+    document.getElementById('infoOverlay').classList.remove('open');
+    document.body.style.overflow = '';
   }
 
   /* ── EVENTS ── */
@@ -617,9 +745,13 @@
     if (e.target === this) closeDel();
   });
 
+  document.getElementById('infoOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeInfo();
+  });
+
   // Tutup dengan Escape
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') { closeModal(); closeDel(); }
+    if (e.key === 'Escape') { closeModal(); closeDel(); closeInfo(); }
   });
 </script>
 @endpush

@@ -175,7 +175,7 @@
           <line x1="8" y1="2" x2="8" y2="6"/>
           <line x1="3" y1="10" x2="21" y2="10"/>
         </svg>
-        <span id="labelBulan">Februari 2025</span>
+        <span id="labelBulan">{{ ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][$month] }} {{ $year }}</span>
         <svg class="chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <polyline points="6,9 12,15 18,9"/>
         </svg>
@@ -186,7 +186,7 @@
           <button class="dd-tahun-btn" id="btnTahunPrev">
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
           </button>
-          <span class="dd-tahun-angka" id="tahunLabel">2025</span>
+          <span class="dd-tahun-angka" id="tahunLabel">{{ $year }}</span>
           <button class="dd-tahun-btn" id="btnTahunNext">
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="9,18 15,12 9,6"/></svg>
           </button>
@@ -210,10 +210,10 @@
         <span class="badge naik">↑ 8.2%</span>
       </div>
       <div class="kpi-label">Total Tahun Ini</div>
-      <div class="kpi-angka" id="kpiTotalTahun">1.442</div>
+      <div class="kpi-angka" id="kpiTotalTahun">{{ number_format($totalTahun) }}</div>
       <div class="kpi-pills">
-        <div class="pill">♂ <strong id="kpiLakiTahun">595</strong></div>
-        <div class="pill">♀ <strong id="kpiPerempuanTahun">847</strong></div>
+        <div class="pill">♂ <strong id="kpiLakiTahun">{{ number_format($lakiTahun) }}</strong></div>
+        <div class="pill">♀ <strong id="kpiPerempuanTahun">{{ number_format($perempuanTahun) }}</strong></div>
       </div>
     </div>
 
@@ -295,7 +295,7 @@
         <div class="card-header">
           <div>
             <div class="card-judul">Distribusi Gender</div>
-            <div class="card-sub">Total tahun 2025</div>
+            <div class="card-sub">Total terdaftar ({{ $year }})</div>
           </div>
         </div>
         <div class="card-body">
@@ -308,8 +308,8 @@
               </div>
               <div>
                 <div class="gender-label">Laki-laki</div>
-                <div class="gender-angka">595</div>
-                <div class="gender-pct" style="color:#2563eb">41.3%</div>
+                <div class="gender-angka">{{ number_format($lakiTotal) }}</div>
+                <div class="gender-pct" style="color:#2563eb">{{ $lakiPct }}%</div>
               </div>
             </div>
             <div class="gender-box">
@@ -320,13 +320,13 @@
               </div>
               <div>
                 <div class="gender-label">Perempuan</div>
-                <div class="gender-angka" style="color:#7c3aed">847</div>
-                <div class="gender-pct" style="color:#7c3aed">58.7%</div>
+                <div class="gender-angka" style="color:#7c3aed">{{ number_format($perempuanTotal) }}</div>
+                <div class="gender-pct" style="color:#7c3aed">{{ $perempuanPct }}%</div>
               </div>
             </div>
           </div>
           <div class="gender-bar-wrap">
-            <div class="gender-bar-fill" style="width:100%"></div>
+            <div class="gender-bar-fill" style="width:100%; background: linear-gradient(90deg, #2563eb {{ $lakiPct }}%, #7c3aed {{ $lakiPct }}%)"></div>
           </div>
           <div class="grafik-kecil"><canvas id="grafikGender"></canvas></div>
         </div>
@@ -339,7 +339,7 @@
   <div class="card" style="animation-delay:.28s; margin-bottom:16px">
     <div class="card-header">
       <div>
-        <div class="card-judul">Grafik Penanganan per Bulan — <span id="labelTahunGrafik">2025</span></div>
+        <div class="card-judul">Grafik Penanganan per Bulan — <span id="labelTahunGrafik">{{ $year }}</span></div>
         <div class="card-sub" id="labelSubGrafik">Data kumulatif s.d. Februari 2025</div>
       </div>
     </div>
@@ -360,10 +360,11 @@
     var BULAN_PENDEK  = ['Jan','Feb','Mar','Apr','Mei','Jun',
                          'Jul','Agt','Sep','Okt','Nov','Des'];
 
-    var bulanAdaData   = [0, 1];
-    var bulanTerpilih  = 1;
-    var tahunTerpilih  = 2025;
-    var tahunDropdown  = 2025;
+    var bulanAdaData   = @json($bulanAdaData);
+    var bulanTerpilih  = {{ $month }};
+    var tahunTerpilih  = {{ $year }};
+    var tahunDropdown  = {{ $year }};
+    var tahunList      = @json($tahunList);
 
     var dateBtn    = document.getElementById('dateBtn');
     var dateDrop   = document.getElementById('dateDrop');
@@ -407,26 +408,15 @@
     // ==============================================================
     // 2. DATA KUNJUNGAN
     // ==============================================================
-    var dataLaki      = [414, 153, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    var dataPerempuan = [624, 251, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    var dataLaki      = @json($dataLaki);
+    var dataPerempuan = @json($dataPerempuan);
 
     // ==============================================================
     // 3. TOP 10 PENYAKIT
     // ==============================================================
-    var dataPenyakit = [
-      { nama: 'Streptococcal pharyngitis',                                   n: 4859 },
-      { nama: 'General medical examination',                                 n: 4601 },
-      { nama: 'Typhoid fever',                                               n: 4044 },
-      { nama: 'Acute upper respiratory infection, unspecified',              n: 3536 },
-      { nama: 'Gastritis, unspecified',                                      n: 3004 },
-      { nama: 'Unspecified acute lower respiratory infection',               n: 2866 },
-      { nama: 'Essential (primary) hypertension',                            n: 2860 },
-      { nama: 'Diarrhoea and gastroenteritis of presumed infectious origin', n: 1797 },
-      { nama: 'Fever, unspecified',                                          n: 1521 },
-      { nama: 'Ulcerative colitis, unspecified',                             n: 1488 }
-    ];
+    var dataPenyakit = @json($topPenyakit);
 
-    var maxPenyakit = dataPenyakit[0].n;
+    var maxPenyakit = dataPenyakit.length > 0 ? dataPenyakit[0].n : 1;
     var elList = document.getElementById('penyakitList');
     dataPenyakit.forEach(function (p, i) {
       var nomor = i + 1;
@@ -472,7 +462,7 @@
     // ==============================================================
     new Chart(document.getElementById('grafikGender'), {
       type: 'doughnut',
-      data: { labels: ['Laki-laki', 'Perempuan'], datasets: [{ data: [595, 847], backgroundColor: ['#2563eb', '#7c3aed'], borderWidth: 3, borderColor: '#fff' }] },
+      data: { labels: ['Laki-laki', 'Perempuan'], datasets: [{ data: [{{ $lakiTotal }}, {{ $perempuanTotal }}], backgroundColor: ['#2563eb', '#7c3aed'], borderWidth: 3, borderColor: '#fff' }] },
       options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } }
     });
 

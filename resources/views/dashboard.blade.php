@@ -64,7 +64,7 @@
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden fade-in-up" style="animation-delay:.3s">
   <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
     <h3 class="font-semibold text-gray-800">Pasien Terbaru</h3>
-    <a href="{{ route('patients.index') }}" class="text-sm text-blue-900 hover:underline font-medium">Lihat semua →</a>
+    <a href="{{ route('admin.pasien') }}" class="text-sm text-blue-900 hover:underline font-medium">Lihat semua →</a>
   </div>
   <div class="overflow-x-auto">
     <table class="w-full text-sm">
