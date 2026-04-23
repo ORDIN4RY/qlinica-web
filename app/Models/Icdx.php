@@ -8,10 +8,11 @@ class Icdx extends Model
 {
     protected $table = 'icdx';
 
+    protected $primaryKey = 'id_icdx';
+
     protected $fillable = [
-        'kode',
-        'nama',
-        'nama_en',
+        'kd_icdx',
+        'nama_icdx',
     ];
 
     public function diagnosa()

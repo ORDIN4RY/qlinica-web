@@ -14,7 +14,6 @@ class Antrian extends Model
     protected $fillable = [
         'no_antrian',
         'pasien_id',
-        'jadwal_dokter_id',
         'tanggal',
         'jenis',
         'keluhan',

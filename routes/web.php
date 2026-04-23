@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PasienController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\AntrianController;
+use App\Http\Controllers\IcdxController;
 
 
 // Public
@@ -43,6 +44,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/komentar',  function () { return view('admin.komentar'); })->name('admin.komentar');
     Route::get('/admin/laporan',   function () { return view('laporan'); })->name('admin.laporan');
 
+    // ICDX
+    Route::get('/admin/icdx', [IcdxController::class, 'index'])->name('admin.icdx');
+
     // Pegawai CRUD
     Route::get('/admin/pegawai', [PegawaiController::class, 'index'])->name('admin.pegawai');
     Route::get('/admin/pegawai/search', [PegawaiController::class, 'search'])->name('admin.pegawai.search');
@@ -67,7 +71,9 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
         return view('dashboard_pasien', compact('user', 'pasien'));
     })->name('pasien.portal');
 
-    Route::get('/pemesanan', function () {
+    Route::post('/dashboard-pasien/antrian', [AntrianController::class, 'storePasien'])->name('pasien.antrian.store');
+
+    Route::get('/pemesanan', function () { 
         $user   = auth()->user();
         $pasien = $user->pasien ?? null;
         return view('pemesanan', compact('user', 'pasien'));

@@ -65,6 +65,14 @@
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.komentar*') ? 'active' : '' }}">
         <i class="fas fa-comment w-5 text-center"></i> Komentar
       </a>
+      <a href="{{ route('admin.komentar') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.komentar*') ? 'active' : '' }}">
+        <i class="fas fa-calendar w-5 text-center"></i> Jadwal Dokter
+      </a>
+      <a href="{{ route('admin.icdx') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.icdx*') ? 'active' : '' }}">
+        <i class="fas fa-book-medical w-5 text-center"></i> ICDX
+      </a>
     </nav>
 
     <!-- User + Logout -->

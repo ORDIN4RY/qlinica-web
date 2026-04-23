@@ -41,7 +41,6 @@ class AntrianController extends Controller
         Antrian::create([
             'no_antrian' => $nextNo,
             'pasien_id' => $request->pasien_id,
-            'jadwal_dokter_id' => null,
             'tanggal' => now()->toDateString(),
             'jenis' => $request->jenis_pemesan,
             'keluhan' => $request->catatan,
@@ -64,5 +63,45 @@ class AntrianController extends Controller
 
         $message = 'Status antrian berhasil diupdate.';
         return redirect()->route('admin.pemesanan')->with('success', $message);
+    }
+
+    public function storePasien(Request $request)
+    {
+        $request->validate([
+            'jenis' => 'required|string',
+            'keluhan' => 'nullable|string',
+        ]);
+
+        $user = auth()->user();
+        if (!$user || !$user->pasien) {
+            return response()->json(['success' => false, 'message' => 'Data pasien tidak ditemukan.'], 403);
+        }
+
+        $lastAntrian = Antrian::where('tanggal', now()->toDateString())
+            ->orderBy('no_antrian', 'desc')
+            ->first();
+
+        $nextNo = $lastAntrian ? $lastAntrian->no_antrian + 1 : 1;
+
+        // jenis layanan dari frontend disimpan bersama keluhan
+        $keluhanFull = $request->jenis;
+        if (!empty($request->keluhan)) {
+            $keluhanFull .= " - " . $request->keluhan;
+        }
+
+        $antrian = Antrian::create([
+            'no_antrian' => $nextNo,
+            'pasien_id' => $user->pasien->id,
+            'tanggal' => now()->toDateString(),
+            'jenis' => 'Online', // Schema enum('Online','Offline')
+            'keluhan' => $keluhanFull,
+            'status' => 'Menunggu',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Antrian berhasil ditambahkan.',
+            'no_antrian' => sprintf('A-%02d', $antrian->no_antrian)
+        ]);
     }
 }
