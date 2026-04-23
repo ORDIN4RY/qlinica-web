@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PasienController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\AntrianController;
+use App\Http\Controllers\IcdxController;
 
 // Public
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
@@ -26,7 +27,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::patch('/admin/antrian/{id}/panggil', [AntrianController::class, 'updateStatus'])->name('admin.antrian.panggil');
     Route::patch('/admin/antrian/{id}/dilayani', [AntrianController::class, 'updateStatus'])->name('admin.antrian.dilayani');
     Route::patch('/admin/antrian/{id}/selesai', [AntrianController::class, 'updateStatus'])->name('admin.antrian.selesai');
-    // Route::get('/admin/komentar',  function () { return view('komentar'); })->name('admin.komentar');
+    Route::get('/admin/komentar',  function () { return view('komentar'); })->name('admin.komentar');
     Route::get('/admin/laporan',   function () { return view('laporan'); })->name('admin.laporan');
 
     // Pasien CRUD
@@ -42,6 +43,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/pegawai',             [PegawaiController::class, 'store'])->name('admin.pegawai.store');
     Route::put('/admin/pegawai/{id}',         [PegawaiController::class, 'update'])->name('admin.pegawai.update');
     Route::delete('/admin/pegawai/{id}',      [PegawaiController::class, 'destroy'])->name('admin.pegawai.destroy');
+
+    // ICDX
+    Route::get('/admin/icdx',              [IcdxController::class, 'index'])->name('admin.icdx');
+    Route::post('/admin/icdx',             [IcdxController::class, 'store'])->name('admin.icdx.store');
+    Route::put('/admin/icdx/{id}',         [IcdxController::class, 'update'])->name('admin.icdx.update');
+    Route::delete('/admin/icdx/{id}',      [IcdxController::class, 'destroy'])->name('admin.icdx.destroy');
 });
 
 // Protected Routes Khusus Pasien

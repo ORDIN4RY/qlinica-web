@@ -40,7 +40,7 @@ class AntrianController extends Controller
         Antrian::create([
             'no_antrian' => $nextNo,
             'pasien_id' => $request->pasien_id,
-            'jadwal_dokter_id' => null,
+            'jadwal_dokter_id' => 1,
             'tanggal' => now()->toDateString(),
             'jenis' => $request->jenis_pemesan,
             'keluhan' => $request->catatan,
