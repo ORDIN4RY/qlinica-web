@@ -64,8 +64,6 @@
       <a href="{{ route('admin.komentar') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.komentar*') ? 'active' : '' }}">
         <i class="fas fa-comment w-5 text-center"></i> Komentar
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pemesanan*') ? 'active' : '' }}">
-        <i class="fas fa-calendar-check w-5 text-center"></i> Pemesanan
       </a>
       <a href="{{ route('admin.icdx') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.icdx*') ? 'active' : '' }}">

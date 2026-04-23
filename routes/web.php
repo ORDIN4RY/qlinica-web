@@ -17,7 +17,8 @@ Route::get('/login', function () {
     // Jika sudah login, arahkan ke halaman yang sesuai dengan role
     if (auth()->check()) {
         $role = auth()->user()->role;
-        return redirect()->route($role === 'admin' ? 'beranda_admin' : 'pasien.portal');
+        // dd($role);
+        return redirect()->route($role === 'pasien' ? 'pasien.portal' : 'beranda_admin');
     }
     // Belum login → arahkan ke landing page (login pasien)
     return redirect('/');

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->unique()->constrained('users')->onDelete('cascade');
             $table->string('nik', 20)->unique()->nullable();
             $table->string('nama', 100);
-            $table->foreignId('jabatan_id')->constrained('jabatan')->onDelete('set null');
+            $table->foreignId('jabatan_id')->nullable()->constrained('jabatan')->onDelete('set null');
             $table->string('spesialisasi', 100)->nullable()->comment('Diisi khusus untuk dokter');
             $table->string('no_sip', 60)->nullable()->comment('Nomor Surat Izin Praktik dokter');
             $table->text('alamat')->nullable();
