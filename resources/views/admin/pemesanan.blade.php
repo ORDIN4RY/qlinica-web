@@ -221,11 +221,11 @@
     <div class="stat-label">Jumlah Antrian</div>
   </div>
 
-  <div class="antrian-stat navy">
+  <div class="antrian-stat" style="background: linear-gradient(135deg, #059669, #10b981);">
     <div class="stat-icon">
-      <i class="fas fa-bell text-white text-lg"></i>
+      <i class="fas fa-check-circle text-white text-lg"></i>
     </div>
-    <div class="stat-angka" id="statTerpanggil">{{ $terpanggil ?? 0 }}</div>
+    <div class="stat-angka" id="statSelesai">{{ $selesai ?? 0 }}</div>
     <div class="stat-label">Yang Terpanggil</div>
   </div>
 
@@ -243,9 +243,7 @@
     <div class="flex items-center gap-2 flex-wrap">
       <button class="filter-chip active" data-filter="semua">Semua</button>
       <button class="filter-chip" data-filter="menunggu">Menunggu</button>
-      <button class="filter-chip" data-filter="terpanggil">Terpanggil</button>
-      <button class="filter-chip" data-filter="dilayani">Dilayani</button>
-      <button class="filter-chip" data-filter="selesai">Selesai</button>
+      <button class="filter-chip" data-filter="selesai">Dilayani</button>
     </div>
   </div>
 
@@ -430,16 +428,16 @@
           <input type="hidden" name="jenis_pemesan" value="Offline">
           <input type="hidden" name="status" value="Menunggu">
 
-          <div class="form-group">
+          {{-- <div class="form-group">
             <label>Jenis Pemesan</label>
             <input type="text" class="form-input" value="Offline" readonly>
-          </div>
+          </div> --}}
 
-          {{-- Status Awal --}}
+          {{-- Status Awal
           <div class="form-group">
             <label>Status Awal</label>
             <input type="text" class="form-input" value="Menunggu" readonly>
-          </div>
+          </div> --}}
 
           {{-- Catatan --}}
           <div class="form-group" style="grid-column:1/-1">
@@ -495,14 +493,14 @@
      MODAL DETAIL DIAGNOSA
 ════════════════════════════════════ --}}
 <div class="modal-overlay" id="modalDiagnosis">
-  <div class="modal-box" style="max-width:700px">
+  <div class="modal-box" style="max-width:700px; max-height:calc(100vh - 80px); overflow:hidden;">
     <div class="modal-head">
       <h2 class="text-base font-bold text-gray-800">Detail Diagnosa Pasien</h2>
       <button onclick="closeDiagnosis()" class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition text-gray-500">
         <i class="fas fa-times text-sm"></i>
       </button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body" style="max-height:calc(100vh - 240px); overflow-y:auto; padding-right:8px;">
       <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:20px;">
         <div>
           <label class="text-xs font-bold text-gray-600 uppercase">No. RM</label>
@@ -520,7 +518,6 @@
 
       <form id="diagnosisForm" method="POST" action="">
         @csrf @method('PATCH')
-        <input type="hidden" name="status" id="diagnosisStatus" value="Dipanggil">
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
           <div class="form-group">
@@ -533,6 +530,7 @@
               <option value="">— Pilih —</option>
               <option value="Baru">Baru</option>
               <option value="Lama">Lama</option>
+              <option value="KKL">KKL</option>
             </select>
           </div>
         </div>
@@ -547,17 +545,17 @@
             <label>Pelayanan Kesehatan</label>
             <select name="pelayanan_kesehatan_1" class="form-select">
               <option value="">— Pilih —</option>
-              <option value="Rawat Jalan">Rawat Jalan</option>
-              <option value="Rawat Inap">Rawat Inap</option>
+              <option value="BPJS">BPJS</option>
+              <option value="UMUM">UMUM</option>
             </select>
           </div>
           <div class="form-group">
             <label>Keadaan Keluar</label>
             <select name="keadaan_keluar_1" class="form-select">
               <option value="">— Pilih —</option>
-              <option value="Sembuh">Sembuh</option>
+              <option value="Pulang">Pulang</option>
+              <option value="Rawat Inap">Rawat Inap</option>
               <option value="Rujuk">Rujuk</option>
-              <option value="Pulang Paksa">Pulang Paksa</option>
             </select>
           </div>
         </div>
@@ -567,17 +565,19 @@
             <label>Prognosa</label>
             <select name="prognosa_1" class="form-select">
               <option value="">— Pilih —</option>
-              <option value="Ad Vitam">Ad Vitam</option>
-              <option value="Ad Functionam">Ad Functionam</option>
-              <option value="Ad Kosmetikam">Ad Kosmetikam</option>
+              <option value="Sembuh">Sembuh</option>
+              <option value="Baik">Baik</option>
+              <option value="Buruk">Buruk</option>
+              <option value="Tidak Tentu/Cenderung Sembuh">Tidak Tentu/Cenderung Sembuh</option>
+              <option value="Tidak Tentu, Cenderung Tidak Baik">Tidak Tentu, Cenderung Tidak Baik</option>
             </select>
           </div>
           <div class="form-group">
             <label>Status Pasien</label>
             <select name="status_pasien_1" class="form-select">
               <option value="">— Pilih —</option>
-              <option value="Hidup">Hidup</option>
-              <option value="Meninggal">Meninggal</option>
+              <option value="Baru">Baru</option>
+              <option value="Lama">Lama</option>
             </select>
           </div>
         </div>
@@ -587,8 +587,12 @@
             <label>Jenis Pelayanan</label>
             <select name="jenis_pelayanan_1" class="form-select">
               <option value="">— Pilih —</option>
-              <option value="Konsultasi">Konsultasi</option>
-              <option value="Pemeriksaan">Pemeriksaan</option>
+              <option value="Poli Umum">Poli Umum</option>
+              <option value="Poli Gigi">Poli Gigi</option>
+              <option value="Poli KIA">Poli KIA</option>
+              <option value="UGD">UGD</option>
+              <option value="Laboratorium">Laboratorium</option>
+              <option value="Baby Spa">Baby Spa</option>
             </select>
           </div>
           <div class="form-group">
@@ -601,6 +605,14 @@
           <label>Tindakan</label>
           <input type="text" name="tindakan_1" class="form-input" placeholder="Tindakan">
         </div>
+
+        <div class="form-group" style="margin-bottom:20px;">
+          <label>Status Pelayanan</label>
+          <select name="status" id="diagnosisStatus" class="form-select">
+            <option value="Menunggu">Belum Dilayani</option>
+            <option value="Selesai">Sudah Dilayani</option>
+          </select>
+        </div>
       </form>
     </div>
     <div class="modal-foot">
@@ -608,14 +620,9 @@
         class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">
         Batal
       </button>
-      <button type="button" onclick="submitDiagnosis('Dilayani')"
-        class="px-5 py-2.5 rounded-xl bg-blue-50 text-blue-900 border border-blue-200 text-sm font-semibold hover:bg-blue-100 transition mr-2">
-        Dilayani
-      </button>
-      <button type="button" onclick="submitDiagnosis('Selesai')"
-        class="px-6 py-2.5 rounded-xl text-white text-sm font-bold transition shadow-md"
-        style="background:linear-gradient(135deg,#1e3a8a,#2563eb)">
-        Selesai
+      <button type="button" onclick="submitDiagnosis()"
+        class="px-6 py-2.5 rounded-xl bg-blue-50 text-blue-900 border border-blue-200 text-sm font-semibold hover:bg-blue-100 transition">
+        Simpan
       </button>
     </div>
   </div>
@@ -632,6 +639,7 @@
     document.getElementById('diagnosiNoRm').value = noRm;
     document.getElementById('diagnosisNama').value = nama;
     document.getElementById('diagnosisNoAntrian').value = id;
+    document.getElementById('diagnosisStatus').value = 'Menunggu';
     document.getElementById('diagnosisForm').action = BASE_ANTRIAN + '/' + id + '/status';
     document.getElementById('modalDiagnosis').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -643,8 +651,7 @@
     document.getElementById('diagnosisForm').reset();
   }
 
-  function submitDiagnosis(status) {
-    document.getElementById('diagnosisStatus').value = status;
+  function submitDiagnosis() {
     document.getElementById('diagnosisForm').submit();
   }
 

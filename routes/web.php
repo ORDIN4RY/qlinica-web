@@ -10,13 +10,26 @@ use App\Http\Controllers\IcdxController;
 
 // Public
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
-Route::post('/login', [AuthController::class, 'login'])->name('login');
+
+// GET /login — redirect ke halaman sesuai agar tidak terjadi MethodNotAllowedHttpException
+// Laravel kadang redirect ke /login secara default saat auth gagal
+Route::get('/login', function () {
+    // Jika sudah login, arahkan ke halaman yang sesuai dengan role
+    if (auth()->check()) {
+        $role = auth()->user()->role;
+        return redirect()->route($role === 'admin' ? 'beranda_admin' : 'pasien.portal');
+    }
+    // Belum login → arahkan ke landing page (login pasien)
+    return redirect('/');
+})->name('login');
+
+Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Login Petugas
-Route::get('/login-petugas', [AuthController::class, 'showLoginPetugas'])->name('login.petugas');
-Route::post('/login-petugas', [AuthController::class, 'loginPetugas'])->name('login.petugas.submit');
 
+// Login Petugas
+Route::get('/login-admin', [AuthController::class, 'showLoginPetugas'])->name('login.petugas');
+Route::post('/login-admin', [AuthController::class, 'loginPetugas'])->name('login.petugas.submit');
 
 // Protected Routes Khusus Admin
 Route::middleware(['auth', 'role:admin'])->group(function () {
@@ -27,8 +40,15 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::patch('/admin/antrian/{id}/panggil', [AntrianController::class, 'updateStatus'])->name('admin.antrian.panggil');
     Route::patch('/admin/antrian/{id}/dilayani', [AntrianController::class, 'updateStatus'])->name('admin.antrian.dilayani');
     Route::patch('/admin/antrian/{id}/selesai', [AntrianController::class, 'updateStatus'])->name('admin.antrian.selesai');
-    Route::get('/admin/komentar',  function () { return view('komentar'); })->name('admin.komentar');
+    Route::get('/admin/komentar',  function () { return view('admin.komentar'); })->name('admin.komentar');
     Route::get('/admin/laporan',   function () { return view('laporan'); })->name('admin.laporan');
+
+    // Pegawai CRUD
+    Route::get('/admin/pegawai', [PegawaiController::class, 'index'])->name('admin.pegawai');
+    Route::get('/admin/pegawai/search', [PegawaiController::class, 'search'])->name('admin.pegawai.search');
+    Route::post('/admin/pegawai', [PegawaiController::class, 'store'])->name('admin.pegawai.store');
+    Route::put('/admin/pegawai/{id}', [PegawaiController::class, 'update'])->name('admin.pegawai.update');
+    Route::delete('/admin/pegawai/{id}', [PegawaiController::class, 'destroy'])->name('admin.pegawai.destroy');
 
     // Pasien CRUD
     Route::get('/admin/pasien',         [PasienController::class, 'index'])->name('admin.pasien');
@@ -36,13 +56,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/pasien',        [PasienController::class, 'store'])->name('admin.pasien.store');
     Route::put('/admin/pasien/{id}',    [PasienController::class, 'update'])->name('admin.pasien.update');
     Route::delete('/admin/pasien/{id}', [PasienController::class, 'destroy'])->name('admin.pasien.destroy');
-
-    // Pegawai CRUD
-    Route::get('/admin/pegawai',              [PegawaiController::class, 'index'])->name('admin.pegawai');
-    Route::get('/admin/pegawai/data',         [PegawaiController::class, 'fetchAll'])->name('admin.pegawai.data');
-    Route::post('/admin/pegawai',             [PegawaiController::class, 'store'])->name('admin.pegawai.store');
-    Route::put('/admin/pegawai/{id}',         [PegawaiController::class, 'update'])->name('admin.pegawai.update');
-    Route::delete('/admin/pegawai/{id}',      [PegawaiController::class, 'destroy'])->name('admin.pegawai.destroy');
+    Route::post('/admin/pasien/{id}/create-account', [PasienController::class, 'createAccount'])->name('admin.pasien.create-account');
 
     // ICDX
     Route::get('/admin/icdx',              [IcdxController::class, 'index'])->name('admin.icdx');

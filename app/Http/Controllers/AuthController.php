@@ -64,8 +64,10 @@ class AuthController extends Controller
 
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
+        session(['last_activity_time' => time()]);
 
         return redirect()->intended(route('pasien.portal'));
+
     }
 
     /** Proses login petugas/admin menggunakan email. */
@@ -104,8 +106,10 @@ class AuthController extends Controller
 
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
+        session(['last_activity_time' => time()]);
 
         return redirect()->intended(route('beranda_admin'));
+
     }
 
     /** Logout. */

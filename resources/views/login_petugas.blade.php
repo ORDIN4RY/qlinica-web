@@ -79,12 +79,15 @@
           <div class="w-16 h-16 bg-blue-900 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
             <i class="fas fa-user-shield text-white text-2xl"></i>
           </div>
-          <h1 class="text-2xl font-bold text-gray-900">Login Petugas</h1>
-          <p class="text-gray-500 text-sm mt-1">Masuk menggunakan akun petugas atau admin klinik</p>
+          <h1 class="text-2xl font-bold text-gray-900">Login Admin</h1>
         </div>
 
         <!-- Error Alert -->
-        @if($errors->any())
+        @if($errors->has('session'))
+          <div class="mb-6 bg-amber-50 border border-amber-300 text-amber-800 px-4 py-3 rounded-xl text-sm">
+            <i class="fas fa-clock mr-2"></i>{{ $errors->first('session') }}
+          </div>
+        @elseif($errors->any())
           <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
             <i class="fas fa-exclamation-circle mr-2"></i>{{ $errors->first() }}
           </div>
@@ -102,7 +105,7 @@
               </span>
               <input type="email" name="login_id" value="{{ old('login_id') }}" required
                 class="input-focus w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl"
-                placeholder="admin@sahaduta.com">
+                placeholder="Masukkan email petugas">
             </div>
           </div>
 
@@ -129,17 +132,10 @@
 
           <button type="submit"
             class="btn-primary w-full bg-blue-900 hover:bg-blue-800 text-white py-3 rounded-xl font-semibold text-base mt-2 flex items-center justify-center gap-2">
-            <i class="fas fa-sign-in-alt"></i> Masuk sebagai Petugas
+            <i class="fas fa-sign-in-alt"></i> Masuk 
           </button>
         </form>
 
-        <!-- Back to patient login -->
-        <div class="mt-6 text-center border-t border-gray-100 pt-5">
-          <p class="text-sm text-gray-500">Anda seorang pasien?</p>
-          <a href="{{ route('home') }}" class="inline-block mt-2 text-sm font-semibold text-blue-900 hover:text-blue-700 underline underline-offset-2 transition">
-            <i class="fas fa-user mr-1"></i> Login sebagai Pasien
-          </a>
-        </div>
       </div>
 
       <!-- Info note -->

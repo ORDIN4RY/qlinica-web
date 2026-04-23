@@ -9,10 +9,15 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     html { scroll-behavior: smooth; }
-    .sidebar-link { transition: all 0.2s ease; }
-    .sidebar-link:hover, .sidebar-link.active {
-      background: rgba(255,255,255,0.15);
-      padding-left: 1.5rem;
+    .sidebar-link { transition: all 0.2s ease; border-left: 3px solid transparent; }
+    .sidebar-link:hover {
+      background: rgba(255,255,255,0.10);
+      border-left-color: rgba(255,255,255,0.4);
+    }
+    .sidebar-link.active {
+      background: rgba(255,255,255,0.18);
+      border-left-color: #ffffff;
+      font-weight: 700;
     }
     .card-hover { transition: all 0.3s ease; }
     .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(30,58,138,0.15); }
@@ -49,6 +54,16 @@
         <i class="fas fa-user-injured w-5 text-center"></i> Data Pasien
       </a>
       <a href="{{ route('admin.pemesanan') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pemesanan*') ? 'active' : '' }}">
+        <i class="fas fa-calendar-check w-5 text-center"></i> Pemesanan
+      </a>
+      <a href="{{ route('admin.pegawai') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pegawai*') ? 'active' : '' }}">
+        <i class="fas fa-user-doctor w-5 text-center"></i> Pegawai
+      </a>
+      <a href="{{ route('admin.komentar') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.komentar*') ? 'active' : '' }}">
+        <i class="fas fa-comment w-5 text-center"></i> Komentar
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pemesanan*') ? 'active' : '' }}">
         <i class="fas fa-calendar-check w-5 text-center"></i> Pemesanan
       </a>
@@ -104,6 +119,12 @@
         <div class="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-2xl shadow-sm">
           <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
           <span>{{ session('error') }}</span>
+        </div>
+      @endif
+      @if(session('warning'))
+        <div class="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-2xl shadow-sm">
+          <i class="fas fa-triangle-exclamation text-amber-500 text-lg"></i>
+          <span>{{ session('warning') }}</span>
         </div>
       @endif
       @yield('content')

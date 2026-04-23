@@ -384,7 +384,11 @@
         <button class="close-modal text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
       </div>
 
-      @if($errors->any())
+      @if($errors->has('session'))
+        <div class="mb-4 bg-amber-50 border border-amber-300 text-amber-800 px-4 py-3 rounded-xl text-sm">
+          <i class="fas fa-clock mr-2"></i>{{ $errors->first('session') }}
+        </div>
+      @elseif($errors->any())
         <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
           <i class="fas fa-exclamation-circle mr-2"></i>{{ $errors->first() }}
         </div>

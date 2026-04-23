@@ -280,6 +280,7 @@
       <div class="card" style="animation-delay:.16s">
         <div class="card-header">
           <div>
+            
             <div class="card-judul">Kepuasan Pasien</div>
             <div class="card-sub">Rating dari pasien</div>
           </div>
