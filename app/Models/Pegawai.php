@@ -16,6 +16,7 @@ class Pegawai extends Model
         'user_id',
         'nik',
         'nama',
+        'jabatan',
         'spesialisasi',
         'no_sip',
         'alamat',
@@ -26,4 +27,5 @@ class Pegawai extends Model
     {
         return $this->belongsTo(User::class);
     }
+
 }

@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             AgamaSeeder::class,
             PendidikanSeeder::class,
             PekerjaanSeeder::class,
+            JabatanSeeder::class,
             AdminSeeder::class,
             PasienSeeder::class,
         ]);

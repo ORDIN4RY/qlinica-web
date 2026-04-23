@@ -8,7 +8,6 @@ use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\AntrianController;
 use App\Http\Controllers\IcdxController;
 
-
 // Public
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
 
@@ -18,7 +17,8 @@ Route::get('/login', function () {
     // Jika sudah login, arahkan ke halaman yang sesuai dengan role
     if (auth()->check()) {
         $role = auth()->user()->role;
-        return redirect()->route($role === 'admin' ? 'beranda_admin' : 'pasien.portal');
+        // dd($role);
+        return redirect()->route($role === 'pasien' ? 'pasien.portal' : 'beranda_admin');
     }
     // Belum login → arahkan ke landing page (login pasien)
     return redirect('/');
@@ -61,6 +61,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('/admin/pasien/{id}',    [PasienController::class, 'update'])->name('admin.pasien.update');
     Route::delete('/admin/pasien/{id}', [PasienController::class, 'destroy'])->name('admin.pasien.destroy');
     Route::post('/admin/pasien/{id}/create-account', [PasienController::class, 'createAccount'])->name('admin.pasien.create-account');
+
+    // ICDX
+    Route::get('/admin/icdx',              [IcdxController::class, 'index'])->name('admin.icdx');
+    Route::post('/admin/icdx',             [IcdxController::class, 'store'])->name('admin.icdx.store');
+    Route::put('/admin/icdx/{id}',         [IcdxController::class, 'update'])->name('admin.icdx.update');
+    Route::delete('/admin/icdx/{id}',      [IcdxController::class, 'destroy'])->name('admin.icdx.destroy');
 });
 
 // Protected Routes Khusus Pasien
