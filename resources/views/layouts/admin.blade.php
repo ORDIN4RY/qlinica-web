@@ -37,7 +37,7 @@
 <body>
     <div class="sidebar">
         <ul>
-            <li><a href="{{ route('beranda_admin') }}" class="@yield('dashboard_active')">Dashboard</a></li>
+            <li><a href="{{ route('admin.dashboard') }}" class="@yield('dashboard_active')">Dashboard</a></li>
             <li><a href="{{ route('admin.pasien') }}" class="@yield('pasien_active')">Pasien</a></li>
             <li><a href="{{ route('admin.pegawai') }}" class="@yield('pegawai_active')">Pegawai</a></li>
             <!-- Tambahkan menu lain sesuai kebutuhan -->
