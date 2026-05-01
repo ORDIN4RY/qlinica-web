@@ -25,6 +25,12 @@
     .status-menunggu { background:#fef3c7; color:#92400e; }
     .status-selesai  { background:#d1fae5; color:#065f46; }
     .status-batal    { background:#fee2e2; color:#991b1b; }
+
+    /* Star Rating */
+    .star-rating { display: flex; flex-direction: row-reverse; justify-content: center; }
+    .star-rating input { display: none; }
+    .star-rating label { color: #d1d5db; font-size: 2.25rem; padding: 0 0.25rem; cursor: pointer; transition: color 0.2s; }
+    .star-rating label:hover, .star-rating label:hover ~ label, .star-rating input:checked ~ label { color: #facc15; }
   </style>
 </head>
 <body class="bg-gray-50 font-sans antialiased text-gray-700 overflow-x-hidden">
@@ -357,6 +363,56 @@
       </div>
     </section>
 
+    <!-- ===== KRITIK & SARAN ===== -->
+    <section id="feedback" class="py-16 bg-gradient-to-b from-white to-blue-50/30">
+      <div class="max-w-3xl mx-auto px-4">
+        <div class="text-center mb-10" data-aos="fade-up">
+          <span class="text-blue-900 font-semibold tracking-wider uppercase text-xs">Ulasan Anda</span>
+          <h2 class="text-3xl font-bold text-gray-800 mt-2">Kritik & <span class="text-blue-900">Saran</span></h2>
+          <p class="text-gray-500 mt-2 text-sm">Masukan Anda sangat berarti untuk peningkatan kualitas layanan kami.</p>
+        </div>
+
+        <form action="#" method="POST" class="bg-white p-8 md:p-10 rounded-[2rem] shadow-md border border-blue-900/10" data-aos="fade-up" data-aos-delay="100">
+          <!-- Rating Bintang -->
+          <div class="mb-8 text-center">
+            <label class="block text-base font-semibold text-gray-700 mb-3">Seberapa puas Anda dengan layanan kami?</label>
+            <div class="star-rating">
+              <input type="radio" id="star5" name="rating" value="5" />
+              <label for="star5" title="Sangat Puas"><i class="fas fa-star"></i></label>
+              <input type="radio" id="star4" name="rating" value="4" />
+              <label for="star4" title="Puas"><i class="fas fa-star"></i></label>
+              <input type="radio" id="star3" name="rating" value="3" />
+              <label for="star3" title="Cukup"><i class="fas fa-star"></i></label>
+              <input type="radio" id="star2" name="rating" value="2" />
+              <label for="star2" title="Kurang"><i class="fas fa-star"></i></label>
+              <input type="radio" id="star1" name="rating" value="1" />
+              <label for="star1" title="Sangat Kurang"><i class="fas fa-star"></i></label>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-5 mb-5">
+            <div>
+              <label class="block text-sm font-semibold text-gray-600 mb-2">Nama Lengkap</label>
+              <input type="text" name="name" value="{{ $pasien->nama ?? '' }}" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition" placeholder="Masukkan nama Anda">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-600 mb-2">Email / No. HP (Opsional)</label>
+              <input type="text" name="contact" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition" placeholder="Email atau No. HP">
+            </div>
+          </div>
+          
+          <div class="mb-6">
+            <label class="block text-sm font-semibold text-gray-600 mb-2">Pesan, Kritik, atau Saran</label>
+            <textarea name="message" rows="4" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none" placeholder="Tuliskan pengalaman Anda atau saran untuk kami..."></textarea>
+          </div>
+
+          <button type="submit" class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 shadow-md">
+            <i class="fas fa-paper-plane"></i> Kirim Ulasan
+          </button>
+        </form>
+      </div>
+    </section>
+
   </main>
 
   <!-- ===== FOOTER ===== -->
@@ -441,28 +497,51 @@
     // ANTRIAN
     // ================================================================
     let antrianAktif = null;
-    let noAntrianCounter = 6; // giliran berikutnya
 
-    function ambilAntrian() {
+    async function ambilAntrian() {
       const layanan = document.getElementById('jenisLayanan').value;
+      const keluhan = document.getElementById('keluhan').value;
       if (!layanan) { showToast('Pilih jenis layanan terlebih dahulu!', 'red'); return; }
-      antrianAktif = { nomor: 'A-0'+noAntrianCounter, layanan };
-      noAntrianCounter++;
-      document.getElementById('nomorAntrian').textContent = antrianAktif.nomor;
-      document.getElementById('layananDipilih').textContent = layanan;
-      document.getElementById('noAntrianKu').textContent = antrianAktif.nomor;
-      document.getElementById('estimasiHasil').textContent = '~' + ((noAntrianCounter-4)*5) + ' mnt';
-      document.getElementById('formAntrian').classList.add('hidden');
-      document.getElementById('hasilAntrian').classList.remove('hidden');
-      // Update statistik
-      const total = parseInt(document.getElementById('totalAntrianHari').textContent)+1;
-      const tunggu = parseInt(document.getElementById('menunggu').textContent)+1;
-      document.getElementById('totalAntrianHari').textContent = total;
-      document.getElementById('menunggu').textContent = tunggu;
-      // Tambah ke riwayat
-      riwayatData.unshift({ id:Date.now(), tanggal:new Date().toLocaleDateString('id-ID'), layanan, dokter:'—', noAntrian:antrianAktif.nomor, status:'menunggu', keluhan: document.getElementById('keluhan').value || '—' });
-      document.getElementById('totalKunjungan').textContent = riwayatData.filter(r=>r.status==='selesai').length;
-      showToast('Antrian berhasil diambil!');
+
+      try {
+        const response = await fetch("{{ route('pasien.antrian.store') }}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+          },
+          body: JSON.stringify({ jenis: layanan, keluhan: keluhan })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          antrianAktif = { nomor: data.no_antrian, layanan };
+          document.getElementById('nomorAntrian').textContent = antrianAktif.nomor;
+          document.getElementById('layananDipilih').textContent = layanan;
+          document.getElementById('noAntrianKu').textContent = antrianAktif.nomor;
+          document.getElementById('estimasiHasil').textContent = '~15 mnt';
+          document.getElementById('formAntrian').classList.add('hidden');
+          document.getElementById('hasilAntrian').classList.remove('hidden');
+
+          // Update statistik lokal sementara
+          const total = parseInt(document.getElementById('totalAntrianHari').textContent)+1;
+          const tunggu = parseInt(document.getElementById('menunggu').textContent)+1;
+          document.getElementById('totalAntrianHari').textContent = total;
+          document.getElementById('menunggu').textContent = tunggu;
+
+          // Tambah ke riwayat lokal sementara
+          riwayatData.unshift({ id:Date.now(), tanggal:new Date().toLocaleDateString('en-CA'), layanan, dokter:'—', noAntrian:antrianAktif.nomor, status:'menunggu', keluhan: keluhan || '—' });
+          renderRiwayat(document.getElementById('searchRiwayat').value);
+          document.getElementById('totalKunjungan').textContent = riwayatData.filter(r=>r.status==='selesai').length;
+          
+          showToast(data.message);
+        } else {
+          showToast(data.message || 'Gagal mengambil antrian', 'red');
+        }
+      } catch (err) {
+        showToast('Terjadi kesalahan pada server', 'red');
+        console.error(err);
+      }
     }
 
     function batalAntrian() {
