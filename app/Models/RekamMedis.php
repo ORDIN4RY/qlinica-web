@@ -55,6 +55,11 @@ class RekamMedis extends Model
         return $this->hasMany(RekamMedisDiagnosa::class, 'rekam_medis_id');
     }
 
+    public function resep()
+    {
+        return $this->hasOne(\App\Models\Resep::class, 'rekam_medis_id');
+    }
+
     public function diagnosaPrimer()
     {
         return $this->hasOne(RekamMedisDiagnosa::class, 'rekam_medis_id')->where('is_primer', true);

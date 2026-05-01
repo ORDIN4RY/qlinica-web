@@ -6,6 +6,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PasienController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\AntrianController;
+use App\Http\Controllers\ResepController;
+use App\Http\Controllers\DokterController;
 
 
 // Public
@@ -17,7 +19,12 @@ Route::get('/login', function () {
     // Jika sudah login, arahkan ke halaman yang sesuai dengan role
     if (auth()->check()) {
         $role = auth()->user()->role;
-        return redirect()->route($role === 'admin' ? 'beranda_admin' : 'pasien.portal');
+        return match($role) {
+            'admin' => redirect()->route('beranda_admin'),
+            'apoteker' => redirect()->route('apoteker.dashboard'),
+            'pasien' => redirect()->route('pasien.portal'),
+            default => redirect('/')
+        };
     }
     // Belum login → arahkan ke landing page (login pasien)
     return redirect('/');
@@ -73,4 +80,34 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
         return view('pemesanan', compact('user', 'pasien'));
     })->name('pemesanan.publik');
 });
+
+// Protected Routes Khusus Apoteker
+Route::middleware(['auth', 'role:apoteker'])->group(function () {
+    Route::get('/apoteker/dashboard', function () { 
+        return view('apoteker.dashboard'); 
+    })->name('apoteker.dashboard');
+    
+    Route::get('/apoteker/obat', function () { 
+        return view('apoteker.obat'); 
+    })->name('apoteker.obat');
+    
+    Route::get('/apoteker/resep', [ResepController::class, 'index'])->name('apoteker.resep');
+    Route::patch('/apoteker/resep/{resep}', [ResepController::class, 'update'])->name('apoteker.resep.update');
+
+    Route::get('/apoteker/laporan', function () { 
+        return view('apoteker.laporan'); 
+    })->name('apoteker.laporan');
+});
+
+// Protected Routes Khusus Dokter
+Route::middleware(['auth', 'role:dokter'])->group(function () {
+    Route::get('/dokter/dashboard', [DokterController::class, 'dashboard'])->name('dokter.dashboard');
+    Route::get('/dokter/antrian', [DokterController::class, 'antrianIndex'])->name('dokter.antrian');
+    Route::patch('/dokter/antrian/{id}/panggil', [DokterController::class, 'panggilAntrian'])->name('dokter.antrian.panggil');
+    Route::post('/dokter/antrian/{antrianId}/diagnosa', [DokterController::class, 'simpanDiagnosa'])->name('dokter.antrian.diagnosa');
+    Route::get('/dokter/resep', [DokterController::class, 'resepIndex'])->name('dokter.resep.index');
+    Route::get('/dokter/resep/{rekamMedis}/create', [DokterController::class, 'createResep'])->name('dokter.resep.create');
+    Route::post('/dokter/resep/{rekamMedis}', [DokterController::class, 'storeResep'])->name('dokter.resep.store');
+});
+
 

@@ -79,7 +79,8 @@
           <div class="w-16 h-16 bg-blue-900 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
             <i class="fas fa-user-shield text-white text-2xl"></i>
           </div>
-          <h1 class="text-2xl font-bold text-gray-900">Login Admin</h1>
+          <h1 class="text-2xl font-bold text-gray-900">Login Petugas</h1>
+          <p class="text-sm text-gray-500 mt-2">Admin, Dokter, Apoteker, Perawat</p>
         </div>
 
         <!-- Error Alert -->

@@ -24,13 +24,12 @@ class RoleMiddleware
 
         if (!in_array($user->role, $roles)) {
             // Jika role tidak sesuai, buang ke halamannya masing-masing
-            if ($user->role === 'admin') {
-                return redirect()->route('beranda_admin');
-            } elseif ($user->role === 'pasien') {
-                return redirect()->route('pasien.portal');
-            }
-            
-            return redirect('/');
+            return match($user->role) {
+                'admin' => redirect()->route('beranda_admin'),
+                'apoteker' => redirect()->route('apoteker.dashboard'),
+                'pasien' => redirect()->route('pasien.portal'),
+                default => redirect('/')
+            };
         }
 
         return $next($request);

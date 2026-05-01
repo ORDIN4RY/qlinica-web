@@ -15,7 +15,9 @@ class DatabaseSeeder extends Seeder
             PendidikanSeeder::class,
             PekerjaanSeeder::class,
             AdminSeeder::class,
+            PegawaiSeeder::class,
             PasienSeeder::class,
+            IcdxSeeder::class,
         ]);
     }
 }

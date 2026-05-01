@@ -108,7 +108,14 @@ class AuthController extends Controller
         $request->session()->regenerate();
         session(['last_activity_time' => time()]);
 
-        return redirect()->intended(route('beranda_admin'));
+        // Auto-redirect berdasarkan role
+        return redirect()->intended(match($user->role) {
+            'admin' => route('beranda_admin'),
+            'apoteker' => route('apoteker.dashboard'),
+            'dokter' => route('dokter.dashboard'), // Untuk masa depan
+            'perawat' => route('perawat.dashboard'), // Untuk masa depan
+            default => route('beranda_admin')
+        });
 
     }
 
