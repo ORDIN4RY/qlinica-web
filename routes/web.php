@@ -45,7 +45,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/pemesanan', [AntrianController::class, 'index'])->name('admin.pemesanan');
     Route::post('/admin/antrian', [AntrianController::class, 'store'])->name('admin.antrian.store');
     Route::patch('/admin/antrian/{id}/status', [AntrianController::class, 'updateStatus'])->name('admin.antrian.status');
-    Route::patch('/admin/antrian/{id}/panggil', [AntrianController::class, 'updateStatus'])->name('admin.antrian.panggil');
+    Route::post('/admin/antrian/{id}/panggil', [AntrianController::class, 'panggilPeriksa'])->name('admin.antrian.panggil');
     Route::patch('/admin/antrian/{id}/dilayani', [AntrianController::class, 'updateStatus'])->name('admin.antrian.dilayani');
     Route::patch('/admin/antrian/{id}/selesai', [AntrianController::class, 'updateStatus'])->name('admin.antrian.selesai');
     Route::get('/admin/komentar',  function () { return view('admin.komentar'); })->name('admin.komentar');
