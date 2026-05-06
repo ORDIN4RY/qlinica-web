@@ -96,8 +96,8 @@
   .status-badge::before { content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0; }
   .s-menunggu  { background:#fefce8; color:#ca8a04; }
   .s-menunggu::before  { background:#ca8a04; }
-  .s-terpanggil { background:#eff6ff; color:#2563eb; }
-  .s-terpanggil::before { background:#2563eb; }
+  .s-dipanggil { background:#eff6ff; color:#2563eb; }
+  .s-dipanggil::before { background:#2563eb; }
   .s-dilayani  { background:#ecfdf5; color:#059669; }
   .s-dilayani::before  { background:#059669; }
   .s-selesai   { background:#f1f5f9; color:#64748b; }
@@ -225,8 +225,8 @@
     <div class="stat-icon">
       <i class="fas fa-check-circle text-white text-lg"></i>
     </div>
-    <div class="stat-angka" id="statSelesai">{{ $selesai ?? 0 }}</div>
-    <div class="stat-label">Yang Terpanggil</div>
+    <div class="stat-angka" id="statSelesai">{{ $terpanggil ?? 0 }}</div>
+    <div class="stat-label">Yang Dipanggil</div>
   </div>
 
 </div>
@@ -324,8 +324,8 @@
               @php $st = strtolower($a->status ?? 'menunggu'); @endphp
               @if($st === 'menunggu')
                 <span class="status-badge s-menunggu">Menunggu</span>
-              @elseif($st === 'terpanggil')
-                <span class="status-badge s-terpanggil">Terpanggil</span>
+              @elseif($st === 'dipanggil')
+                <span class="status-badge s-dipanggil">Dipanggil</span>
               @elseif($st === 'dilayani')
                 <span class="status-badge s-dilayani">Dilayani</span>
               @elseif($st === 'selesai')
@@ -336,9 +336,11 @@
             </td>
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-2">
-                <button class="btn-panggil" onclick="openDetailDiagnosis({{ $a->id }}, '{{ $a->pasien->no_rm ?? '' }}', '{{ addslashes($a->pasien->nama ?? '') }}')">
-                  <i class="fas fa-file-medical text-xs"></i> Detail
-                </button>
+                @if($st === 'menunggu')
+                  <button type="button" class="btn-panggil" onclick="openPanggil({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Panggil Pasien">
+                    <i class="fas fa-bullhorn text-xs"></i> Panggil
+                  </button>
+                @endif
                 @if(!in_array($st, ['selesai','batal']))
                   <button class="btn-batal" onclick="openBatal({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Batalkan">
                     <i class="fas fa-times text-xs"></i>
@@ -463,6 +465,78 @@
 </div>
 
 {{-- ═══════════════════════════════════
+     MODAL PANGGIL & PEMERIKSAAN TTV
+════════════════════════════════════ --}}
+<div class="modal-overlay" id="modalPanggil">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 class="text-base font-bold text-gray-800">Pemeriksaan Awal (TTV)</h2>
+      <button onclick="closePanggil()" class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition text-gray-500">
+        <i class="fas fa-times text-sm"></i>
+      </button>
+    </div>
+    <form id="panggilForm" method="POST" action="">
+      @csrf
+      <div class="modal-body">
+        <p class="text-sm text-gray-600 mb-4">Pemeriksaan awal untuk pasien: <strong id="panggilPasienName"></strong></p>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          
+          {{-- Dokter --}}
+          <div class="form-group" style="grid-column:1/-1">
+            <label>Pilih Dokter <span class="text-red-500 normal-case font-normal">*</span></label>
+            <select name="dokter_id" class="form-select" required>
+              <option value="">— Pilih Dokter —</option>
+              @foreach($dokters as $d)
+                <option value="{{ $d->id }}">{{ $d->nama }}</option>
+              @endforeach
+            </select>
+          </div>
+
+          {{-- Vital Signs --}}
+          <div class="form-group">
+            <label>Tekanan Darah</label>
+            <input type="text" name="tekanan_darah" class="form-input" placeholder="Contoh: 120/80">
+          </div>
+          <div class="form-group">
+            <label>Suhu (°C)</label>
+            <input type="number" step="0.1" name="suhu" class="form-input" placeholder="Contoh: 36.5">
+          </div>
+          <div class="form-group">
+            <label>Berat Badan (kg)</label>
+            <input type="number" step="0.1" name="berat_badan" class="form-input" placeholder="Contoh: 60.5">
+          </div>
+          <div class="form-group">
+            <label>Tinggi Badan (cm)</label>
+            <input type="number" step="0.1" name="tinggi_badan" class="form-input" placeholder="Contoh: 165">
+          </div>
+          <div class="form-group">
+            <label>Nadi (x/menit)</label>
+            <input type="number" name="nadi" class="form-input" placeholder="Contoh: 80">
+          </div>
+          <div class="form-group">
+            <label>Respirasi (x/menit)</label>
+            <input type="number" name="respirasi" class="form-input" placeholder="Contoh: 20">
+          </div>
+          
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" onclick="closePanggil()"
+          class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">
+          Batal
+        </button>
+        <button type="submit"
+          class="px-6 py-2.5 rounded-xl text-white text-sm font-bold transition shadow-md"
+          style="background:linear-gradient(135deg,#059669,#10b981)">
+          <i class="fas fa-check mr-1.5"></i> Simpan & Panggil
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{{-- ═══════════════════════════════════
      MODAL KONFIRMASI BATAL
 ════════════════════════════════════ --}}
 <div class="modal-overlay" id="modalBatal">
@@ -489,144 +563,7 @@
   </div>
 </div>
 
-{{-- ═══════════════════════════════════
-     MODAL DETAIL DIAGNOSA
-════════════════════════════════════ --}}
-<div class="modal-overlay" id="modalDiagnosis">
-  <div class="modal-box" style="max-width:700px; max-height:calc(100vh - 80px); overflow:hidden;">
-    <div class="modal-head">
-      <h2 class="text-base font-bold text-gray-800">Detail Diagnosa Pasien</h2>
-      <button onclick="closeDiagnosis()" class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition text-gray-500">
-        <i class="fas fa-times text-sm"></i>
-      </button>
-    </div>
-    <div class="modal-body" style="max-height:calc(100vh - 240px); overflow-y:auto; padding-right:8px;">
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:20px;">
-        <div>
-          <label class="text-xs font-bold text-gray-600 uppercase">No. RM</label>
-          <input type="text" id="diagnosiNoRm" class="w-full mt-2 px-4 py-2 border border-gray-200 rounded-lg bg-gray-50" readonly>
-        </div>
-        <div>
-          <label class="text-xs font-bold text-gray-600 uppercase">Nama Pasien</label>
-          <input type="text" id="diagnosisNama" class="w-full mt-2 px-4 py-2 border border-gray-200 rounded-lg bg-gray-50" readonly>
-        </div>
-        <div>
-          <label class="text-xs font-bold text-gray-600 uppercase">No. Antrian</label>
-          <input type="text" id="diagnosisNoAntrian" class="w-full mt-2 px-4 py-2 border border-gray-200 rounded-lg bg-gray-50" readonly>
-        </div>
-      </div>
 
-      <form id="diagnosisForm" method="POST" action="">
-        @csrf @method('PATCH')
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-          <div class="form-group">
-            <label>Kode Penyakit <span class="text-red-500">*</span></label>
-            <input type="text" name="kode_penyakit_1" class="form-input" placeholder="Kode Penyakit">
-          </div>
-          <div class="form-group">
-            <label>Kasus Penyakit <span class="text-red-500">*</span></label>
-            <select name="kasus_penyakit_1" class="form-select">
-              <option value="">— Pilih —</option>
-              <option value="Baru">Baru</option>
-              <option value="Lama">Lama</option>
-              <option value="KKL">KKL</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group" style="margin-bottom:16px;">
-          <label>Nama Penyakit <span class="text-red-500">*</span></label>
-          <input type="text" name="nama_penyakit_1" class="form-input" placeholder="Nama Penyakit">
-        </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-          <div class="form-group">
-            <label>Pelayanan Kesehatan</label>
-            <select name="pelayanan_kesehatan_1" class="form-select">
-              <option value="">— Pilih —</option>
-              <option value="BPJS">BPJS</option>
-              <option value="UMUM">UMUM</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Keadaan Keluar</label>
-            <select name="keadaan_keluar_1" class="form-select">
-              <option value="">— Pilih —</option>
-              <option value="Pulang">Pulang</option>
-              <option value="Rawat Inap">Rawat Inap</option>
-              <option value="Rujuk">Rujuk</option>
-            </select>
-          </div>
-        </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-          <div class="form-group">
-            <label>Prognosa</label>
-            <select name="prognosa_1" class="form-select">
-              <option value="">— Pilih —</option>
-              <option value="Sembuh">Sembuh</option>
-              <option value="Baik">Baik</option>
-              <option value="Buruk">Buruk</option>
-              <option value="Tidak Tentu/Cenderung Sembuh">Tidak Tentu/Cenderung Sembuh</option>
-              <option value="Tidak Tentu, Cenderung Tidak Baik">Tidak Tentu, Cenderung Tidak Baik</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Status Pasien</label>
-            <select name="status_pasien_1" class="form-select">
-              <option value="">— Pilih —</option>
-              <option value="Baru">Baru</option>
-              <option value="Lama">Lama</option>
-            </select>
-          </div>
-        </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
-          <div class="form-group">
-            <label>Jenis Pelayanan</label>
-            <select name="jenis_pelayanan_1" class="form-select">
-              <option value="">— Pilih —</option>
-              <option value="Poli Umum">Poli Umum</option>
-              <option value="Poli Gigi">Poli Gigi</option>
-              <option value="Poli KIA">Poli KIA</option>
-              <option value="UGD">UGD</option>
-              <option value="Laboratorium">Laboratorium</option>
-              <option value="Baby Spa">Baby Spa</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Pengobatan</label>
-            <input type="text" name="pengobatan_1" class="form-input" placeholder="Pengobatan">
-          </div>
-        </div>
-
-        <div class="form-group" style="margin-bottom:20px;">
-          <label>Tindakan</label>
-          <input type="text" name="tindakan_1" class="form-input" placeholder="Tindakan">
-        </div>
-
-        <div class="form-group" style="margin-bottom:20px;">
-          <label>Status Pelayanan</label>
-          <select name="status" id="diagnosisStatus" class="form-select">
-            <option value="Menunggu">Belum Dilayani</option>
-            <option value="Selesai">Sudah Dilayani</option>
-          </select>
-        </div>
-      </form>
-    </div>
-    <div class="modal-foot">
-      <button type="button" onclick="closeDiagnosis()"
-        class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">
-        Batal
-      </button>
-      <button type="button" onclick="submitDiagnosis()"
-        class="px-6 py-2.5 rounded-xl bg-blue-50 text-blue-900 border border-blue-200 text-sm font-semibold hover:bg-blue-100 transition">
-        Simpan
-      </button>
-    </div>
-  </div>
-</div>
 
 @endsection
 
@@ -634,30 +571,9 @@
 <script>
   var BASE_ANTRIAN = '{{ url("/admin/antrian") }}';
 
-  /* ── MODAL DIAGNOSIS ── */
-  function openDetailDiagnosis(id, noRm, nama) {
-    document.getElementById('diagnosiNoRm').value = noRm;
-    document.getElementById('diagnosisNama').value = nama;
-    document.getElementById('diagnosisNoAntrian').value = id;
-    document.getElementById('diagnosisStatus').value = 'Menunggu';
-    document.getElementById('diagnosisForm').action = BASE_ANTRIAN + '/' + id + '/status';
-    document.getElementById('modalDiagnosis').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
 
-  function closeDiagnosis() {
-    document.getElementById('modalDiagnosis').classList.remove('open');
-    document.body.style.overflow = '';
-    document.getElementById('diagnosisForm').reset();
-  }
 
-  function submitDiagnosis() {
-    document.getElementById('diagnosisForm').submit();
-  }
 
-  document.getElementById('modalDiagnosis').addEventListener('click', function(e) {
-    if (e.target === this) closeDiagnosis();
-  });
 
   /* ── MODAL ANTRIAN ── */
   document.getElementById('btnAmbilAntrian').addEventListener('click', function() {
@@ -670,6 +586,21 @@
   }
   document.getElementById('modalAntrian').addEventListener('click', function(e) {
     if (e.target === this) closeModalAntrian();
+  });
+
+  /* ── MODAL PANGGIL ── */
+  function openPanggil(id, nama) {
+    document.getElementById('panggilPasienName').textContent = nama;
+    document.getElementById('panggilForm').action = BASE_ANTRIAN + '/' + id + '/panggil';
+    document.getElementById('modalPanggil').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closePanggil() {
+    document.getElementById('modalPanggil').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('modalPanggil').addEventListener('click', function(e) {
+    if (e.target === this) closePanggil();
   });
 
   /* ── MODAL BATAL ── */
@@ -689,7 +620,7 @@
 
   /* ── ESCAPE ── */
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') { closeModalAntrian(); closeBatal(); closeDiagnosis(); }
+    if (e.key === 'Escape') { closeModalAntrian(); closeBatal(); closePanggil(); }
   });
 
   /* ── FILTER CHIPS ── */

@@ -29,6 +29,11 @@ class RekamMedis extends Model
         'keadaan_keluar',
         'rujukan_ke',
         'catatan',
+        'kasus_penyakit',
+        'pelayanan_kesehatan',
+        'status_pasien',
+        'jenis_pelayanan',
+        'pengobatan',
     ];
 
     protected $casts = [

@@ -134,7 +134,7 @@ class DokterController extends Controller
 
     public function antrianIndex()
     {
-        $antrians = Antrian::with('pasien')
+        $antrians = Antrian::with(['pasien', 'rekamMedis'])
             ->where('tanggal', now()->toDateString())
             ->orderBy('no_antrian')
             ->get();
@@ -171,11 +171,6 @@ class DokterController extends Controller
         $antrian = Antrian::findOrFail($antrianId);
         $pegawai = auth()->user()->pegawai;
 
-        // Validasi bahwa antrian milik dokter yang sedang login
-        if ($antrian->dokter_id !== $pegawai->id) {
-            return redirect()->route('dokter.antrian')->with('error', 'Anda tidak memiliki akses ke antrian ini.');
-        }
-
         // Validasi bahwa antrian sedang dalam status Dilayani
         if ($antrian->status !== 'Dilayani') {
             return redirect()->route('dokter.antrian')->with('error', 'Pasien harus dalam status dilayani untuk memberikan diagnosa.');
@@ -197,12 +192,18 @@ class DokterController extends Controller
             'catatan' => 'nullable|string|max:1000',
             'diagnosa' => 'required|array|min:1',
             'diagnosa.*' => 'required|exists:icdx,id',
-            'diagnosa_primer' => 'required|exists:icdx,id|in:' . implode(',', $request->diagnosa ?? []),
+            'diagnosa_primer' => 'required|exists:icdx,id',
             'catatan_dokter' => 'nullable|string|max:1000',
-            'obat_id' => 'nullable|array',
-            'obat_id.*' => 'required|exists:obat,id',
-            'jumlah' => 'nullable|array',
-            'jumlah.*' => 'required|integer|min:1',
+            'kasus_penyakit' => 'required|string|max:100',
+            'pelayanan_kesehatan' => 'nullable|string|max:100',
+            'status_pasien' => 'nullable|string|max:100',
+            'jenis_pelayanan' => 'nullable|string|max:100',
+            'pengobatan' => 'nullable|string|max:1000',
+            'pakai_resep' => 'required|in:Ya,Tidak',
+            'obat_id' => 'required_if:pakai_resep,Ya|array',
+            'obat_id.*' => 'required_if:pakai_resep,Ya|exists:obat,id',
+            'jumlah' => 'required_if:pakai_resep,Ya|array',
+            'jumlah.*' => 'required_if:pakai_resep,Ya|integer|min:1',
             'dosis' => 'nullable|array',
             'aturan_pakai' => 'nullable|array',
             'keterangan' => 'nullable|array',
@@ -210,25 +211,32 @@ class DokterController extends Controller
 
         DB::transaction(function () use ($antrian, $pegawai, $request) {
             // Buat rekam medis
-            $rekamMedis = RekamMedis::create([
-                'antrian_id' => $antrian->id,
-                'pasien_id' => $antrian->pasien_id,
-                'dokter_id' => $pegawai->id,
-                'tanggal_periksa' => now(),
-                'anamnesis' => $request->anamnesis,
-                'pemeriksaan_fisik' => $request->pemeriksaan_fisik,
-                'tekanan_darah' => $request->tekanan_darah,
-                'suhu' => $request->suhu,
-                'berat_badan' => $request->berat_badan,
-                'tinggi_badan' => $request->tinggi_badan,
-                'nadi' => $request->nadi,
-                'respirasi' => $request->respirasi,
-                'tindakan' => $request->tindakan,
-                'prognosa' => $request->prognosa,
-                'keadaan_keluar' => $request->keadaan_keluar,
-                'rujukan_ke' => $request->rujukan_ke,
-                'catatan' => $request->catatan,
-            ]);
+            $rekamMedis = RekamMedis::updateOrCreate(
+                ['antrian_id' => $antrian->id],
+                [
+                    'pasien_id' => $antrian->pasien_id,
+                    'dokter_id' => $pegawai->id,
+                    'tanggal_periksa' => now(),
+                    'anamnesis' => $request->anamnesis,
+                    'pemeriksaan_fisik' => $request->pemeriksaan_fisik,
+                    'tekanan_darah' => $request->tekanan_darah,
+                    'suhu' => $request->suhu,
+                    'berat_badan' => $request->berat_badan,
+                    'tinggi_badan' => $request->tinggi_badan,
+                    'nadi' => $request->nadi,
+                    'respirasi' => $request->respirasi,
+                    'tindakan' => $request->tindakan,
+                    'prognosa' => $request->prognosa,
+                    'keadaan_keluar' => $request->keadaan_keluar,
+                    'rujukan_ke' => $request->rujukan_ke,
+                    'catatan' => $request->catatan,
+                    'kasus_penyakit' => $request->kasus_penyakit,
+                    'pelayanan_kesehatan' => $request->pelayanan_kesehatan,
+                    'status_pasien' => $request->status_pasien,
+                    'jenis_pelayanan' => $request->jenis_pelayanan,
+                    'pengobatan' => $request->pengobatan,
+                ]
+            );
 
             // Simpan diagnosa
             foreach ($request->diagnosa as $icdxId) {
@@ -239,8 +247,8 @@ class DokterController extends Controller
                 ]);
             }
 
-            // Simpan resep jika ada obat
-            if ($request->has('obat_id') && !empty($request->obat_id)) {
+            // Simpan resep jika ada obat dan pilihan "Ya"
+            if ($request->pakai_resep === 'Ya' && $request->has('obat_id') && !empty($request->obat_id)) {
                 $obatIds = $request->obat_id;
                 $jumlah = $request->jumlah;
                 $dosis = $request->dosis ?? [];

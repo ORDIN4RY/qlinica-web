@@ -29,6 +29,11 @@ class Antrian extends Model
         return $this->belongsTo(Pasien::class, 'pasien_id');
     }
 
+    public function rekamMedis()
+    {
+        return $this->hasOne(RekamMedis::class, 'antrian_id');
+    }
+
     public function getNomorAntrianAttribute()
     {
         return $this->attributes['no_antrian'] ?? null;
