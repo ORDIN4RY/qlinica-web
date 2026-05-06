@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('icdx', function (Blueprint $table) {
+        Schema::create('menu', function (Blueprint $table) {
             $table->id();
-            $table->string('kode', 10)->unique()->comment('Kode ICD-X, contoh: A00, B01.1');
-            $table->string('nama', 255)->comment('Nama diagnosa dalam Bahasa medis');
+            $table->string('nama_menu', 50)->unique();
             $table->timestamps();
         });
     }
@@ -24,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('icdx');
+        Schema::dropIfExists('menu');
     }
 };
