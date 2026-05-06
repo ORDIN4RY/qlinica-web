@@ -22,6 +22,7 @@ Route::get('/login', function () {
         $role = auth()->user()->role;
         return match($role) {
             'admin' => redirect()->route('beranda_admin'),
+            'dokter' => redirect()->route('dokter.dashboard'),
             'apoteker' => redirect()->route('apoteker.dashboard'),
             'pasien' => redirect()->route('pasien.portal'),
             default => redirect('/')
@@ -117,9 +118,8 @@ Route::middleware(['auth', 'role:dokter'])->group(function () {
     Route::get('/dokter/antrian', [DokterController::class, 'antrianIndex'])->name('dokter.antrian');
     Route::patch('/dokter/antrian/{id}/panggil', [DokterController::class, 'panggilAntrian'])->name('dokter.antrian.panggil');
     Route::post('/dokter/antrian/{antrianId}/diagnosa', [DokterController::class, 'simpanDiagnosa'])->name('dokter.antrian.diagnosa');
-    Route::get('/dokter/resep', [DokterController::class, 'resepIndex'])->name('dokter.resep.index');
-    Route::get('/dokter/resep/{rekamMedis}/create', [DokterController::class, 'createResep'])->name('dokter.resep.create');
-    Route::post('/dokter/resep/{rekamMedis}', [DokterController::class, 'storeResep'])->name('dokter.resep.store');
+    Route::get('/dokter/pasien', [DokterController::class, 'pasienIndex'])->name('dokter.pasien');
 });
+
 
 

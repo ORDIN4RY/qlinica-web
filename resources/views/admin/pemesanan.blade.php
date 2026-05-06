@@ -495,31 +495,32 @@
 
           {{-- Vital Signs --}}
           <div class="form-group">
-            <label>Tekanan Darah</label>
-            <input type="text" name="tekanan_darah" class="form-input" placeholder="Contoh: 120/80">
+            <label>Tekanan Darah <span class="text-red-500 normal-case font-normal">*</span></label>
+            <input type="text" name="tekanan_darah" class="form-input" placeholder="Contoh: 120/80" required>
           </div>
           <div class="form-group">
-            <label>Suhu (°C)</label>
-            <input type="number" step="0.1" name="suhu" class="form-input" placeholder="Contoh: 36.5">
+            <label>Suhu (°C) <span class="text-red-500 normal-case font-normal">*</span></label>
+            <input type="number" step="0.1" name="suhu" class="form-input" placeholder="Contoh: 36.5" required min="30" max="45">
           </div>
           <div class="form-group">
-            <label>Berat Badan (kg)</label>
-            <input type="number" step="0.1" name="berat_badan" class="form-input" placeholder="Contoh: 60.5">
+            <label>Berat Badan (kg) <span class="text-red-500 normal-case font-normal">*</span></label>
+            <input type="number" step="0.1" name="berat_badan" class="form-input" placeholder="Contoh: 60.5" required min="1" max="200">
           </div>
           <div class="form-group">
-            <label>Tinggi Badan (cm)</label>
-            <input type="number" step="0.1" name="tinggi_badan" class="form-input" placeholder="Contoh: 165">
+            <label>Tinggi Badan (cm) <span class="text-red-500 normal-case font-normal">*</span></label>
+            <input type="number" step="0.1" name="tinggi_badan" class="form-input" placeholder="Contoh: 165" required min="30" max="250">
           </div>
           <div class="form-group">
-            <label>Nadi (x/menit)</label>
-            <input type="number" name="nadi" class="form-input" placeholder="Contoh: 80">
+            <label>Nadi (x/menit) <span class="text-red-500 normal-case font-normal">*</span></label>
+            <input type="number" name="nadi" class="form-input" placeholder="Contoh: 80" required min="40" max="200">
           </div>
           <div class="form-group">
-            <label>Respirasi (x/menit)</label>
-            <input type="number" name="respirasi" class="form-input" placeholder="Contoh: 20">
+            <label>Respirasi (x/menit) <span class="text-red-500 normal-case font-normal">*</span></label>
+            <input type="number" name="respirasi" class="form-input" placeholder="Contoh: 20" required min="10" max="60">
           </div>
           
         </div>
+
       </div>
       <div class="modal-foot">
         <button type="button" onclick="closePanggil()"

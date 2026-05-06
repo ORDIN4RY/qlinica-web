@@ -54,20 +54,13 @@
 
               @if($antrian->status === 'Menunggu')
                 <span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm rounded-lg">Menunggu Panggilan</span>
-              @elseif($antrian->status === 'Dipanggil')
-                <form action="{{ route('dokter.antrian.panggil', $antrian) }}" method="POST" class="inline-block">
-                  @csrf
-                  @method('PATCH')
-                  <input type="hidden" name="status" value="Dilayani">
-                  <button type="submit" class="px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700 transition">Mulai Layani</button>
-                </form>
-              @elseif($antrian->status === 'Dilayani')
+              @elseif(in_array($antrian->status, ['Dipanggil', 'Dilayani']))
                 <button type="button" 
                   onclick="openDiagnosaModal(
                     '{{ $antrian->id }}', 
                     '{{ addslashes($antrian->pasien?->nama) }}', 
                     '{{ $antrian->pasien?->no_rm }}', 
-                    '{{ $antrian->pasien?->tanggal_lahir ? \Carbon\Carbon::parse($antrian->pasien->tanggal_lahir)->age : '-' }}', 
+                    '{{ $antrian->pasien?->tgl_lahir ? \Carbon\Carbon::parse($antrian->pasien->tgl_lahir)->age : '-' }}', 
                     '{{ $antrian->pasien?->jenis_kelamin }}', 
                     '{{ addslashes($antrian->keluhan) }}',
                     '{{ $antrian->rekamMedis?->tekanan_darah }}',
@@ -77,8 +70,9 @@
                     '{{ $antrian->rekamMedis?->nadi }}',
                     '{{ $antrian->rekamMedis?->respirasi }}'
                   )"
-                  class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition">
-                  Diagnosa
+                  class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                  Diagnosa & Resep
                 </button>
               @else
                 <span class="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg">Status: {{ $antrian->status }}</span>
@@ -108,6 +102,18 @@
 
       <form id="diagnosaForm" action="" method="POST" class="space-y-6">
         @csrf
+
+        {{-- Tampilkan error validasi jika ada --}}
+        @if($errors->any())
+          <div class="bg-red-50 border border-red-300 text-red-800 rounded-lg px-4 py-3">
+            <p class="font-semibold mb-1 flex items-center gap-2"><i class="fas fa-exclamation-circle text-red-500"></i> Terdapat kesalahan pada form:</p>
+            <ul class="list-disc list-inside text-sm space-y-1">
+              @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+              @endforeach
+            </ul>
+          </div>
+        @endif
 
         <!-- Informasi Pasien -->
         <div class="bg-gray-50 p-4 rounded-lg">
@@ -184,36 +190,52 @@
           </div>
         </div>
 
-        <!-- Vital Signs -->
-        <div>
-          <h4 class="font-semibold text-gray-800 mb-3">Tanda Vital</h4>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Tekanan Darah</label>
-              <input type="text" name="tekanan_darah" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="120/80">
+        <!-- Vital Signs (Read Only - dari Pemeriksaan Awal Admin) -->
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <i class="fas fa-lock text-amber-500 text-sm"></i>
+            <h4 class="font-semibold text-amber-800 text-sm">Tanda Vital — Hasil Pemeriksaan Awal</h4>
+            <span class="text-xs text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full font-medium">Diisi oleh Admin</span>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div class="bg-white rounded-lg p-3 border border-amber-100">
+              <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Tekanan Darah</p>
+              <p class="font-bold text-gray-800 text-base" id="displayTekananDarah">—</p>
+              <input type="hidden" name="tekanan_darah" id="hiddenTekananDarah">
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Suhu (°C)</label>
-              <input type="number" step="0.1" name="suhu" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="36.5">
+            <div class="bg-white rounded-lg p-3 border border-amber-100">
+              <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Suhu</p>
+              <p class="font-bold text-gray-800 text-base" id="displaySuhu">—</p>
+              <p class="text-xs text-gray-400">°C</p>
+              <input type="hidden" name="suhu" id="hiddenSuhu">
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Berat Badan (kg)</label>
-              <input type="number" step="0.1" name="berat_badan" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="70">
+            <div class="bg-white rounded-lg p-3 border border-amber-100">
+              <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Berat Badan</p>
+              <p class="font-bold text-gray-800 text-base" id="displayBeratBadan">—</p>
+              <p class="text-xs text-gray-400">kg</p>
+              <input type="hidden" name="berat_badan" id="hiddenBeratBadan">
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Tinggi Badan (cm)</label>
-              <input type="number" step="0.1" name="tinggi_badan" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="170">
+            <div class="bg-white rounded-lg p-3 border border-amber-100">
+              <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Tinggi Badan</p>
+              <p class="font-bold text-gray-800 text-base" id="displayTinggiBadan">—</p>
+              <p class="text-xs text-gray-400">cm</p>
+              <input type="hidden" name="tinggi_badan" id="hiddenTinggiBadan">
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Nadi (x/menit)</label>
-              <input type="number" name="nadi" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="80">
+            <div class="bg-white rounded-lg p-3 border border-amber-100">
+              <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Nadi</p>
+              <p class="font-bold text-gray-800 text-base" id="displayNadi">—</p>
+              <p class="text-xs text-gray-400">x/menit</p>
+              <input type="hidden" name="nadi" id="hiddenNadi">
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Respirasi (x/menit)</label>
-              <input type="number" name="respirasi" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="20">
+            <div class="bg-white rounded-lg p-3 border border-amber-100">
+              <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Respirasi</p>
+              <p class="font-bold text-gray-800 text-base" id="displayRespirasi">—</p>
+              <p class="text-xs text-gray-400">x/menit</p>
+              <input type="hidden" name="respirasi" id="hiddenRespirasi">
             </div>
           </div>
         </div>
+
 
         <!-- Diagnosa -->
         <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
@@ -382,13 +404,21 @@ function openDiagnosaModal(id, nama, noRm, umur, jk, keluhan, td, suhu, bb, tb, 
   document.getElementById('modalJk').textContent = jk;
   document.getElementById('modalKeluhan').textContent = keluhan;
 
-  // Set data TTV (Pemeriksaan Awal)
-  form.querySelector('input[name="tekanan_darah"]').value = td || '';
-  form.querySelector('input[name="suhu"]').value = suhu || '';
-  form.querySelector('input[name="berat_badan"]').value = bb || '';
-  form.querySelector('input[name="tinggi_badan"]').value = tb || '';
-  form.querySelector('input[name="nadi"]').value = nadi || '';
-  form.querySelector('input[name="respirasi"]').value = res || '';
+  // Set display TTV (read-only) + hidden input
+  const ttvMap = [
+    { display: 'displayTekananDarah', hidden: 'hiddenTekananDarah', val: td, suffix: '' },
+    { display: 'displaySuhu',         hidden: 'hiddenSuhu',         val: suhu, suffix: '' },
+    { display: 'displayBeratBadan',   hidden: 'hiddenBeratBadan',   val: bb,   suffix: '' },
+    { display: 'displayTinggiBadan',  hidden: 'hiddenTinggiBadan',  val: tb,   suffix: '' },
+    { display: 'displayNadi',         hidden: 'hiddenNadi',         val: nadi, suffix: '' },
+    { display: 'displayRespirasi',    hidden: 'hiddenRespirasi',    val: res,  suffix: '' },
+  ];
+  ttvMap.forEach(function(item) {
+    const displayEl = document.getElementById(item.display);
+    const hiddenEl  = document.getElementById(item.hidden);
+    if (displayEl) displayEl.textContent = (item.val && item.val !== 'null' && item.val !== '') ? item.val : '—';
+    if (hiddenEl)  hiddenEl.value = (item.val && item.val !== 'null') ? item.val : '';
+  });
   
   // Set action form
   form.action = `/dokter/antrian/${id}/diagnosa`;
@@ -399,6 +429,7 @@ function openDiagnosaModal(id, nama, noRm, umur, jk, keluhan, td, suhu, bb, tb, 
   
   modal.classList.remove('hidden');
 }
+
 
 function toggleResep(show) {
   const sectionResep = document.getElementById('section-resep');
