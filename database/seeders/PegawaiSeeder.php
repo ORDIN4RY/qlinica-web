@@ -18,7 +18,7 @@ class PegawaiSeeder extends Seeder
                 'name'      => 'Dr. Ahmad Wijaya',
                 'email'     => 'dokter@sahaduta.com',
                 'password'  => Hash::make('password'),
-                'role'      => 'dokter',
+                'role'      => 'pegawai',
                 'is_active' => true,
                 'phone'     => '081234567890',
             ]
@@ -31,6 +31,7 @@ class PegawaiSeeder extends Seeder
                 'nama'        => 'Dr. Ahmad Wijaya',
                 'spesialisasi' => 'Umum',
                 'no_sip'      => 'SIP/2026/001',
+                'jabatan_id'   => '1',
                 'alamat'      => 'Jl. Kesehatan No. 1, Jakarta',
                 'no_hp'       => '081234567890',
             ]
@@ -43,7 +44,7 @@ class PegawaiSeeder extends Seeder
                 'name'      => 'Siti Nurhaliza',
                 'email'     => 'apoteker@sahaduta.com',
                 'password'  => Hash::make('password'),
-                'role'      => 'apoteker',
+                'role'      => 'pegawai',
                 'is_active' => true,
                 'phone'     => '081234567891',
             ]
@@ -55,6 +56,7 @@ class PegawaiSeeder extends Seeder
                 'nik'         => '1234567890123457',
                 'nama'        => 'Siti Nurhaliza',
                 'spesialisasi' => 'Apoteker',
+                'jabatan_id'   => '4',
                 'no_sip'      => 'SIP/2026/002',
                 'alamat'      => 'Jl. Kesehatan No. 2, Jakarta',
                 'no_hp'       => '081234567891',
@@ -68,7 +70,7 @@ class PegawaiSeeder extends Seeder
                 'name'      => 'Maya Sari',
                 'email'     => 'perawat@sahaduta.com',
                 'password'  => Hash::make('password'),
-                'role'      => 'perawat',
+                'role'      => 'pegawai',
                 'is_active' => true,
                 'phone'     => '081234567892',
             ]
@@ -80,6 +82,7 @@ class PegawaiSeeder extends Seeder
                 'nik'         => '1234567890123458',
                 'nama'        => 'Maya Sari',
                 'spesialisasi' => 'Perawat',
+                'jabatan_id'   => '2',
                 'no_sip'      => 'SIP/2026/003',
                 'alamat'      => 'Jl. Kesehatan No. 3, Jakarta',
                 'no_hp'       => '081234567892',

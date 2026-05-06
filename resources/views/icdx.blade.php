@@ -121,8 +121,7 @@
         <tr class="bg-gray-50 border-b border-gray-100">
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-12">No</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-36">Kode ICD-X</th>
-          <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Diagnosa (Indonesia)</th>
-          <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider hide-sm">Nama Diagnosa (Inggris)</th>
+          <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Diagnosa</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Aksi</th>
         </tr>
       </thead>
@@ -137,17 +136,13 @@
             <td class="px-5 py-3.5">
               <span class="kode-badge">{{ $icdx->kode }}</span>
             </td>
-            {{-- Nama ID --}}
-            <td class="px-5 py-3.5">
-              <div class="font-medium text-gray-800 leading-snug">{{ $icdx->nama }}</div>
-            </td>
-            {{-- Nama EN --}}
-            <td class="px-5 py-3.5 text-gray-500 text-xs hide-sm">{{ $icdx->nama_en ?: '—' }}</td>
+            {{-- Nama --}}
+            <td class="px-5 py-3.5 text-gray-500 text-xs hide-sm">{{ $icdx->nama ?: '—' }}</td>
             {{-- Aksi --}}
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-2">
                 <button
-                  onclick="openEdit({{ $icdx->id }}, '{{ addslashes($icdx->kode) }}', '{{ addslashes($icdx->nama) }}', '{{ addslashes($icdx->nama_en ?? '') }}')"
+                  onclick="openEdit({{ $icdx->id }}, '{{ addslashes($icdx->kode) }}', '{{ addslashes($icdx->nama) }}')"
                   class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition"
                   title="Edit">
                   <i class="fas fa-pen text-xs"></i>
@@ -254,17 +249,10 @@
 
           {{-- Nama Indonesia --}}
           <div class="form-group">
-            <label>Nama Diagnosa (Indonesia) <span class="text-red-500 normal-case font-normal">*</span></label>
+            <label>Nama Diagnosa <span class="text-red-500 normal-case font-normal">*</span></label>
             <textarea name="nama" id="fNama" class="form-textarea"
-              placeholder="Nama diagnosa dalam Bahasa Indonesia"></textarea>
+              placeholder="Nama diagnosa dalam Bahasa Ilmiah"></textarea>
             <p class="err-text" id="errNama"></p>
-          </div>
-
-          {{-- Nama Inggris --}}
-          <div class="form-group">
-            <label>Nama Diagnosa (Inggris) <span class="text-gray-400 normal-case font-normal">(opsional)</span></label>
-            <textarea name="nama_en" id="fNamaEn" class="form-textarea"
-              placeholder="Nama diagnosa dalam Bahasa Inggris"></textarea>
           </div>
 
         </div>
@@ -331,7 +319,7 @@
     document.body.style.overflow = 'hidden';
   }
 
-  function openEdit(id, kode, nama, namaEn) {
+  function openEdit(id, kode, nama) {
     editingId = id;
     document.getElementById('modalTitle').textContent = 'Edit Data ICD-X';
     document.getElementById('icdxForm').action        = BASE_URL + '/' + id;
@@ -339,9 +327,8 @@
     document.getElementById('btnSimpanText').textContent = 'Simpan Perubahan';
     clearErrors();
 
-    document.getElementById('fKode').value   = kode;
-    document.getElementById('fNama').value   = nama;
-    document.getElementById('fNamaEn').value = namaEn;
+    document.getElementById('fKode').value = kode;
+    document.getElementById('fNama').value = nama;
 
     document.getElementById('modalOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -353,7 +340,7 @@
   }
 
   function clearForm() {
-    ['fKode', 'fNama', 'fNamaEn'].forEach(function(id) {
+    ['fKode', 'fNama'].forEach(function(id) {
       document.getElementById(id).value = '';
     });
   }

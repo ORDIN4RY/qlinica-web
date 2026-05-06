@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('icdx', function (Blueprint $table) {
+        Schema::create('hak_akses', function (Blueprint $table) {
             $table->id();
-            $table->string('kode', 10)->unique()->comment('Kode ICD-X, contoh: A00, B01.1');
-            $table->string('nama', 255)->comment('Nama diagnosa dalam Bahasa medis');
+            $table->foreignId('jabatan_id')->constrained('jabatan')->onDelete('cascade');
+            $table->foreignId('menu_id')->constrained('menu')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('icdx');
+        Schema::dropIfExists('hak_akses');
     }
 };
