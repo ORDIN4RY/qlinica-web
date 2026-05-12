@@ -87,7 +87,7 @@ class PasienController extends Controller
             'agama_id'       => 'nullable|integer',
             'pendidikan_id'  => 'nullable|integer',
             'pekerjaan_id'   => 'nullable|integer',
-            'password'       => 'required|string|min:6',
+            'riwayat_alergi' => 'nullable|string',
         ], [
             'no_rm.required'  => 'No. Rekam Medik wajib diisi.',
             'no_rm.unique'    => 'No. Rekam Medik sudah terdaftar.',
@@ -95,16 +95,14 @@ class PasienController extends Controller
             'tgl_lahir.required' => 'Tanggal lahir wajib diisi.',
             'jenis_kelamin.required' => 'Jenis kelamin wajib dipilih.',
             'nik.unique'      => 'NIK sudah terdaftar.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min'    => 'Password minimal 6 karakter.',
         ]);
 
-        DB::transaction(function () use ($request, &$newUser, &$newPasien) {
-            // Buat akun user untuk pasien
+        DB::transaction(function () use ($request, &$newPasien) {
+            $defaultPassword = 'pasien' . now()->year;
             $newUser = User::create([
                 'name'      => $request->nama,
                 'email'     => 'pasien_' . $request->no_rm . '@sahaduta.local',
-                'password'  => Hash::make($request->password),
+                'password'  => Hash::make($defaultPassword),
                 'role'      => 'pasien',
                 'phone'     => $request->no_hp,
                 'is_active' => true,
@@ -125,13 +123,12 @@ class PasienController extends Controller
                 'agama_id'       => $request->agama_id ?: null,
                 'pendidikan_id'  => $request->pendidikan_id ?: null,
                 'pekerjaan_id'   => $request->pekerjaan_id ?: null,
+                'riwayat_alergi' => $request->riwayat_alergi,
             ]);
         });
 
         return redirect()->route('admin.pasien')
-            ->with('success', 'Pasien berhasil ditambahkan.')
-            ->with('new_pasien_id', $newPasien->id)
-            ->with('new_pasien_rm', $newPasien->no_rm);
+            ->with('success', 'Pasien berhasil ditambahkan.');
     }
 
     /** Update data pasien. */
@@ -154,11 +151,10 @@ class PasienController extends Controller
             'agama_id'       => 'nullable|integer',
             'pendidikan_id'  => 'nullable|integer',
             'pekerjaan_id'   => 'nullable|integer',
-            'password'       => 'nullable|string|min:6',
+            'riwayat_alergi' => 'nullable|string',
         ], [
             'no_rm.unique'   => 'No. Rekam Medik sudah digunakan.',
             'nik.unique'     => 'NIK sudah terdaftar.',
-            'password.min'   => 'Password minimal 6 karakter.',
         ]);
 
         DB::transaction(function () use ($request, $pasien) {
@@ -176,17 +172,14 @@ class PasienController extends Controller
                 'agama_id'       => $request->agama_id ?: null,
                 'pendidikan_id'  => $request->pendidikan_id ?: null,
                 'pekerjaan_id'   => $request->pekerjaan_id ?: null,
+                'riwayat_alergi' => $request->riwayat_alergi,
             ]);
 
             if ($pasien->user) {
-                $userData = [
+                $pasien->user->update([
                     'name'  => $request->nama,
                     'phone' => $request->no_hp,
-                ];
-                if ($request->filled('password')) {
-                    $userData['password'] = Hash::make($request->password);
-                }
-                $pasien->user->update($userData);
+                ]);
             }
         });
 
@@ -209,33 +202,7 @@ class PasienController extends Controller
             ->with('success', 'Pasien berhasil dihapus.');
     }
 
-    /** Buat akun login untuk pasien yang belum punya akun. */
-    public function createAccount(Request $request, $id)
-    {
-        $pasien = Pasien::findOrFail($id);
-
-        if ($pasien->user) {
-            return redirect()->route('admin.pasien')
-                ->with('warning', 'Pasien "' . $pasien->nama . '" sudah memiliki akun login.');
-        }
-
-        $defaultPassword = 'pasien' . now()->year;
-
-        $user = User::create([
-            'name'      => $pasien->nama,
-            'email'     => 'pasien_' . $pasien->no_rm . '@sahaduta.local',
-            'password'  => Hash::make($defaultPassword),
-            'role'      => 'pasien',
-            'is_active' => true,
-        ]);
-
-        $pasien->update(['user_id' => $user->id]);
-
-        return redirect()->route('admin.pasien')
-            ->with('success', 'Akun login berhasil dibuat untuk pasien "' . $pasien->nama . '". Password default: ' . $defaultPassword)
-            ->with('new_pasien_id', $pasien->id)
-            ->with('new_pasien_rm', $pasien->no_rm);
-    }
+    /** Fitur login pasien dihapus. */
 
     /** Search pasien untuk autocomplete. */
     public function search(Request $request)

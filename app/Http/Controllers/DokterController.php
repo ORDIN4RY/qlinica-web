@@ -164,9 +164,17 @@ class DokterController extends Controller
 
     public function pasienIndex(\Illuminate\Http\Request $request)
     {
+        $pegawai = auth()->user()->pegawai;
         $q = $request->query('q');
 
         $query = \App\Models\Pasien::with(['agama', 'pendidikan', 'pekerjaan'])
+            ->whereIn('id', function($subquery) use ($pegawai) {
+                $subquery->select('antrian.pasien_id')
+                         ->from('antrian')
+                         ->join('rekam_medis', 'rekam_medis.antrian_id', '=', 'antrian.id')
+                         ->whereDate('antrian.tanggal', now()->toDateString())
+                         ->where('rekam_medis.dokter_id', $pegawai->id);
+            })
             ->orderBy('nama');
 
         if ($q) {
@@ -241,6 +249,7 @@ class DokterController extends Controller
             'status_pasien' => 'nullable|string|max:100',
             'jenis_pelayanan' => 'nullable|string|max:100',
             'pengobatan' => 'nullable|string|max:1000',
+            'riwayat_alergi' => 'nullable|string|max:1000',
             'pakai_resep' => 'required|in:Ya,Tidak',
             // Gunakan exclude_unless agar seluruh validasi resep diabaikan saat pakai_resep = Tidak
             // (required_if tidak cukup — field yg kosong tetap divalidasi oleh rules lain seperti exists)
@@ -282,6 +291,10 @@ class DokterController extends Controller
                         'pengobatan' => $request->pengobatan,
                     ]
                 );
+
+                if ($request->has('riwayat_alergi')) {
+                    $antrian->pasien->update(['riwayat_alergi' => $request->riwayat_alergi]);
+                }
 
                 // Hapus diagnosa lama terlebih dahulu untuk menghindari UNIQUE constraint error
                 // (karena rekam_medis_diagnosa punya unique(rekam_medis_id, icdx_id))

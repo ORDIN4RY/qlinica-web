@@ -127,10 +127,11 @@
 
 {{-- ─── TOOLBAR ─────────────────────────────────────────────────────── --}}
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
-  <button id="btnTambah"
-    class="flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-md">
-    <i class="fas fa-plus text-xs"></i> Tambah Pasien
-  </button>
+    <button id="btnTambah"
+      class="flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-md">
+      <i class="fas fa-plus text-xs"></i> Tambah Pasien
+    </button>
+  </div>
 
   <form method="GET" action="{{ route('admin.pasien') }}" class="flex items-center gap-2">
     <div class="relative">
@@ -152,6 +153,21 @@
   </form>
 </div>
 
+{{-- Tampilkan Error Validasi (jika ada) --}}
+@if ($errors->any())
+  <div class="bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-2xl shadow-sm mb-5">
+    <div class="flex items-center gap-3 font-semibold mb-2">
+      <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+      <span>Terjadi Kesalahan Validasi:</span>
+    </div>
+    <ul class="list-disc list-inside text-sm ml-8 text-red-600">
+      @foreach ($errors->all() as $error)
+        <li>{{ $error }}</li>
+      @endforeach
+    </ul>
+  </div>
+@endif
+
 {{-- ─── TABLE CARD ──────────────────────────────────────────────────── --}}
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
   <div class="overflow-x-auto">
@@ -167,7 +183,7 @@
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Gol. Darah</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">No HP</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Kota</th>
-          <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Akun Login</th>
+          <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Riwayat Alergi</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
         </tr>
       </thead>
@@ -224,31 +240,9 @@
             <td class="px-5 py-4 text-gray-500 text-xs">{{ $p->user->phone ?? '—' }}</td>
             {{-- Kota --}}
             <td class="px-5 py-4 text-gray-600 text-xs">{{ $p->kota ?: ($p->desa ?: '—') }}</td>
-            {{-- Akun Login --}}
-            <td class="px-5 py-4">
-              @if($p->user)
-                <div class="flex flex-col gap-1">
-                  <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full w-fit">
-                    <i class="fas fa-circle-check text-[10px]"></i> Aktif
-                  </span>
-                  <button
-                    onclick="openLoginInfo({{ $p->id }})"
-                    class="text-[11px] text-blue-600 hover:text-blue-800 underline underline-offset-1 text-left font-mono"
-                    title="Lihat info login">{{ $p->user->email }}</button>
-                </div>
-              @else
-                <div class="flex flex-col gap-1">
-                  <span class="inline-flex items-center gap-1 text-xs font-semibold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full w-fit">
-                    <i class="fas fa-circle-xmark text-[10px]"></i> Belum ada
-                  </span>
-                  <form method="POST" action="{{ route('admin.pasien.create-account', $p->id) }}" class="inline">
-                    @csrf
-                    <button type="submit" class="text-[11px] text-amber-600 hover:text-amber-800 underline underline-offset-1 font-semibold">
-                      <i class="fas fa-key text-[10px] mr-0.5"></i> Buat Akun
-                    </button>
-                  </form>
-                </div>
-              @endif
+            {{-- Riwayat Alergi --}}
+            <td class="px-5 py-4 text-gray-600 text-xs">
+              {{ $p->riwayat_alergi ?: '—' }}
             </td>
             {{-- Aksi --}}
             <td class="px-5 py-4">
@@ -476,12 +470,11 @@
             </select>
           </div>
 
-          {{-- Password --}}
+          {{-- Riwayat Alergi --}}
           <div class="form-group span2">
-            <label>Password <span class="text-red-500 normal-case font-normal" id="pwReq">*</span></label>
-            <input type="password" name="password" id="fPassword" class="form-input"
-              placeholder="Min. 6 karakter">
-            <p class="err-text" id="errPassword"></p>
+            <label>Riwayat Alergi</label>
+            <textarea name="riwayat_alergi" id="fAlergi" class="form-input"
+              placeholder="Riwayat alergi obat, makanan, dll (opsional)" rows="2"></textarea>
           </div>
 
         </div>
@@ -602,56 +595,7 @@
   </div>
 </div>
 
-{{-- ═══════════════════════════════════════════════════════════
-     MODAL INFO LOGIN
-══════════════════════════════════════════════════════════════ --}}
-<div class="modal-overlay" id="loginInfoOverlay">
-  <div class="bg-white rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl" style="animation:modalIn .22s ease">
-    <div class="flex items-center gap-3 mb-5">
-      <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
-        <i class="fas fa-key text-emerald-600 text-lg"></i>
-      </div>
-      <div>
-        <h3 class="text-base font-bold text-gray-800">Info Akun Login Pasien</h3>
-        <p class="text-xs text-gray-400">Gunakan data ini untuk login di halaman utama</p>
-      </div>
-    </div>
 
-    <div class="bg-gray-50 rounded-xl p-4 mb-4 space-y-3">
-      <div>
-        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-1">Nama Pasien</label>
-        <div class="text-sm font-semibold text-gray-800" id="liNama">—</div>
-      </div>
-      <div>
-        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-1">No. Rekam Medik (untuk login)</label>
-        <div class="flex items-center gap-2">
-          <code class="text-sm font-bold text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg font-mono" id="liRm">—</code>
-          <button onclick="copyText('liRm')" class="text-xs text-gray-400 hover:text-blue-600 transition" title="Salin">
-            <i class="fas fa-copy"></i>
-          </button>
-        </div>
-      </div>
-      <div>
-        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-1">Email Akun</label>
-        <div class="text-sm text-gray-600 font-mono" id="liEmail">—</div>
-      </div>
-    </div>
-
-    <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5">
-      <p class="text-xs text-amber-700 font-medium">
-        <i class="fas fa-circle-info mr-1"></i>
-        Pasien dapat login menggunakan <strong>No. Rekam Medik</strong> dan <strong>password</strong> yang dibuat saat pendaftaran. Login tersedia di halaman utama (landing page).
-      </p>
-    </div>
-
-    <div class="flex justify-end gap-3">
-      <button onclick="closeLoginInfo()" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">Tutup</button>
-      <a href="/" target="_blank" class="px-5 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 text-white text-sm font-bold transition shadow-md">
-        <i class="fas fa-arrow-up-right-from-square mr-1.5 text-xs"></i> Buka Halaman Login
-      </a>
-    </div>
-  </div>
-</div>
 
 {{-- Data JSON pasien untuk form edit --}}
 <script id="pasienData" type="application/json">
@@ -671,8 +615,7 @@
     'agama_id'       => $p->agama_id ?? '',
     'pendidikan_id'  => $p->pendidikan_id ?? '',
     'pekerjaan_id'   => $p->pekerjaan_id ?? '',
-    'email'          => $p->user->email ?? '',
-    'has_user'       => $p->user ? true : false,
+    'riwayat_alergi' => $p->riwayat_alergi ?? '',
   ])->keyBy('id')) !!}
 </script>
 
@@ -692,9 +635,7 @@
     document.getElementById('pasienForm').action      = '{{ route("admin.pasien.store") }}';
     document.getElementById('formMethod').value       = 'POST';
     document.getElementById('formPasienId').value     = '';
-    document.getElementById('pwReq').textContent      = '*';
-    document.getElementById('fPassword').placeholder  = 'Min. 6 karakter';
-    document.getElementById('fPassword').required     = true;
+
     clearForm();
     clearErrors();
     document.getElementById('modalOverlay').classList.add('open');
@@ -708,9 +649,7 @@
     document.getElementById('pasienForm').action      = BASE_URL + '/' + id;
     document.getElementById('formMethod').value       = 'PUT';
     document.getElementById('formPasienId').value     = id;
-    document.getElementById('pwReq').textContent      = '(opsional)';
-    document.getElementById('fPassword').placeholder  = 'Kosongkan jika tidak diubah';
-    document.getElementById('fPassword').required     = false;
+
     clearErrors();
 
     document.getElementById('fRm').value         = p.no_rm;
@@ -727,7 +666,7 @@
     document.getElementById('fAgama').value       = p.agama_id;
     document.getElementById('fPendidikan').value  = p.pendidikan_id;
     document.getElementById('fPekerjaan').value   = p.pekerjaan_id;
-    document.getElementById('fPassword').value    = '';
+    document.getElementById('fAlergi').value      = p.riwayat_alergi;
 
     document.getElementById('modalOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -739,7 +678,7 @@
   }
 
   function clearForm() {
-    ['fRm','fNik','fNama','fKk','fHp','fAlamat','fDesa','fKota','fPassword'].forEach(function(id) {
+    ['fRm','fNik','fNama','fKk','fHp','fAlamat','fDesa','fKota','fAlergi'].forEach(function(id) {
       document.getElementById(id).value = '';
     });
     ['fJenkel','fDarah','fAgama','fPendidikan','fPekerjaan'].forEach(function(id) {
@@ -749,11 +688,11 @@
   }
 
   function clearErrors() {
-    ['errRm','errNik','errNama','errTgl','errJenkel','errPassword'].forEach(function(id) {
+    ['errRm','errNik','errNama','errTgl','errJenkel'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) { el.textContent = ''; el.classList.remove('show'); }
     });
-    ['fRm','fNik','fNama','fTgl','fJenkel','fPassword'].forEach(function(id) {
+    ['fRm','fNik','fNama','fTgl','fJenkel'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) el.classList.remove('error');
     });
@@ -815,31 +754,7 @@
     document.body.style.overflow = '';
   }
 
-  /* ── MODAL LOGIN INFO ── */
-  function openLoginInfo(id) {
-    var p = pasienMap[id];
-    if (!p) return;
-    document.getElementById('liNama').textContent  = p.nama || '-';
-    document.getElementById('liRm').textContent    = p.no_rm || '-';
-    document.getElementById('liEmail').textContent = p.email || '-';
-    document.getElementById('loginInfoOverlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
 
-  function closeLoginInfo() {
-    document.getElementById('loginInfoOverlay').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
-  function copyText(elId) {
-    var text = document.getElementById(elId).textContent;
-    navigator.clipboard.writeText(text).then(function() {
-      var el = document.getElementById(elId);
-      var orig = el.textContent;
-      el.textContent = 'Disalin!';
-      setTimeout(function(){ el.textContent = orig; }, 1500);
-    });
-  }
 
   /* ── EVENTS ── */
   document.getElementById('btnTambah').addEventListener('click', openAdd);
@@ -853,22 +768,12 @@
   document.getElementById('infoOverlay').addEventListener('click', function(e) {
     if (e.target === this) closeInfo();
   });
-  document.getElementById('loginInfoOverlay').addEventListener('click', function(e) {
-    if (e.target === this) closeLoginInfo();
-  });
 
   // Tutup dengan Escape
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') { closeModal(); closeDel(); closeInfo(); closeLoginInfo(); }
+    if (e.key === 'Escape') { closeModal(); closeDel(); closeInfo(); }
   });
 
-  // Flash: buka modal login info jika baru saja tambah pasien
-  @if(session('new_pasien_id') && session('new_pasien_rm'))
-  window.addEventListener('DOMContentLoaded', function() {
-    var id = {{ session('new_pasien_id') }};
-    var p  = pasienMap[id];
-    if (p) { openLoginInfo(id); }
-  });
-  @endif
+
 </script>
 @endpush

@@ -8,8 +8,9 @@ use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\AntrianController;
 use App\Http\Controllers\ResepController;
 use App\Http\Controllers\DokterController;
-
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\IcdxController;
+use App\Http\Controllers\PresensiController;
 
 // Public
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
@@ -50,7 +51,15 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::patch('/admin/antrian/{id}/dilayani', [AntrianController::class, 'updateStatus'])->name('admin.antrian.dilayani');
     Route::patch('/admin/antrian/{id}/selesai', [AntrianController::class, 'updateStatus'])->name('admin.antrian.selesai');
     Route::get('/admin/komentar',  function () { return view('admin.komentar'); })->name('admin.komentar');
+    
+    // Laporan
     Route::get('/admin/laporan',   function () { return view('laporan'); })->name('admin.laporan');
+    Route::get('/admin/laporan/penanganan', [LaporanController::class, 'penanganan'])->name('admin.laporan.penanganan');
+
+    // Presensi
+    Route::get('/admin/presensi', [PresensiController::class, 'index'])->name('admin.presensi');
+    Route::put('/admin/presensi/{id}', [PresensiController::class, 'update'])->name('admin.presensi.update');
+    Route::delete('/admin/presensi/{id}', [PresensiController::class, 'destroy'])->name('admin.presensi.destroy');
 
     // ICDX
     Route::get('/admin/icdx', [IcdxController::class, 'index'])->name('admin.icdx');
@@ -68,7 +77,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/pasien',        [PasienController::class, 'store'])->name('admin.pasien.store');
     Route::put('/admin/pasien/{id}',    [PasienController::class, 'update'])->name('admin.pasien.update');
     Route::delete('/admin/pasien/{id}', [PasienController::class, 'destroy'])->name('admin.pasien.destroy');
-    Route::post('/admin/pasien/{id}/create-account', [PasienController::class, 'createAccount'])->name('admin.pasien.create-account');
 
     // ICDX
     Route::get('/admin/icdx',              [IcdxController::class, 'index'])->name('admin.icdx');

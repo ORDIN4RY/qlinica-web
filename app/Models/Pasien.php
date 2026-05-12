@@ -27,6 +27,7 @@ class Pasien extends Model
         'agama_id',
         'pendidikan_id',
         'pekerjaan_id',
+        'riwayat_alergi',
     ];
 
     protected $casts = [
@@ -62,5 +63,17 @@ class Pasien extends Model
     {
         if (!$this->tgl_lahir) return null;
         return Carbon::parse($this->tgl_lahir)->age;
+    }
+
+    /** Relasi ke tabel rekam medis */
+    public function rekamMedis()
+    {
+        return $this->hasMany(\App\Models\RekamMedis::class, 'pasien_id');
+    }
+
+    /** Mendapatkan rekam medis terbaru */
+    public function getLatestRekamMedisAttribute()
+    {
+        return $this->rekamMedis()->latest('tanggal_periksa')->first();
     }
 }
