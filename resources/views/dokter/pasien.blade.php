@@ -81,6 +81,7 @@
                 $golTxt    = $pasien->golongan_darah ?? '-';
                 $nikTxt    = $pasien->nik ?? '-';
                 $umurTxt   = $pasien->umur ?? '-';
+                $alergiTxt = $pasien->riwayat_alergi ?? '-';
               @endphp
               <button type="button"
                 data-nama="{{ addslashes($pasien->nama) }}"
@@ -96,6 +97,7 @@
                 data-agama="{{ $agamaTxt }}"
                 data-pdk="{{ $pdkTxt }}"
                 data-pkj="{{ $pkjTxt }}"
+                data-alergi="{{ addslashes($alergiTxt) }}"
                 onclick="openDetailFromData(this)"
                 class="px-3 py-1.5 bg-slate-700 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
                 <i class="fas fa-eye text-xs"></i> Lihat
@@ -152,6 +154,10 @@
         <div><p class="text-xs text-gray-400 font-semibold uppercase mb-0.5">Pendidikan</p><p class="font-medium text-gray-800" id="detailPendidikan">—</p></div>
         <div><p class="text-xs text-gray-400 font-semibold uppercase mb-0.5">Pekerjaan</p><p class="font-medium text-gray-800" id="detailPekerjaan">—</p></div>
       </div>
+      <div class="border-t pt-4 mt-4">
+        <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Riwayat Alergi</p>
+        <p class="text-sm text-red-600 font-medium" id="detailAlergi">—</p>
+      </div>
       <div class="border-t pt-4">
         <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Alamat Lengkap</p>
         <p class="text-sm text-gray-700" id="detailAlamat">—</p>
@@ -184,6 +190,7 @@ function openDetailFromData(btn) {
   document.getElementById('detailAgama').textContent = d.agama;
   document.getElementById('detailPendidikan').textContent = d.pdk;
   document.getElementById('detailPekerjaan').textContent = d.pkj;
+  document.getElementById('detailAlergi').textContent = d.alergi;
 
   var alamat = d.alamat || '-';
   if (d.desa && d.desa !== '-') alamat += ', Desa ' + d.desa;

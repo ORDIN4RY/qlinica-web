@@ -9,8 +9,9 @@ use App\Http\Controllers\AntrianController;
 use App\Http\Controllers\ResepController;
 use App\Http\Controllers\DokterController;
 use App\Http\Controllers\JabatanController;
-
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\IcdxController;
+use App\Http\Controllers\PresensiController;
 
 // Public
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
@@ -84,7 +85,11 @@ Route::middleware(['auth', 'menu:Pegawai'])->group(function () {
     Route::post('/admin/pegawai', [PegawaiController::class, 'store'])->name('admin.pegawai.store')->middleware('menu:Pegawai,tambah');
     Route::put('/admin/pegawai/{id}', [PegawaiController::class, 'update'])->name('admin.pegawai.update')->middleware('menu:Pegawai,edit');
     Route::delete('/admin/pegawai/{id}', [PegawaiController::class, 'destroy'])->name('admin.pegawai.destroy')->middleware('menu:Pegawai,hapus');
-});
+    Route::get('/admin/presensi', [PresensiController::class, 'index'])->name('admin.presensi');
+    Route::put('/admin/presensi/{id}', [PresensiController::class, 'update'])->name('admin.presensi.update');
+    Route::delete('/admin/presensi/{id}', [PresensiController::class, 'destroy'])->name('admin.presensi.destroy');
+
+    });
 
 // ── Resep ──
 Route::middleware(['auth', 'menu:Resep'])->group(function () {
@@ -107,8 +112,8 @@ Route::middleware(['auth', 'menu:ICDX'])->group(function () {
 
 // ── Laporan ──
 Route::middleware(['auth', 'menu:Laporan'])->group(function () {
-    Route::get('/admin/laporan', fn() => view('laporan'))->name('admin.laporan');
-    Route::get('/apoteker/laporan', fn() => view('apoteker.laporan'))->name('apoteker.laporan');
+    Route::get('/admin/laporan',   function () { return view('laporan'); })->name('admin.laporan');
+    Route::get('/admin/laporan/penanganan', [LaporanController::class, 'penanganan'])->name('admin.laporan.penanganan');
 });
 
 // ── Komentar ──
@@ -134,10 +139,32 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
     Route::get('/dashboard-pasien', function () {
         $user   = auth()->user();
         $pasien = $user->pasien ?? null;
-        return view('dashboard_pasien', compact('user', 'pasien'));
+        
+        $antrianAktif = null;
+        $totalAntrianHariIni = 0;
+        $antrianSelesai = 0;
+        $antrianMenunggu = 0;
+        $antrianDilayani = null;
+        $antrianPasienMenunggu = collect();
+
+        if ($pasien) {
+            $antrianAktif = \App\Models\Antrian::where('pasien_id', $pasien->id)
+                ->where('tanggal', now()->toDateString())
+                ->whereIn('status', ['Menunggu', 'Dipanggil'])
+                ->first();
+                
+            $totalAntrianHariIni = \App\Models\Antrian::where('tanggal', now()->toDateString())->count();
+            $antrianSelesai = \App\Models\Antrian::where('tanggal', now()->toDateString())->where('status', 'Selesai')->count();
+            $antrianMenunggu = \App\Models\Antrian::where('tanggal', now()->toDateString())->whereIn('status', ['Menunggu', 'Dipanggil'])->count();
+            $antrianDilayani = \App\Models\Antrian::where('tanggal', now()->toDateString())->where('status', 'Dipanggil')->orderBy('updated_at', 'desc')->first();
+            $antrianPasienMenunggu = \App\Models\Antrian::with('pasien')->where('tanggal', now()->toDateString())->whereIn('status', ['Menunggu', 'Dipanggil'])->orderBy('no_antrian', 'asc')->get();
+        }
+
+        return view('dashboard_pasien', compact('user', 'pasien', 'antrianAktif', 'totalAntrianHariIni', 'antrianSelesai', 'antrianMenunggu', 'antrianDilayani', 'antrianPasienMenunggu'));
     })->name('pasien.portal');
 
     Route::post('/dashboard-pasien/antrian', [AntrianController::class, 'storePasien'])->name('pasien.antrian.store');
+    Route::post('/dashboard-pasien/antrian/{id}/cancel', [AntrianController::class, 'cancelPasien'])->name('pasien.antrian.cancel');
 
     Route::get('/pemesanan', function () {
         $user   = auth()->user();

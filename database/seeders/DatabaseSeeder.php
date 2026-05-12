@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             PegawaiSeeder::class,
             PasienSeeder::class,
             IcdxSeeder::class,
+            ObatSeeder::class,
         ]);
     }
 }

@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('page_title', 'Komentar Pasien')
 @section('breadcrumb', 'Komentar')
