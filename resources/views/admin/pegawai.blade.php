@@ -305,10 +305,18 @@
           {{-- Jabatan --}}
           <div class="form-group">
             <label>Jabatan <span class="text-red-500 normal-case font-normal">*</span></label>
-            <select name="jabatan_id" id="fJabatan" class="form-select">
+            <select name="jabatan_id" id="fJabatan" class="form-select" onchange="handleJabatanChange(this)">
               <option value="">— Pilih Jabatan —</option>
               @foreach($jabatans as $id => $nama)
-                <option value="{{ $id }}">{{ $nama }}</option>
+                @php
+                  $namaLower = strtolower($nama);
+                  $needsSip  = str_contains($namaLower, 'dokter') || str_contains($namaLower, 'perawat') || str_contains($namaLower, 'apoteker');
+                  $isDokter  = str_contains($namaLower, 'dokter');
+                @endphp
+                <option value="{{ $id }}"
+                  data-needs-sip="{{ $needsSip ? '1' : '0' }}"
+                  data-is-dokter="{{ $isDokter ? '1' : '0' }}"
+                >{{ $nama }}</option>
               @endforeach
             </select>
           </div>
@@ -475,50 +483,37 @@
   var BASE_URL   = '{{ url("/admin/pegawai") }}';
   var editingId  = null;
 
-  /* ── ROLE LOGIC ── */
-  document.getElementById('fRole').addEventListener('change', function() {
-    var role = this.value;
-    var sipGroup = document.getElementById('groupSip');
-    var sipReq = document.getElementById('sipReq');
-    var sipHint = document.getElementById('sipHint');
-    var spesialisasiGroup = document.getElementById('groupSpesialisasi');
-    var fSip = document.getElementById('fSip');
-    var fSpesialisasi = document.getElementById('fSpesialisasi');
+  /* ── JABATAN LOGIC (SIP & Spesialisasi) ── */
+  function handleJabatanChange(select) {
+    var opt             = select.options[select.selectedIndex];
+    var needsSip        = opt && opt.dataset.needsSip === '1';
+    var isDokter        = opt && opt.dataset.isDokter === '1';
+    var sipGroup        = document.getElementById('groupSip');
+    var sipReq          = document.getElementById('sipReq');
+    var sipHint         = document.getElementById('sipHint');
+    var spesialisasiGrp = document.getElementById('groupSpesialisasi');
+    var fSip            = document.getElementById('fSip');
+    var fSpesialisasi   = document.getElementById('fSpesialisasi');
 
-    if (role === 'dokter') {
-      sipGroup.style.display = 'block';
-      spesialisasiGroup.style.display = 'block';
-      fSip.required = true;
-      sipReq.style.display = 'inline';
-      sipHint.textContent = '(khusus dokter)';
-      fSip.placeholder = 'Nomor SIP Dokter';
-    } else if (role === 'perawat') {
-      sipGroup.style.display = 'block';
-      spesialisasiGroup.style.display = 'none';
-      fSpesialisasi.value = '';
-      fSip.required = true;
-      sipReq.style.display = 'inline';
-      sipHint.textContent = '(khusus perawat)';
-      fSip.placeholder = 'Nomor SIP Perawat';
-    } else if (role === 'apoteker') {
-      sipGroup.style.display = 'block';
-      spesialisasiGroup.style.display = 'none';
-      fSpesialisasi.value = '';
-      fSip.required = true;
-      sipReq.style.display = 'inline';
-      sipHint.textContent = '(khusus apoteker)';
-      fSip.placeholder = 'Nomor SIP Apoteker';
-    } else { // admin or empty
-      sipGroup.style.display = 'none';
-      spesialisasiGroup.style.display = 'none';
-      fSip.value = '';
-      fSpesialisasi.value = '';
-      fSip.required = false;
-      sipReq.style.display = 'none';
-      sipHint.textContent = '';
-      fSip.placeholder = 'Nomor SIP';
+    if (needsSip) {
+      sipGroup.style.display        = 'block';
+      fSip.required                 = true;
+      sipReq.style.display          = 'inline';
+      sipHint.textContent           = isDokter ? '(khusus dokter)' : '(wajib)';
+      fSip.placeholder              = isDokter ? 'Nomor SIP Dokter' : 'Nomor SIP';
+      spesialisasiGrp.style.display = isDokter ? 'block' : 'none';
+      if (!isDokter) fSpesialisasi.value = '';
+    } else {
+      sipGroup.style.display        = 'none';
+      spesialisasiGrp.style.display = 'none';
+      fSip.value                    = '';
+      fSpesialisasi.value           = '';
+      fSip.required                 = false;
+      sipReq.style.display          = 'none';
+      sipHint.textContent           = '';
+      fSip.placeholder              = 'Nomor SIP';
     }
-  });
+  }
 
   /* ── MODAL TAMBAH/EDIT ── */
   function openAdd() {
@@ -532,7 +527,7 @@
     document.getElementById('fPassword').required          = true;
     document.getElementById('fEmail').readOnly             = false;
     clearForm();
-    document.getElementById('fRole').dispatchEvent(new Event('change'));
+    handleJabatanChange(document.getElementById('fJabatan'));
     document.getElementById('modalOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -559,7 +554,7 @@
     document.getElementById('fEmail').value        = p.email;
     document.getElementById('fPassword').value     = '';
 
-    document.getElementById('fRole').dispatchEvent(new Event('change'));
+    handleJabatanChange(document.getElementById('fJabatan'));
 
     document.getElementById('modalOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -574,7 +569,7 @@
     ['fNama','fNik','fSpesialisasi','fSip','fHp','fAlamat','fEmail','fPassword'].forEach(function(id) {
       document.getElementById(id).value = '';
     });
-    document.getElementById('fJabatan').value = '';
+    document.getElementById('fJabatan').selectedIndex = 0;
   }
 
   /* ── MODAL HAPUS ── */
