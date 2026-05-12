@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Jabatan;
 use App\Models\Pegawai;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class PegawaiController extends Controller
     {
         $search = $request->input('search');
 
-        $pegawais = Pegawai::with('user')
+        $pegawais = Pegawai::with(['user', 'jabatan'])
             ->when($search, function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
                   ->orWhere('nik',  'like', "%{$search}%")
@@ -26,7 +27,9 @@ class PegawaiController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.pegawai', compact('pegawais', 'search'));
+        $jabatans = Jabatan::orderBy('nama_jabatan')->pluck('nama_jabatan', 'id');
+
+        return view('admin.pegawai', compact('pegawais', 'search', 'jabatans'));
     }
 
     /** Simpan pegawai baru. */
@@ -35,7 +38,7 @@ class PegawaiController extends Controller
         $request->validate([
             'nama'         => 'required|string|max:100',
             'email'        => 'required|email|max:100|unique:users,email',
-            'role'         => ['required', Rule::in(['admin', 'dokter', 'perawat', 'apoteker'])],
+            'jabatan_id'   => 'required|exists:jabatan,id',
             'password'     => 'required|string|min:6',
             'nik'          => 'nullable|string|max:20|unique:pegawai,nik',
             'no_hp'        => 'nullable|string|max:15',
@@ -46,7 +49,7 @@ class PegawaiController extends Controller
             'nama.required'     => 'Nama wajib diisi.',
             'email.required'    => 'Email wajib diisi.',
             'email.unique'      => 'Email sudah terdaftar.',
-            'role.required'     => 'Role wajib dipilih.',
+            'jabatan_id.required' => 'Jabatan wajib dipilih.',
             'password.required' => 'Password wajib diisi.',
             'password.min'      => 'Password minimal 6 karakter.',
             'nik.unique'        => 'NIK sudah terdaftar.',
@@ -57,7 +60,7 @@ class PegawaiController extends Controller
                 'name'      => $request->nama,
                 'email'     => $request->email,
                 'password'  => Hash::make($request->password),
-                'role'      => $request->role,
+                'role'      => 'pegawai',
                 'phone'     => $request->no_hp,
                 'is_active' => true,
             ]);
@@ -66,6 +69,7 @@ class PegawaiController extends Controller
                 'user_id'      => $user->id,
                 'nik'          => $request->nik,
                 'nama'         => $request->nama,
+                'jabatan_id'   => $request->jabatan_id,
                 'spesialisasi' => $request->spesialisasi,
                 'no_sip'       => $request->no_sip,
                 'alamat'       => $request->alamat,
@@ -85,7 +89,7 @@ class PegawaiController extends Controller
         $request->validate([
             'nama'         => 'required|string|max:100',
             'email'        => ['required', 'email', 'max:100', Rule::unique('users', 'email')->ignore($pegawai->user_id)],
-            'role'         => ['required', Rule::in(['admin', 'dokter', 'perawat', 'apoteker'])],
+            'jabatan_id'   => 'required|exists:jabatan,id',
             'nik'          => ['nullable', 'string', 'max:20', Rule::unique('pegawai', 'nik')->ignore($id)],
             'no_hp'        => 'nullable|string|max:15',
             'alamat'       => 'nullable|string',
@@ -103,7 +107,7 @@ class PegawaiController extends Controller
             $userData = [
                 'name'  => $request->nama,
                 'email' => $request->email,
-                'role'  => $request->role,
+                'role'  => 'pegawai',
                 'phone' => $request->no_hp,
             ];
             if ($request->filled('password')) {
@@ -116,6 +120,7 @@ class PegawaiController extends Controller
             $pegawai->update([
                 'nik'          => $request->nik,
                 'nama'         => $request->nama,
+                'jabatan_id'   => $request->jabatan_id,
                 'spesialisasi' => $request->spesialisasi,
                 'no_sip'       => $request->no_sip,
                 'alamat'       => $request->alamat,

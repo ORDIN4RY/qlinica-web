@@ -16,7 +16,7 @@ class Pegawai extends Model
         'user_id',
         'nik',
         'nama',
-        'jabatan',
+        'jabatan_id',
         'spesialisasi',
         'no_sip',
         'alamat',
@@ -28,4 +28,8 @@ class Pegawai extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function jabatan()
+    {
+        return $this->belongsTo(Jabatan::class, 'jabatan_id');
+    }
 }

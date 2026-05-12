@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('jabatan_id')->constrained('jabatan')->onDelete('cascade');
             $table->foreignId('menu_id')->constrained('menu')->onDelete('cascade');
             $table->timestamps();
+            $table->unique(['jabatan_id', 'menu_id']);
         });
     }
 

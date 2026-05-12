@@ -14,11 +14,8 @@
   .table-row { transition: background .12s; }
   .table-row:hover { background: #f0f7ff; }
 
-  /* ── ROLE BADGES ── */
-  .role-admin    { background:#fef3c7; color:#92400e; }
-  .role-dokter   { background:#eff6ff; color:#1d4ed8; }
-  .role-perawat  { background:#ecfdf5; color:#065f46; }
-  .role-apoteker { background:#f5f3ff; color:#5b21b6; }
+  /* ── JABATAN BADGES ── */
+  .jabatan-badge { background:#f0f7ff; color:#1e40af; }
 
   /* ── MODAL ── */
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55);
@@ -80,43 +77,43 @@
     <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Pegawai</div>
   </div>
 
-  {{-- Dokter --}}
+  {{-- Dengan Jabatan --}}
   <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
     <div class="flex items-center justify-between mb-3">
       <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-        <i class="fas fa-user-doctor text-blue-600 text-base ml-3"></i>
+        <i class="fas fa-id-badge text-blue-600 text-base ml-3"></i>
       </div>
     </div>
     <div class="text-3xl font-extrabold text-gray-800 leading-none mb-1">
-      {{ \App\Models\Pegawai::whereHas('user', fn($q) => $q->where('role','dokter'))->count() }}
+      {{ \App\Models\Pegawai::whereNotNull('jabatan_id')->count() }}
     </div>
-    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Dokter</div>
+    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Dengan Jabatan</div>
   </div>
 
-  {{-- Perawat --}}
+  {{-- Tanpa Jabatan --}}
+  <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="flex items-center justify-between mb-3">
+      <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
+        <i class="fas fa-triangle-exclamation text-amber-600 text-base ml-3"></i>
+      </div>
+    </div>
+    <div class="text-3xl font-extrabold text-gray-800 leading-none mb-1">
+      {{ \App\Models\Pegawai::whereNull('jabatan_id')->count() }}
+    </div>
+    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tanpa Jabatan</div>
+  </div>
+
+  {{-- Total User Pegawai --}}
   <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
     <div class="flex items-center justify-between mb-3">
       <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
-        <i class="fas fa-user-nurse text-emerald-600 text-base ml-3"></i>
+        <i class="fas fa-user-check text-emerald-600 text-base ml-3"></i>
       </div>
     </div>
     <div class="text-3xl font-extrabold text-gray-800 leading-none mb-1">
-      {{ \App\Models\Pegawai::whereHas('user', fn($q) => $q->where('role','perawat'))->count() }}
+      {{ \App\Models\User::where('role','pegawai')->count() }}
     </div>
-    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Perawat</div>
-  </div>
-
-  {{-- Apoteker --}}
-  <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-    <div class="flex items-center justify-between mb-3">
-      <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
-        <i class="fas fa-pills text-purple-600 text-base ml-3"></i>
-      </div>
-    </div>
-    <div class="text-3xl font-extrabold text-gray-800 leading-none mb-1">
-      {{ \App\Models\Pegawai::whereHas('user', fn($q) => $q->where('role','apoteker'))->count() }}
-    </div>
-    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Apoteker</div>
+    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Akun Pegawai</div>
   </div>
 
 </div>
@@ -157,7 +154,7 @@
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">No</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">NIK</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Pegawai</th>
-          <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
+          <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Jabatan</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Spesialisasi</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">No. SIP</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">No HP</th>
@@ -178,11 +175,10 @@
               <div class="font-semibold text-gray-800">{{ $p->nama }}</div>
               <div class="text-xs text-gray-400 font-mono">{{ $p->user->email ?? '—' }}</div>
             </td>
-            {{-- Role --}}
+            {{-- Jabatan --}}
             <td class="px-5 py-4">
-              @php $role = $p->user->role ?? 'unknown'; @endphp
-              <span class="role-{{ $role }} text-xs font-bold px-3 py-1 rounded-full capitalize">
-                {{ ucfirst($role) }}
+              <span class="jabatan-badge text-xs font-bold px-3 py-1 rounded-full capitalize">
+                {{ $p->jabatan->nama_jabatan ?? '—' }}
               </span>
             </td>
             {{-- Spesialisasi --}}
@@ -306,15 +302,14 @@
             <input type="text" name="nik" id="fNik" class="form-input" placeholder="16 digit NIK" maxlength="20">
           </div>
 
-          {{-- Role --}}
+          {{-- Jabatan --}}
           <div class="form-group">
-            <label>Role <span class="text-red-500 normal-case font-normal">*</span></label>
-            <select name="role" id="fRole" class="form-select">
-              <option value="">— Pilih Role —</option>
-              <option value="admin">Admin</option>
-              <option value="dokter">Dokter</option>
-              <option value="perawat">Perawat</option>
-              <option value="apoteker">Apoteker</option>
+            <label>Jabatan <span class="text-red-500 normal-case font-normal">*</span></label>
+            <select name="jabatan_id" id="fJabatan" class="form-select">
+              <option value="">— Pilih Jabatan —</option>
+              @foreach($jabatans as $id => $nama)
+                <option value="{{ $id }}">{{ $nama }}</option>
+              @endforeach
             </select>
           </div>
 
@@ -422,7 +417,7 @@
             <div>
               <h3 class="text-2xl font-bold text-gray-800" id="infoNama">Nama Pegawai</h3>
               <p class="text-sm text-gray-500 font-mono" id="infoEmail">email@example.com</p>
-              <span class="text-xs font-bold px-3 py-1 rounded-full mt-1 inline-block" id="infoRoleBadge">Role</span>
+              <span class="text-xs font-bold px-3 py-1 rounded-full mt-1 inline-block" id="infoJabatanBadge">Jabatan</span>
             </div>
           </div>
         </div>
@@ -463,7 +458,8 @@
     'nik'          => $p->nik ?? '',
     'nama'         => $p->nama,
     'email'        => $p->user->email ?? '',
-    'role'         => $p->user->role ?? '',
+    'jabatan_id'   => $p->jabatan_id ?? '',
+    'jabatan_nama' => $p->jabatan->nama_jabatan ?? '',
     'spesialisasi' => $p->spesialisasi ?? '',
     'no_sip'       => $p->no_sip ?? '',
     'no_hp'        => $p->no_hp ?? '',
@@ -509,7 +505,7 @@
 
     document.getElementById('fNama').value         = p.nama;
     document.getElementById('fNik').value          = p.nik;
-    document.getElementById('fRole').value         = p.role;
+    document.getElementById('fJabatan').value      = p.jabatan_id;
     document.getElementById('fSpesialisasi').value = p.spesialisasi;
     document.getElementById('fSip').value          = p.no_sip;
     document.getElementById('fHp').value           = p.no_hp;
@@ -530,7 +526,7 @@
     ['fNama','fNik','fSpesialisasi','fSip','fHp','fAlamat','fEmail','fPassword'].forEach(function(id) {
       document.getElementById(id).value = '';
     });
-    document.getElementById('fRole').value = '';
+    document.getElementById('fJabatan').value = '';
   }
 
   /* ── MODAL HAPUS ── */
@@ -547,13 +543,6 @@
   }
 
   /* ── MODAL INFO ── */
-  var roleColors = {
-    admin:    'background:#fef3c7;color:#92400e',
-    dokter:   'background:#eff6ff;color:#1d4ed8',
-    perawat:  'background:#ecfdf5;color:#065f46',
-    apoteker: 'background:#f5f3ff;color:#5b21b6',
-  };
-
   function openInfo(id) {
     var p = pegawaiMap[id];
     if (!p) return;
@@ -566,9 +555,9 @@
     document.getElementById('infoSip').textContent         = p.no_sip || '-';
     document.getElementById('infoAlamat').textContent      = p.alamat || '-';
 
-    var badge = document.getElementById('infoRoleBadge');
-    badge.textContent = p.role ? p.role.charAt(0).toUpperCase() + p.role.slice(1) : '-';
-    badge.style.cssText = roleColors[p.role] || 'background:#f3f4f6;color:#374151';
+    var badge = document.getElementById('infoJabatanBadge');
+    badge.textContent = p.jabatan_nama || '-';
+    badge.style.cssText = 'background:#f0f7ff;color:#1e40af';
 
     document.getElementById('infoOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';

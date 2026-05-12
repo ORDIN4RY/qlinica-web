@@ -10,13 +10,14 @@ class JabatanSeeder extends Seeder
     public function run(): void
     {
         $data = [
+            'Admin',
             'Dokter',
             'Perawat',
             'Resepsionis',
             'Apoteker',
             'OB',
             'Satpam',
-            'Teknisi'
+            'Teknisi',
         ];
 
         foreach ($data as $item) {

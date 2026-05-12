@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
             PendidikanSeeder::class,
             PekerjaanSeeder::class,
             JabatanSeeder::class,
+            MenuSeeder::class,
+            HakAksesSeeder::class,
             AdminSeeder::class,
             PegawaiSeeder::class,
             PasienSeeder::class,

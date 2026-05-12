@@ -42,18 +42,28 @@
     </div>
 
     <nav class="flex-1 px-4 py-6 space-y-1">
+      @php $u = auth()->user(); @endphp
+
+      @if($u && $u->hasMenuAccess('Dashboard'))
       <a href="{{ route('dokter.dashboard') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('dokter.dashboard') ? 'active' : '' }}">
         <i class="fas fa-home w-5 text-center"></i> Dashboard
       </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Antrian'))
       <a href="{{ route('dokter.antrian') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('dokter.antrian*') ? 'active' : '' }}">
         <i class="fas fa-users w-5 text-center"></i> Antrian Pasien
       </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Pasien'))
       <a href="{{ route('dokter.pasien') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('dokter.pasien*') ? 'active' : '' }}">
         <i class="fas fa-notes-medical w-5 text-center"></i> Data Pasien
       </a>
+      @endif
     </nav>
 
     <div class="px-4 py-5 border-t border-white/10">
