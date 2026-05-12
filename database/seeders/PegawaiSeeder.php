@@ -30,6 +30,7 @@ class PegawaiSeeder extends Seeder
                 'nik'         => '1234567890123456',
                 'nama'        => 'Dr. Ahmad Wijaya',
                 'spesialisasi' => 'Umum',
+                'jabatan_id' => '1',
                 'no_sip'      => 'SIP/2026/001',
                 'jabatan_id'   => '1',
                 'alamat'      => 'Jl. Kesehatan No. 1, Jakarta',
