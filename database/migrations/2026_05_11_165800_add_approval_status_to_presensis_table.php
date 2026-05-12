@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('icdx', function (Blueprint $table) {
-            $table->id();
-            $table->string('kode', 10)->unique()->comment('Kode ICD-X, contoh: A00, B01.1');
-            $table->string('nama', 255)->comment('Nama diagnosa dalam Bahasa medis');
-            $table->timestamps();
+        Schema::table('presensis', function (Blueprint $table) {
+            $table->enum('approval_status', ['Pending', 'Approved', 'Rejected'])->default('Approved')->after('status');
         });
     }
 
@@ -24,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('icdx');
+        Schema::table('presensis', function (Blueprint $table) {
+            $table->dropColumn('approval_status');
+        });
     }
 };

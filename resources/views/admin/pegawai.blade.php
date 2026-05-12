@@ -297,19 +297,19 @@
           {{-- Nama --}}
           <div class="form-group span2">
             <label>Nama Lengkap <span class="text-red-500 normal-case font-normal">*</span></label>
-            <input type="text" name="nama" id="fNama" class="form-input" placeholder="Nama lengkap pegawai">
+            <input type="text" name="nama" id="fNama" class="form-input" placeholder="Nama lengkap pegawai" required>
           </div>
 
           {{-- NIK --}}
           <div class="form-group">
-            <label>NIK</label>
-            <input type="text" name="nik" id="fNik" class="form-input" placeholder="16 digit NIK" maxlength="20">
+            <label>NIK <span class="text-red-500 normal-case font-normal">*</span></label>
+            <input type="text" name="nik" id="fNik" class="form-input" placeholder="16 digit NIK" maxlength="20" required>
           </div>
 
           {{-- Role --}}
           <div class="form-group">
             <label>Role <span class="text-red-500 normal-case font-normal">*</span></label>
-            <select name="role" id="fRole" class="form-select">
+            <select name="role" id="fRole" class="form-select" required>
               <option value="">— Pilih Role —</option>
               <option value="admin">Admin</option>
               <option value="dokter">Dokter</option>
@@ -319,21 +319,21 @@
           </div>
 
           {{-- Spesialisasi --}}
-          <div class="form-group">
-            <label>Spesialisasi <span class="text-xs text-gray-400 normal-case font-normal">(khusus dokter)</span></label>
+          <div class="form-group" id="groupSpesialisasi" style="display:none;">
+            <label>Spesialisasi <span class="text-xs text-gray-400 normal-case font-normal">(opsional, khusus dokter)</span></label>
             <input type="text" name="spesialisasi" id="fSpesialisasi" class="form-input" placeholder="Contoh: Penyakit Dalam">
           </div>
 
           {{-- No SIP --}}
-          <div class="form-group">
-            <label>No. SIP <span class="text-xs text-gray-400 normal-case font-normal">(Surat Izin Praktik)</span></label>
-            <input type="text" name="no_sip" id="fSip" class="form-input" placeholder="Nomor SIP dokter" maxlength="60">
+          <div class="form-group" id="groupSip" style="display:none;">
+            <label>No. SIP <span class="text-red-500 normal-case font-normal" id="sipReq" style="display:none;">*</span> <span class="text-xs text-gray-400 normal-case font-normal" id="sipHint"></span></label>
+            <input type="text" name="no_sip" id="fSip" class="form-input" placeholder="Nomor SIP" maxlength="60">
           </div>
 
           {{-- No HP --}}
           <div class="form-group">
-            <label>No HP</label>
-            <input type="text" name="no_hp" id="fHp" class="form-input" placeholder="08xxxxxxxxxx" maxlength="15">
+            <label>No HP <span class="text-red-500 normal-case font-normal">*</span></label>
+            <input type="text" name="no_hp" id="fHp" class="form-input" placeholder="08xxxxxxxxxx" maxlength="15" required>
           </div>
 
           {{-- Alamat --}}
@@ -347,7 +347,7 @@
           {{-- Email --}}
           <div class="form-group span2">
             <label>Email Akun <span class="text-red-500 normal-case font-normal">*</span></label>
-            <input type="email" name="email" id="fEmail" class="form-input" placeholder="email@example.com">
+            <input type="email" name="email" id="fEmail" class="form-input" placeholder="email@example.com" required>
           </div>
 
           {{-- Password --}}
@@ -479,6 +479,51 @@
   var BASE_URL   = '{{ url("/admin/pegawai") }}';
   var editingId  = null;
 
+  /* ── ROLE LOGIC ── */
+  document.getElementById('fRole').addEventListener('change', function() {
+    var role = this.value;
+    var sipGroup = document.getElementById('groupSip');
+    var sipReq = document.getElementById('sipReq');
+    var sipHint = document.getElementById('sipHint');
+    var spesialisasiGroup = document.getElementById('groupSpesialisasi');
+    var fSip = document.getElementById('fSip');
+    var fSpesialisasi = document.getElementById('fSpesialisasi');
+
+    if (role === 'dokter') {
+      sipGroup.style.display = 'block';
+      spesialisasiGroup.style.display = 'block';
+      fSip.required = true;
+      sipReq.style.display = 'inline';
+      sipHint.textContent = '(khusus dokter)';
+      fSip.placeholder = 'Nomor SIP Dokter';
+    } else if (role === 'perawat') {
+      sipGroup.style.display = 'block';
+      spesialisasiGroup.style.display = 'none';
+      fSpesialisasi.value = '';
+      fSip.required = true;
+      sipReq.style.display = 'inline';
+      sipHint.textContent = '(khusus perawat)';
+      fSip.placeholder = 'Nomor SIP Perawat';
+    } else if (role === 'apoteker') {
+      sipGroup.style.display = 'block';
+      spesialisasiGroup.style.display = 'none';
+      fSpesialisasi.value = '';
+      fSip.required = true;
+      sipReq.style.display = 'inline';
+      sipHint.textContent = '(khusus apoteker)';
+      fSip.placeholder = 'Nomor SIP Apoteker';
+    } else { // admin or empty
+      sipGroup.style.display = 'none';
+      spesialisasiGroup.style.display = 'none';
+      fSip.value = '';
+      fSpesialisasi.value = '';
+      fSip.required = false;
+      sipReq.style.display = 'none';
+      sipHint.textContent = '';
+      fSip.placeholder = 'Nomor SIP';
+    }
+  });
+
   /* ── MODAL TAMBAH/EDIT ── */
   function openAdd() {
     editingId = null;
@@ -491,6 +536,7 @@
     document.getElementById('fPassword').required          = true;
     document.getElementById('fEmail').readOnly             = false;
     clearForm();
+    document.getElementById('fRole').dispatchEvent(new Event('change'));
     document.getElementById('modalOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -516,6 +562,8 @@
     document.getElementById('fAlamat').value       = p.alamat;
     document.getElementById('fEmail').value        = p.email;
     document.getElementById('fPassword').value     = '';
+
+    document.getElementById('fRole').dispatchEvent(new Event('change'));
 
     document.getElementById('modalOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';

@@ -61,6 +61,10 @@
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pegawai*') ? 'active' : '' }}">
         <i class="fas fa-user-doctor w-5 text-center"></i> Pegawai
       </a>
+      <a href="{{ route('admin.presensi') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.presensi*') ? 'active' : '' }}">
+        <i class="fas fa-user-clock w-5 text-center"></i> Presensi
+      </a>
       <a href="{{ route('admin.komentar') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.komentar*') ? 'active' : '' }}">
         <i class="fas fa-comment w-5 text-center"></i> Komentar
@@ -68,6 +72,10 @@
       <a href="{{ route('admin.icdx') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.icdx*') ? 'active' : '' }}">
         <i class="fas fa-file-medical-alt w-5 text-center"></i> ICD-X
+      </a>
+      <a href="{{ route('admin.laporan.penanganan') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.laporan*') ? 'active' : '' }}">
+        <i class="fas fa-chart-line w-5 text-center"></i> Lap. Penanganan
       </a>
     </nav>
 
@@ -124,6 +132,19 @@
         <div class="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-2xl shadow-sm">
           <i class="fas fa-triangle-exclamation text-amber-500 text-lg"></i>
           <span>{{ session('warning') }}</span>
+        </div>
+      @endif
+      @if($errors->any())
+        <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-2xl shadow-sm">
+          <div class="flex items-center gap-3 mb-2">
+            <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+            <span class="font-bold">Terjadi Kesalahan:</span>
+          </div>
+          <ul class="list-disc list-inside text-sm">
+            @foreach($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
         </div>
       @endif
       @yield('content')

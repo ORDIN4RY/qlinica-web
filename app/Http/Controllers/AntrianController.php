@@ -63,13 +63,14 @@ class AntrianController extends Controller
 
         $request->validate([
             'dokter_id' => 'required|exists:pegawai,id',
-            'tekanan_darah' => 'nullable|string|max:20',
-            'suhu' => 'nullable|numeric|min:30|max:45',
-            'berat_badan' => 'nullable|numeric|min:1|max:200',
-            'tinggi_badan' => 'nullable|numeric|min:30|max:250',
-            'nadi' => 'nullable|integer|min:40|max:200',
-            'respirasi' => 'nullable|integer|min:10|max:60',
+            'tekanan_darah' => 'required|string|max:20',
+            'suhu' => 'required|numeric|min:30|max:45',
+            'berat_badan' => 'required|numeric|min:1|max:200',
+            'tinggi_badan' => 'required|numeric|min:30|max:250',
+            'nadi' => 'required|integer|min:40|max:200',
+            'respirasi' => 'required|integer|min:10|max:60',
         ]);
+
 
         DB::transaction(function () use ($antrian, $request) {
             $antrian->update(['status' => 'Dipanggil']);

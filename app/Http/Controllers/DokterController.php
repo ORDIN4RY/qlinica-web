@@ -19,21 +19,29 @@ class DokterController extends Controller
         $pegawai = auth()->user()->pegawai;
 
         $totalRekamMedis = RekamMedis::where('dokter_id', $pegawai->id)->count();
-        $totalResep = Resep::whereHas('rekamMedis', fn($q) => $q->where('dokter_id', $pegawai->id))->count();
-        $resepPending = Resep::whereHas('rekamMedis', fn($q) => $q->where('dokter_id', $pegawai->id))
-            ->where('status', 'Menunggu')
+
+        // Hitung antrian hari ini khusus untuk dokter yang sedang login
+        // Filter melalui rekam_medis karena antrian tidak punya kolom dokter_id
+        $antrianHariIni = \App\Models\Antrian::where('tanggal', now()->toDateString())
+            ->whereHas('rekamMedis', function ($q) use ($pegawai) {
+                $q->where('dokter_id', $pegawai->id);
+            })
             ->count();
-        $resepSelesai = Resep::whereHas('rekamMedis', fn($q) => $q->where('dokter_id', $pegawai->id))
+
+        $selesaiHariIni = \App\Models\Antrian::where('tanggal', now()->toDateString())
+            ->whereHas('rekamMedis', function ($q) use ($pegawai) {
+                $q->where('dokter_id', $pegawai->id);
+            })
             ->where('status', 'Selesai')
             ->count();
 
         return view('dokter.dashboard', compact(
             'totalRekamMedis',
-            'totalResep',
-            'resepPending',
-            'resepSelesai'
+            'antrianHariIni',
+            'selesaiHariIni'
         ));
     }
+
 
     public function resepIndex(Request $request)
     {
@@ -134,8 +142,15 @@ class DokterController extends Controller
 
     public function antrianIndex()
     {
+        $pegawai = auth()->user()->pegawai;
+
+        // Hanya tampilkan antrian yang ditugaskan ke dokter yang sedang login
+        // Filter melalui relasi rekam_medis karena tabel antrian tidak punya kolom dokter_id
         $antrians = Antrian::with(['pasien', 'rekamMedis'])
             ->where('tanggal', now()->toDateString())
+            ->whereHas('rekamMedis', function ($q) use ($pegawai) {
+                $q->where('dokter_id', $pegawai->id);
+            })
             ->orderBy('no_antrian')
             ->get();
 
@@ -146,6 +161,35 @@ class DokterController extends Controller
             'selesai' => $antrians->where('status', 'Selesai')->count(),
         ]);
     }
+
+    public function pasienIndex(\Illuminate\Http\Request $request)
+    {
+        $pegawai = auth()->user()->pegawai;
+        $q = $request->query('q');
+
+        $query = \App\Models\Pasien::with(['agama', 'pendidikan', 'pekerjaan'])
+            ->whereIn('id', function($subquery) use ($pegawai) {
+                $subquery->select('antrian.pasien_id')
+                         ->from('antrian')
+                         ->join('rekam_medis', 'rekam_medis.antrian_id', '=', 'antrian.id')
+                         ->whereDate('antrian.tanggal', now()->toDateString())
+                         ->where('rekam_medis.dokter_id', $pegawai->id);
+            })
+            ->orderBy('nama');
+
+        if ($q) {
+            $query->where(function($qb) use ($q) {
+                $qb->where('nama', 'like', "%{$q}%")
+                   ->orWhere('no_rm', 'like', "%{$q}%")
+                   ->orWhere('nik', 'like', "%{$q}%");
+            });
+        }
+
+        $pasiens = $query->paginate(15)->withQueryString();
+
+        return view('dokter.pasien', compact('pasiens'));
+    }
+
 
     public function panggilAntrian(Request $request, $id)
     {
@@ -171,9 +215,15 @@ class DokterController extends Controller
         $antrian = Antrian::findOrFail($antrianId);
         $pegawai = auth()->user()->pegawai;
 
-        // Validasi bahwa antrian sedang dalam status Dilayani
-        if ($antrian->status !== 'Dilayani') {
-            return redirect()->route('dokter.antrian')->with('error', 'Pasien harus dalam status dilayani untuk memberikan diagnosa.');
+        // Validasi bahwa antrian ini memang ditugaskan ke dokter yang sedang login
+        // Gunakan != bukan !== agar type-safe (int vs string dari DB)
+        if (!$antrian->rekamMedis || $antrian->rekamMedis->dokter_id != $pegawai->id) {
+            return redirect()->route('dokter.antrian')->with('error', 'Anda tidak memiliki akses untuk mendiagnosa pasien ini.');
+        }
+
+        // Validasi bahwa antrian sedang dalam status Dipanggil atau Dilayani
+        if (!in_array($antrian->status, ['Dipanggil', 'Dilayani'])) {
+            return redirect()->route('dokter.antrian')->with('error', 'Pasien harus dalam status Dipanggil atau Dilayani untuk memberikan diagnosa.');
         }
 
         $request->validate([
@@ -199,84 +249,106 @@ class DokterController extends Controller
             'status_pasien' => 'nullable|string|max:100',
             'jenis_pelayanan' => 'nullable|string|max:100',
             'pengobatan' => 'nullable|string|max:1000',
+            'riwayat_alergi' => 'nullable|string|max:1000',
             'pakai_resep' => 'required|in:Ya,Tidak',
-            'obat_id' => 'required_if:pakai_resep,Ya|array',
-            'obat_id.*' => 'required_if:pakai_resep,Ya|exists:obat,id',
-            'jumlah' => 'required_if:pakai_resep,Ya|array',
-            'jumlah.*' => 'required_if:pakai_resep,Ya|integer|min:1',
-            'dosis' => 'nullable|array',
-            'aturan_pakai' => 'nullable|array',
-            'keterangan' => 'nullable|array',
+            // Gunakan exclude_unless agar seluruh validasi resep diabaikan saat pakai_resep = Tidak
+            // (required_if tidak cukup — field yg kosong tetap divalidasi oleh rules lain seperti exists)
+            'obat_id' => 'exclude_unless:pakai_resep,Ya|array|min:1',
+            'obat_id.*' => 'exclude_unless:pakai_resep,Ya|required|exists:obat,id',
+            'jumlah' => 'exclude_unless:pakai_resep,Ya|array|min:1',
+            'jumlah.*' => 'exclude_unless:pakai_resep,Ya|required|integer|min:1',
+            'dosis' => 'exclude_unless:pakai_resep,Ya|nullable|array',
+            'aturan_pakai' => 'exclude_unless:pakai_resep,Ya|nullable|array',
+            'keterangan' => 'exclude_unless:pakai_resep,Ya|nullable|array',
         ]);
 
-        DB::transaction(function () use ($antrian, $pegawai, $request) {
-            // Buat rekam medis
-            $rekamMedis = RekamMedis::updateOrCreate(
-                ['antrian_id' => $antrian->id],
-                [
-                    'pasien_id' => $antrian->pasien_id,
-                    'dokter_id' => $pegawai->id,
-                    'tanggal_periksa' => now(),
-                    'anamnesis' => $request->anamnesis,
-                    'pemeriksaan_fisik' => $request->pemeriksaan_fisik,
-                    'tekanan_darah' => $request->tekanan_darah,
-                    'suhu' => $request->suhu,
-                    'berat_badan' => $request->berat_badan,
-                    'tinggi_badan' => $request->tinggi_badan,
-                    'nadi' => $request->nadi,
-                    'respirasi' => $request->respirasi,
-                    'tindakan' => $request->tindakan,
-                    'prognosa' => $request->prognosa,
-                    'keadaan_keluar' => $request->keadaan_keluar,
-                    'rujukan_ke' => $request->rujukan_ke,
-                    'catatan' => $request->catatan,
-                    'kasus_penyakit' => $request->kasus_penyakit,
-                    'pelayanan_kesehatan' => $request->pelayanan_kesehatan,
-                    'status_pasien' => $request->status_pasien,
-                    'jenis_pelayanan' => $request->jenis_pelayanan,
-                    'pengobatan' => $request->pengobatan,
-                ]
-            );
+        try {
+            DB::transaction(function () use ($antrian, $pegawai, $request) {
+                // Buat atau update rekam medis
+                $rekamMedis = RekamMedis::updateOrCreate(
+                    ['antrian_id' => $antrian->id],
+                    [
+                        'pasien_id' => $antrian->pasien_id,
+                        'dokter_id' => $pegawai->id,
+                        'tanggal_periksa' => now(),
+                        'anamnesis' => $request->anamnesis,
+                        'pemeriksaan_fisik' => $request->pemeriksaan_fisik,
+                        'tekanan_darah' => $request->tekanan_darah,
+                        'suhu' => $request->suhu,
+                        'berat_badan' => $request->berat_badan,
+                        'tinggi_badan' => $request->tinggi_badan,
+                        'nadi' => $request->nadi,
+                        'respirasi' => $request->respirasi,
+                        'tindakan' => $request->tindakan,
+                        'prognosa' => $request->prognosa,
+                        'keadaan_keluar' => $request->keadaan_keluar,
+                        'rujukan_ke' => $request->rujukan_ke,
+                        'catatan' => $request->catatan,
+                        'kasus_penyakit' => $request->kasus_penyakit,
+                        'pelayanan_kesehatan' => $request->pelayanan_kesehatan,
+                        'status_pasien' => $request->status_pasien,
+                        'jenis_pelayanan' => $request->jenis_pelayanan,
+                        'pengobatan' => $request->pengobatan,
+                    ]
+                );
 
-            // Simpan diagnosa
-            foreach ($request->diagnosa as $icdxId) {
-                RekamMedisDiagnosa::create([
-                    'rekam_medis_id' => $rekamMedis->id,
-                    'icdx_id' => $icdxId,
-                    'is_primer' => $icdxId == $request->diagnosa_primer,
-                ]);
-            }
+                if ($request->has('riwayat_alergi')) {
+                    $antrian->pasien->update(['riwayat_alergi' => $request->riwayat_alergi]);
+                }
 
-            // Simpan resep jika ada obat dan pilihan "Ya"
-            if ($request->pakai_resep === 'Ya' && $request->has('obat_id') && !empty($request->obat_id)) {
-                $obatIds = $request->obat_id;
-                $jumlah = $request->jumlah;
-                $dosis = $request->dosis ?? [];
-                $aturanPakai = $request->aturan_pakai ?? [];
-                $keterangan = $request->keterangan ?? [];
+                // Hapus diagnosa lama terlebih dahulu untuk menghindari UNIQUE constraint error
+                // (karena rekam_medis_diagnosa punya unique(rekam_medis_id, icdx_id))
+                RekamMedisDiagnosa::where('rekam_medis_id', $rekamMedis->id)->delete();
 
-                $resep = Resep::create([
-                    'rekam_medis_id' => $rekamMedis->id,
-                    'dokter_id' => $pegawai->id,
-                    'status' => 'Menunggu',
-                    'catatan_dokter' => $request->catatan_dokter ?: $rekamMedis->catatan,
-                ]);
-
-                foreach ($obatIds as $index => $obatId) {
-                    ResepDetail::create([
-                        'resep_id' => $resep->id,
-                        'obat_id' => $obatId,
-                        'jumlah' => $jumlah[$index],
-                        'dosis' => $dosis[$index] ?? null,
-                        'aturan_pakai' => $aturanPakai[$index] ?? null,
-                        'keterangan' => $keterangan[$index] ?? null,
+                // Simpan diagnosa baru
+                foreach ($request->diagnosa as $icdxId) {
+                    RekamMedisDiagnosa::create([
+                        'rekam_medis_id' => $rekamMedis->id,
+                        'icdx_id' => $icdxId,
+                        'is_primer' => $icdxId == $request->diagnosa_primer,
                     ]);
                 }
-            }
 
-            // Update status antrian menjadi Selesai
-            $antrian->update(['status' => 'Selesai']);
-        });
+                // Simpan resep jika ada obat dan pilihan "Ya"
+                if ($request->pakai_resep === 'Ya' && $request->has('obat_id') && !empty($request->obat_id)) {
+                    $obatIds = $request->obat_id;
+                    $jumlah = $request->jumlah;
+                    $dosis = $request->dosis ?? [];
+                    $aturanPakai = $request->aturan_pakai ?? [];
+                    $keterangan = $request->keterangan ?? [];
+
+                    // Hapus resep lama jika sudah ada
+                    if ($rekamMedis->resep) {
+                        $rekamMedis->resep->details()->delete();
+                        $rekamMedis->resep->delete();
+                    }
+
+                    $resep = Resep::create([
+                        'rekam_medis_id' => $rekamMedis->id,
+                        'dokter_id' => $pegawai->id,
+                        'status' => 'Menunggu',
+                        'catatan_dokter' => $request->catatan_dokter ?: $rekamMedis->catatan,
+                    ]);
+
+                    foreach ($obatIds as $index => $obatId) {
+                        ResepDetail::create([
+                            'resep_id' => $resep->id,
+                            'obat_id' => $obatId,
+                            'jumlah' => $jumlah[$index],
+                            'dosis' => $dosis[$index] ?? null,
+                            'aturan_pakai' => $aturanPakai[$index] ?? null,
+                            'keterangan' => $keterangan[$index] ?? null,
+                        ]);
+                    }
+                }
+
+                // Update status antrian menjadi Selesai
+                $antrian->update(['status' => 'Selesai']);
+            });
+        } catch (\Exception $e) {
+            return redirect()->route('dokter.antrian')
+                ->with('error', 'Gagal menyimpan diagnosa: ' . $e->getMessage());
+        }
 
         return redirect()->route('dokter.antrian')->with('success', 'Diagnosa dan resep berhasil disimpan. Pasien telah selesai dilayani.');
     }

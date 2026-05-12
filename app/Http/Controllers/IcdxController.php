@@ -15,8 +15,7 @@ class IcdxController extends Controller
 
         $icdxs = Icdx::when($search, function ($q) use ($search) {
                 $q->where('kode', 'like', "%{$search}%")
-                  ->orWhere('nama', 'like', "%{$search}%")
-                  ->orWhere('nama_en', 'like', "%{$search}%");
+                  ->orWhere('nama', 'like', "%{$search}%");
             })
             ->orderBy('kode')
             ->paginate($perPage)
@@ -31,16 +30,15 @@ class IcdxController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'kode'    => 'required|string|max:10|unique:icdx,kode',
-            'nama'    => 'required|string|max:255',
-            'nama_en' => 'nullable|string|max:255',
+            'kode' => 'required|string|max:10|unique:icdx,kode',
+            'nama' => 'required|string|max:255',
         ], [
             'kode.required' => 'Kode ICD-X wajib diisi.',
             'kode.unique'   => 'Kode ICD-X sudah terdaftar.',
             'nama.required' => 'Nama diagnosa wajib diisi.',
         ]);
 
-        Icdx::create($request->only('kode', 'nama', 'nama_en'));
+        Icdx::create($request->only('kode', 'nama'));
 
         return redirect()->route('admin.icdx')->with('success', 'Data ICD-X berhasil ditambahkan.');
     }
@@ -51,16 +49,15 @@ class IcdxController extends Controller
         $icdx = Icdx::findOrFail($id);
 
         $request->validate([
-            'kode'    => "required|string|max:10|unique:icdx,kode,{$id}",
-            'nama'    => 'required|string|max:255',
-            'nama_en' => 'nullable|string|max:255',
+            'kode' => "required|string|max:10|unique:icdx,kode,{$id}",
+            'nama' => 'required|string|max:255',
         ], [
             'kode.required' => 'Kode ICD-X wajib diisi.',
             'kode.unique'   => 'Kode ICD-X sudah digunakan.',
             'nama.required' => 'Nama diagnosa wajib diisi.',
         ]);
 
-        $icdx->update($request->only('kode', 'nama', 'nama_en'));
+        $icdx->update($request->only('kode', 'nama'));
 
         return redirect()->back()->with('success', 'Data ICD-X berhasil diperbarui.');
     }

@@ -50,9 +50,9 @@
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('dokter.antrian*') ? 'active' : '' }}">
         <i class="fas fa-users w-5 text-center"></i> Antrian Pasien
       </a>
-      <a href="{{ route('dokter.resep.index') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('dokter.resep*') ? 'active' : '' }}">
-        <i class="fas fa-file-prescription w-5 text-center"></i> Resep
+      <a href="{{ route('dokter.pasien') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('dokter.pasien*') ? 'active' : '' }}">
+        <i class="fas fa-notes-medical w-5 text-center"></i> Data Pasien
       </a>
     </nav>
 

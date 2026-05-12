@@ -44,12 +44,5 @@ class Antrian extends Model
         return $this->attributes['jenis'] ?? null;
     }
 
-    public function getStatusAttribute($value)
-    {
-        if ($value === 'Dipanggil') {
-            return 'Terpanggil';
-        }
 
-        return $value;
-    }
 }
