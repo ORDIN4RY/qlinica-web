@@ -106,21 +106,21 @@
               <div class="w-11 h-11 bg-blue-100 text-blue-900 rounded-2xl flex items-center justify-center mb-3 text-xl">
                 <i class="fas fa-ticket-alt"></i>
               </div>
-              <div class="text-2xl font-bold text-blue-900" id="noAntrianKu">—</div>
+              <div class="text-2xl font-bold text-blue-900" id="noAntrianKu">{{ $antrianAktif ? str_pad($antrianAktif->no_antrian, 3, '0', STR_PAD_LEFT) : '—' }}</div>
               <div class="text-xs text-gray-500 mt-0.5">Antrian Aktif Saya</div>
             </div>
             <div class="card-hover bg-white p-5 rounded-3xl shadow-md border border-blue-900/15">
               <div class="w-11 h-11 bg-green-100 text-green-700 rounded-2xl flex items-center justify-center mb-3 text-xl">
                 <i class="fas fa-users"></i>
               </div>
-              <div class="text-2xl font-bold text-green-700" id="antrianSkrg">3</div>
+              <div class="text-2xl font-bold text-green-700" id="antrianSkrg">{{ $antrianDilayani ? str_pad($antrianDilayani->no_antrian, 3, '0', STR_PAD_LEFT) : '—' }}</div>
               <div class="text-xs text-gray-500 mt-0.5">Antrian Sedang Dilayani</div>
             </div>
             <div class="card-hover bg-white p-5 rounded-3xl shadow-md border border-blue-900/15">
               <div class="w-11 h-11 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mb-3 text-xl">
                 <i class="fas fa-clock"></i>
               </div>
-              <div class="text-2xl font-bold text-amber-700" id="estimasi">~15 mnt</div>
+              <div class="text-2xl font-bold text-amber-700" id="estimasi">~{{ max(0, $antrianMenunggu * 5) }} mnt</div>
               <div class="text-xs text-gray-500 mt-0.5">Estimasi Tunggu</div>
             </div>
             <div class="card-hover bg-white p-5 rounded-3xl shadow-md border border-blue-900/15">
@@ -151,7 +151,7 @@
               <i class="fas fa-plus-circle text-blue-900"></i> Ambil Nomor Antrian
             </h3>
 
-            <div id="formAntrian" class="space-y-4">
+            <div id="formAntrian" class="space-y-4 {{ $antrianAktif ? 'hidden' : '' }}">
               <div>
                 <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Jenis Layanan</label>
                 <select id="jenisLayanan" class="mt-1.5 w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-blue-900 focus:ring-2 focus:ring-blue-900/10 outline-none bg-gray-50">
@@ -173,15 +173,21 @@
             </div>
 
             <!-- Hasil antrian -->
-            <div id="hasilAntrian" class="hidden text-center">
+            <div id="hasilAntrian" class="{{ $antrianAktif ? '' : 'hidden' }} text-center">
               <div class="w-16 h-16 bg-green-100 text-green-700 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
                 <i class="fas fa-check-circle"></i>
               </div>
               <p class="text-sm text-gray-500 mb-1">Nomor Antrian Anda</p>
-              <div class="no-antrian text-blue-900" id="nomorAntrian">A-07</div>
-              <p class="text-xs text-gray-500 mt-2 mb-1" id="layananDipilih">Konsultasi Umum</p>
+              <div class="no-antrian text-blue-900" id="nomorAntrian">{{ $antrianAktif ? str_pad($antrianAktif->no_antrian, 3, '0', STR_PAD_LEFT) : '—' }}</div>
+              <p class="text-xs text-gray-500 mt-1 mb-1" id="layananDipilih">{{ $antrianAktif ? $antrianAktif->jenis : '' }}</p>
+              <div class="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-800 px-3 py-1.5 rounded-full text-xs font-semibold mt-1">
+                <i class="fas fa-calendar-alt"></i> <span id="tanggalAntrian">{{ $antrianAktif ? \Carbon\Carbon::parse($antrianAktif->tanggal)->format('d M Y') : '' }}</span>
+              </div>
               <div class="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2 rounded-full text-sm font-semibold mt-2">
-                <i class="fas fa-clock"></i> Estimasi: <span id="estimasiHasil">~20 mnt</span>
+                <i class="fas fa-clock"></i> Estimasi: <span id="estimasiHasil">~15 mnt</span>
+              </div>
+              <div class="mt-3 inline-flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 px-3 py-1.5 rounded-full text-xs font-semibold">
+                <i class="fas fa-wifi"></i> Antrian Online
               </div>
               <button onclick="batalAntrian()" class="mt-4 w-full border border-red-300 text-red-600 hover:bg-red-50 py-2.5 rounded-xl text-sm font-semibold transition">
                 <i class="fas fa-times"></i> Batalkan Antrian
@@ -196,26 +202,52 @@
             </h3>
             <div class="text-center py-4">
               <p class="text-blue-200 text-sm mb-1">Sedang Dilayani</p>
-              <div class="text-7xl font-black text-white leading-none" id="antrianDisplay">003</div>
-              <p class="text-blue-200 text-sm mt-2">Konsultasi Umum</p>
+              <div class="text-7xl font-black text-white leading-none" id="antrianDisplay">{{ $antrianDilayani ? str_pad($antrianDilayani->no_antrian, 3, '0', STR_PAD_LEFT) : '—' }}</div>
+              <p class="text-blue-200 text-sm mt-2">{{ $antrianDilayani ? $antrianDilayani->jenis : '-' }}</p>
             </div>
             <div class="grid grid-cols-3 gap-3 mt-4">
               <div class="bg-white/10 rounded-2xl p-3 text-center">
-                <div class="text-xl font-bold" id="totalAntrianHari">12</div>
+                <div class="text-xl font-bold" id="totalAntrianHari">{{ $totalAntrianHariIni }}</div>
                 <div class="text-xs text-blue-200 mt-0.5">Total</div>
               </div>
               <div class="bg-white/10 rounded-2xl p-3 text-center">
-                <div class="text-xl font-bold text-green-300" id="sudahDilayani">3</div>
+                <div class="text-xl font-bold text-green-300" id="sudahDilayani">{{ $antrianSelesai }}</div>
                 <div class="text-xs text-blue-200 mt-0.5">Selesai</div>
               </div>
               <div class="bg-white/10 rounded-2xl p-3 text-center">
-                <div class="text-xl font-bold text-amber-300" id="menunggu">9</div>
+                <div class="text-xl font-bold text-amber-300" id="menunggu">{{ $antrianMenunggu }}</div>
                 <div class="text-xs text-blue-200 mt-0.5">Menunggu</div>
               </div>
             </div>
+
+            <!-- Daftar Antrian Pasien Menunggu -->
+            <div class="mt-6">
+              <h4 class="font-semibold text-sm mb-3 flex items-center gap-2 text-blue-100">
+                <i class="fas fa-users"></i> Daftar Pasien Menunggu
+              </h4>
+              <div class="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                <style>
+                  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                  .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 4px; }
+                  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
+                </style>
+                @forelse($antrianPasienMenunggu as $antrian)
+                <div class="bg-white/10 rounded-xl p-3 flex justify-between items-center">
+                  <div>
+                    <div class="font-bold text-sm">{{ $antrian->pasien->nama }}</div>
+                    <div class="text-xs text-blue-200">{{ $antrian->jenis }}</div>
+                  </div>
+                  <div class="text-lg font-black text-white">{{ str_pad($antrian->no_antrian, 3, '0', STR_PAD_LEFT) }}</div>
+                </div>
+                @empty
+                <div class="text-center text-xs text-blue-200 py-2">Belum ada pasien yang mengantri.</div>
+                @endforelse
+              </div>
+            </div>
+
             <div class="mt-4 p-3 bg-white/10 rounded-2xl text-xs text-blue-200 flex items-center gap-2">
               <i class="fas fa-info-circle"></i>
-              Update otomatis setiap 30 detik
+              Data antrian ini adalah data riil hari ini
             </div>
           </div>
         </div>
@@ -496,12 +528,17 @@
     // ================================================================
     // ANTRIAN
     // ================================================================
-    let antrianAktif = null;
+    let antrianAktif = {!! json_encode($antrianAktif ? ['id' => $antrianAktif->id, 'nomor' => str_pad($antrianAktif->no_antrian, 3, '0', STR_PAD_LEFT), 'layanan' => $antrianAktif->jenis] : null) !!};
 
     async function ambilAntrian() {
       const layanan = document.getElementById('jenisLayanan').value;
       const keluhan = document.getElementById('keluhan').value;
       if (!layanan) { showToast('Pilih jenis layanan terlebih dahulu!', 'red'); return; }
+
+      // Tampilkan loading state
+      const btn = document.querySelector('#formAntrian button[onclick="ambilAntrian()"]');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
 
       try {
         const response = await fetch("{{ route('pasien.antrian.store') }}", {
@@ -515,47 +552,124 @@
         const data = await response.json();
 
         if (data.success) {
-          antrianAktif = { nomor: data.no_antrian, layanan };
-          document.getElementById('nomorAntrian').textContent = antrianAktif.nomor;
-          document.getElementById('layananDipilih').textContent = layanan;
-          document.getElementById('noAntrianKu').textContent = antrianAktif.nomor;
+          // Gunakan no_antrian dari server (format "001")
+          antrianAktif = { id: data.id, nomor: data.no_antrian, layanan };
+
+          document.getElementById('nomorAntrian').textContent  = data.no_antrian;
+          document.getElementById('layananDipilih').textContent = data.layanan;
+          document.getElementById('tanggalAntrian').textContent = data.tanggal;
+          document.getElementById('noAntrianKu').textContent   = data.no_antrian;
           document.getElementById('estimasiHasil').textContent = '~15 mnt';
           document.getElementById('formAntrian').classList.add('hidden');
           document.getElementById('hasilAntrian').classList.remove('hidden');
 
           // Update statistik lokal sementara
-          const total = parseInt(document.getElementById('totalAntrianHari').textContent)+1;
-          const tunggu = parseInt(document.getElementById('menunggu').textContent)+1;
+          const total  = parseInt(document.getElementById('totalAntrianHari').textContent) + 1;
+          const tunggu = parseInt(document.getElementById('menunggu').textContent) + 1;
           document.getElementById('totalAntrianHari').textContent = total;
           document.getElementById('menunggu').textContent = tunggu;
 
           // Tambah ke riwayat lokal sementara
-          riwayatData.unshift({ id:Date.now(), tanggal:new Date().toLocaleDateString('en-CA'), layanan, dokter:'—', noAntrian:antrianAktif.nomor, status:'menunggu', keluhan: keluhan || '—' });
+          riwayatData.unshift({
+            id: Date.now(),
+            tanggal: new Date().toLocaleDateString('en-CA'),
+            layanan: data.layanan,
+            dokter: '—',
+            noAntrian: data.no_antrian,
+            status: 'menunggu',
+            keluhan: keluhan || '—'
+          });
           renderRiwayat(document.getElementById('searchRiwayat').value);
-          document.getElementById('totalKunjungan').textContent = riwayatData.filter(r=>r.status==='selesai').length;
-          
+          document.getElementById('totalKunjungan').textContent = riwayatData.filter(r => r.status === 'selesai').length;
+
           showToast(data.message);
         } else {
           showToast(data.message || 'Gagal mengambil antrian', 'red');
+          // Kembalikan tombol
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-ticket-alt"></i> Ambil Antrian Sekarang';
         }
       } catch (err) {
         showToast('Terjadi kesalahan pada server', 'red');
         console.error(err);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-ticket-alt"></i> Ambil Antrian Sekarang';
       }
     }
 
-    function batalAntrian() {
-      if (!confirm('Batalkan antrian ' + antrianAktif?.nomor + '?')) return;
-      // update status di riwayat
-      const item = riwayatData.find(r => r.noAntrian === antrianAktif?.nomor && r.status==='menunggu');
-      if (item) item.status = 'batal';
-      antrianAktif = null;
-      document.getElementById('noAntrianKu').textContent = '—';
-      document.getElementById('jenisLayanan').value = '';
-      document.getElementById('keluhan').value = '';
-      document.getElementById('formAntrian').classList.remove('hidden');
-      document.getElementById('hasilAntrian').classList.add('hidden');
-      showToast('Antrian dibatalkan', 'red');
+    async function batalAntrian() {
+      if (!antrianAktif || !antrianAktif.id) {
+        showToast('Tidak ada antrian aktif.', 'red');
+        return;
+      }
+      if (!confirm('Batalkan antrian ' + antrianAktif.nomor + '?\nData antrian akan dihapus permanen.')) return;
+
+      const btnBatal = document.querySelector('#hasilAntrian button[onclick="batalAntrian()"]');
+      if (btnBatal) {
+        btnBatal.disabled = true;
+        btnBatal.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Membatalkan...';
+      }
+
+      try {
+        const response = await fetch(`/dashboard-pasien/antrian/${antrianAktif.id}/cancel`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+          }
+        });
+
+        let data;
+        try {
+          data = await response.json();
+        } catch (parseErr) {
+          throw new Error('Response bukan JSON. Status: ' + response.status);
+        }
+
+        if (data.success) {
+          // Hapus dari riwayat lokal
+          const idx = riwayatData.findIndex(r => r.noAntrian === antrianAktif.nomor && r.status === 'menunggu');
+          if (idx !== -1) riwayatData.splice(idx, 1);
+
+          // Reset state
+          const nomorBatal = antrianAktif.nomor;
+          antrianAktif = null;
+
+          // Reset UI — tampilkan form kembali
+          document.getElementById('noAntrianKu').textContent = '—';
+          document.getElementById('jenisLayanan').value = '';
+          document.getElementById('keluhan').value = '';
+          document.getElementById('formAntrian').classList.remove('hidden');
+          document.getElementById('hasilAntrian').classList.add('hidden');
+
+          // Restore tombol
+          if (btnBatal) {
+            btnBatal.disabled = false;
+            btnBatal.innerHTML = '<i class="fas fa-times"></i> Batalkan Antrian';
+          }
+
+          // Update statistik lokal
+          const tunggu = parseInt(document.getElementById('menunggu').textContent);
+          document.getElementById('menunggu').textContent = Math.max(0, tunggu - 1);
+
+          renderRiwayat(document.getElementById('searchRiwayat').value);
+          showToast('Antrian ' + nomorBatal + ' berhasil dibatalkan.', 'red');
+
+        } else {
+          showToast(data.message || 'Gagal membatalkan antrian.', 'red');
+          if (btnBatal) {
+            btnBatal.disabled = false;
+            btnBatal.innerHTML = '<i class="fas fa-times"></i> Batalkan Antrian';
+          }
+        }
+      } catch (err) {
+        console.error('batalAntrian error:', err);
+        showToast('Terjadi kesalahan: ' + err.message, 'red');
+        if (btnBatal) {
+          btnBatal.disabled = false;
+          btnBatal.innerHTML = '<i class="fas fa-times"></i> Batalkan Antrian';
+        }
+      }
     }
 
     function pilihLayanan(nama) {
@@ -600,20 +714,16 @@
     }
 
     // ================================================================
-    // SIMULASI UPDATE ANTRIAN (setiap 30 detik)
+    // SIMULASI UPDATE ANTRIAN 
     // ================================================================
-    setInterval(() => {
-      let now = parseInt(document.getElementById('antrianDisplay').textContent);
-      if (now < parseInt(document.getElementById('totalAntrianHari').textContent)) {
-        now++;
-        document.getElementById('antrianDisplay').textContent = String(now).padStart(3,'0');
-        document.getElementById('antrianSkrg').textContent = now;
-        document.getElementById('sudahDilayani').textContent = now;
-        const tunggu = parseInt(document.getElementById('totalAntrianHari').textContent) - now;
-        document.getElementById('menunggu').textContent = Math.max(0, tunggu);
-        document.getElementById('estimasi').textContent = '~' + Math.max(0, tunggu*5) + ' mnt';
+    // Update live data sebaiknya menggunakan socket atau polling ke server
+    // Untuk saat ini auto reload setelah 60 detik jika tidak ada aktivitas form
+    setTimeout(() => {
+      if(!document.getElementById('hasilAntrian').classList.contains('hidden') || document.getElementById('jenisLayanan').value === '') {
+          // Hanya auto-refresh jika user tidak sedang mengisi form
+          window.location.reload();
       }
-    }, 30000);
+    }, 60000);
   </script>
 </body>
 </html>

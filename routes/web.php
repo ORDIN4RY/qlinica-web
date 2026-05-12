@@ -81,10 +81,32 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
     Route::get('/dashboard-pasien', function () {
         $user   = auth()->user();
         $pasien = $user->pasien ?? null;
-        return view('dashboard_pasien', compact('user', 'pasien'));
+        
+        $antrianAktif = null;
+        $totalAntrianHariIni = 0;
+        $antrianSelesai = 0;
+        $antrianMenunggu = 0;
+        $antrianDilayani = null;
+        $antrianPasienMenunggu = collect();
+
+        if ($pasien) {
+            $antrianAktif = \App\Models\Antrian::where('pasien_id', $pasien->id)
+                ->where('tanggal', now()->toDateString())
+                ->whereIn('status', ['Menunggu', 'Dipanggil'])
+                ->first();
+                
+            $totalAntrianHariIni = \App\Models\Antrian::where('tanggal', now()->toDateString())->count();
+            $antrianSelesai = \App\Models\Antrian::where('tanggal', now()->toDateString())->where('status', 'Selesai')->count();
+            $antrianMenunggu = \App\Models\Antrian::where('tanggal', now()->toDateString())->whereIn('status', ['Menunggu', 'Dipanggil'])->count();
+            $antrianDilayani = \App\Models\Antrian::where('tanggal', now()->toDateString())->where('status', 'Dipanggil')->orderBy('updated_at', 'desc')->first();
+            $antrianPasienMenunggu = \App\Models\Antrian::with('pasien')->where('tanggal', now()->toDateString())->whereIn('status', ['Menunggu', 'Dipanggil'])->orderBy('no_antrian', 'asc')->get();
+        }
+
+        return view('dashboard_pasien', compact('user', 'pasien', 'antrianAktif', 'totalAntrianHariIni', 'antrianSelesai', 'antrianMenunggu', 'antrianDilayani', 'antrianPasienMenunggu'));
     })->name('pasien.portal');
 
     Route::post('/dashboard-pasien/antrian', [AntrianController::class, 'storePasien'])->name('pasien.antrian.store');
+    Route::post('/dashboard-pasien/antrian/{id}/cancel', [AntrianController::class, 'cancelPasien'])->name('pasien.antrian.cancel');
 
     Route::get('/pemesanan', function () { 
         $user   = auth()->user();

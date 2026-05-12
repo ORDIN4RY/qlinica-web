@@ -100,17 +100,21 @@ class PegawaiController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $pegawai) {
-            $userData = [
-                'name'  => $request->nama,
-                'email' => $request->email,
-                'role'  => $request->role,
-                'phone' => $request->no_hp,
-            ];
-            if ($request->filled('password')) {
-                $userData['password'] = Hash::make($request->password);
-            }
             if ($pegawai->user) {
-                $pegawai->user->update($userData);
+                $pegawai->user->update([
+                    'name'  => $request->nama,
+                    'email' => $request->email,
+                    'role'  => $request->role,
+                    'phone' => $request->no_hp,
+                ]);
+
+                // Update password via DB langsung agar tidak double-hash
+                // karena User model sudah punya cast 'hashed'
+                if ($request->filled('password')) {
+                    DB::table('users')
+                        ->where('id', $pegawai->user->id)
+                        ->update(['password' => Hash::make($request->password)]);
+                }
             }
 
             $pegawai->update([
