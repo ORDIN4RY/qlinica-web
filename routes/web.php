@@ -11,6 +11,7 @@ use App\Http\Controllers\DokterController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\IcdxController;
 use App\Http\Controllers\PresensiController;
+use App\Http\Controllers\KomentarController;
 
 // Public
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
@@ -50,8 +51,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/antrian/{id}/panggil', [AntrianController::class, 'panggilPeriksa'])->name('admin.antrian.panggil');
     Route::patch('/admin/antrian/{id}/dilayani', [AntrianController::class, 'updateStatus'])->name('admin.antrian.dilayani');
     Route::patch('/admin/antrian/{id}/selesai', [AntrianController::class, 'updateStatus'])->name('admin.antrian.selesai');
-    Route::get('/admin/komentar',  function () { return view('admin.komentar'); })->name('admin.komentar');
-    
+    Route::get('/admin/komentar', [KomentarController::class, 'index'])->name('admin.komentar');
+    Route::delete('/admin/komentar/{id}', [KomentarController::class, 'destroy'])->name('admin.komentar.destroy');
+
     // Laporan
     Route::get('/admin/laporan',   function () { return view('laporan'); })->name('admin.laporan');
     Route::get('/admin/laporan/penanganan', [LaporanController::class, 'penanganan'])->name('admin.laporan.penanganan');
@@ -90,7 +92,7 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
     Route::get('/dashboard-pasien', function () {
         $user   = auth()->user();
         $pasien = $user->pasien ?? null;
-        
+
         $antrianAktif = null;
         $totalAntrianHariIni = 0;
         $antrianSelesai = 0;
@@ -103,7 +105,7 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
                 ->where('tanggal', now()->toDateString())
                 ->whereIn('status', ['Menunggu', 'Dipanggil'])
                 ->first();
-                
+
             $totalAntrianHariIni = \App\Models\Antrian::where('tanggal', now()->toDateString())->count();
             $antrianSelesai = \App\Models\Antrian::where('tanggal', now()->toDateString())->where('status', 'Selesai')->count();
             $antrianMenunggu = \App\Models\Antrian::where('tanggal', now()->toDateString())->whereIn('status', ['Menunggu', 'Dipanggil'])->count();
@@ -117,7 +119,7 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
     Route::post('/dashboard-pasien/antrian', [AntrianController::class, 'storePasien'])->name('pasien.antrian.store');
     Route::post('/dashboard-pasien/antrian/{id}/cancel', [AntrianController::class, 'cancelPasien'])->name('pasien.antrian.cancel');
 
-    Route::get('/pemesanan', function () { 
+    Route::get('/pemesanan', function () {
         $user   = auth()->user();
         $pasien = $user->pasien ?? null;
         return view('pemesanan', compact('user', 'pasien'));
@@ -126,19 +128,19 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
 
 // Protected Routes Khusus Apoteker
 Route::middleware(['auth', 'role:apoteker'])->group(function () {
-    Route::get('/apoteker/dashboard', function () { 
-        return view('apoteker.dashboard'); 
+    Route::get('/apoteker/dashboard', function () {
+        return view('apoteker.dashboard');
     })->name('apoteker.dashboard');
-    
-    Route::get('/apoteker/obat', function () { 
-        return view('apoteker.obat'); 
+
+    Route::get('/apoteker/obat', function () {
+        return view('apoteker.obat');
     })->name('apoteker.obat');
-    
+
     Route::get('/apoteker/resep', [ResepController::class, 'index'])->name('apoteker.resep');
     Route::patch('/apoteker/resep/{resep}', [ResepController::class, 'update'])->name('apoteker.resep.update');
 
-    Route::get('/apoteker/laporan', function () { 
-        return view('apoteker.laporan'); 
+    Route::get('/apoteker/laporan', function () {
+        return view('apoteker.laporan');
     })->name('apoteker.laporan');
 });
 
@@ -151,5 +153,6 @@ Route::middleware(['auth', 'role:dokter'])->group(function () {
     Route::get('/dokter/pasien', [DokterController::class, 'pasienIndex'])->name('dokter.pasien');
 });
 
+// routes komentar/feedback
 
 
