@@ -5,12 +5,113 @@ namespace App\Http\Controllers;
 use App\Models\Jabatan;
 use App\Models\Menu;
 use App\Models\HakAkses;
-use App\Models\Pegawai;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class JabatanController extends Controller
 {
+    /**
+     * Definisi sub-akses untuk setiap menu.
+     * Format: 'key' => ['label' => '...', 'icon' => 'fa-...', 'desc' => '...']
+     * Key 'view' wajib ada — ini adalah toggle utama menu.
+     *
+     * Key khusus yang dikenali oleh middleware:
+     *   view, tambah, edit, hapus
+     * Key bebas untuk sub-akses spesifik menu (misal dashboard type).
+     */
+    public static function menuSubAkses(): array
+    {
+        return [
+            'Dashboard' => [
+                'view' => [
+                    'label' => 'Akses Dashboard',
+                    'icon'  => 'fa-chart-pie',
+                    'desc'  => 'Izinkan akses ke halaman dashboard',
+                ],
+                'admin_dashboard' => [
+                    'label' => 'Tampilan Admin',
+                    'icon'  => 'fa-shield-alt',
+                    'desc'  => 'Dashboard ringkasan admin (statistik, antrian, dsb)',
+                    'preview' => 'dashboard_admin',
+                ],
+                'dokter_dashboard' => [
+                    'label' => 'Tampilan Dokter',
+                    'icon'  => 'fa-stethoscope',
+                    'desc'  => 'Dashboard dokter (antrian pasien, jadwal)',
+                    'preview' => 'dashboard_dokter',
+                ],
+                'apoteker_dashboard' => [
+                    'label' => 'Tampilan Apoteker',
+                    'icon'  => 'fa-pills',
+                    'desc'  => 'Dashboard apoteker (resep, obat)',
+                    'preview' => 'dashboard_apoteker',
+                ],
+            ],
+            'Antrian' => [
+                'view'   => ['label' => 'Lihat Antrian',   'icon' => 'fa-eye',        'desc' => 'Melihat daftar antrian pasien'],
+                'tambah' => ['label' => 'Tambah Antrian',  'icon' => 'fa-plus',       'desc' => 'Mendaftarkan antrian baru'],
+                'edit'   => ['label' => 'Update Status',   'icon' => 'fa-pen',        'desc' => 'Mengubah status & memanggil antrian'],
+                'hapus'  => ['label' => 'Hapus Antrian',   'icon' => 'fa-trash',      'desc' => 'Menghapus data antrian'],
+                'panggil'=> ['label' => 'Panggil Pasien',  'icon' => 'fa-bullhorn',   'desc' => 'Memanggil pasien ke ruang periksa'],
+            ],
+            'Pasien' => [
+                'view'   => ['label' => 'Lihat Data',      'icon' => 'fa-eye',        'desc' => 'Melihat daftar & detail data pasien'],
+                'tambah' => ['label' => 'Tambah Pasien',   'icon' => 'fa-user-plus',  'desc' => 'Mendaftarkan pasien baru'],
+                'edit'   => ['label' => 'Edit Data',       'icon' => 'fa-pen',        'desc' => 'Mengubah data pasien'],
+                'hapus'  => ['label' => 'Hapus Data',      'icon' => 'fa-trash',      'desc' => 'Menghapus data pasien'],
+                'akun'   => ['label' => 'Kelola Akun',     'icon' => 'fa-key',        'desc' => 'Membuat akun login pasien'],
+            ],
+            'Pegawai' => [
+                'view'   => ['label' => 'Lihat Data',      'icon' => 'fa-eye',        'desc' => 'Melihat daftar & detail pegawai'],
+                'tambah' => ['label' => 'Tambah Pegawai',  'icon' => 'fa-user-plus',  'desc' => 'Mendaftarkan pegawai baru'],
+                'edit'   => ['label' => 'Edit Data',       'icon' => 'fa-pen',        'desc' => 'Mengubah data pegawai'],
+                'hapus'  => ['label' => 'Hapus Data',      'icon' => 'fa-trash',      'desc' => 'Menghapus data pegawai'],
+            ],
+            'Resep' => [
+                'view'   => ['label' => 'Lihat Resep',     'icon' => 'fa-eye',        'desc' => 'Melihat daftar resep masuk'],
+                'edit'   => ['label' => 'Proses Resep',    'icon' => 'fa-check',      'desc' => 'Mengubah status & memproses resep'],
+            ],
+            'Obat' => [
+                'view'   => ['label' => 'Lihat Stok Obat', 'icon' => 'fa-eye',        'desc' => 'Melihat data stok obat'],
+                'tambah' => ['label' => 'Tambah Obat',     'icon' => 'fa-plus',       'desc' => 'Menambah data obat baru'],
+                'edit'   => ['label' => 'Edit Obat',       'icon' => 'fa-pen',        'desc' => 'Mengubah data obat'],
+                'hapus'  => ['label' => 'Hapus Obat',      'icon' => 'fa-trash',      'desc' => 'Menghapus data obat'],
+            ],
+            'ICDX' => [
+                'view'   => ['label' => 'Lihat ICD-X',     'icon' => 'fa-eye',        'desc' => 'Melihat daftar kode ICD-X'],
+                'tambah' => ['label' => 'Tambah Kode',     'icon' => 'fa-plus',       'desc' => 'Menambah kode ICD-X baru'],
+                'edit'   => ['label' => 'Edit Kode',       'icon' => 'fa-pen',        'desc' => 'Mengubah kode ICD-X'],
+                'hapus'  => ['label' => 'Hapus Kode',      'icon' => 'fa-trash',      'desc' => 'Menghapus kode ICD-X'],
+            ],
+            'Laporan' => [
+                'view'      => ['label' => 'Lihat Laporan',     'icon' => 'fa-eye',        'desc' => 'Akses halaman laporan'],
+                'penanganan'=> ['label' => 'Lap. Penanganan',   'icon' => 'fa-chart-line',  'desc' => 'Laporan data penanganan pasien'],
+                'export'    => ['label' => 'Export Data',       'icon' => 'fa-file-export', 'desc' => 'Export laporan ke PDF/Excel'],
+            ],
+            'Komentar' => [
+                'view'   => ['label' => 'Lihat Komentar',  'icon' => 'fa-eye',        'desc' => 'Melihat komentar & ulasan pasien'],
+                'hapus'  => ['label' => 'Hapus Komentar',  'icon' => 'fa-trash',      'desc' => 'Menghapus komentar'],
+            ],
+            'Jabatan' => [
+                'view'   => ['label' => 'Lihat Jabatan',   'icon' => 'fa-eye',        'desc' => 'Melihat daftar jabatan & hak akses'],
+                'tambah' => ['label' => 'Tambah Jabatan',  'icon' => 'fa-plus',       'desc' => 'Membuat jabatan baru'],
+                'edit'   => ['label' => 'Edit Hak Akses',  'icon' => 'fa-pen',        'desc' => 'Mengubah hak akses jabatan'],
+                'hapus'  => ['label' => 'Hapus Jabatan',   'icon' => 'fa-trash',      'desc' => 'Menghapus jabatan'],
+            ],
+            'Rekam Medis' => [
+                'view'   => ['label' => 'Lihat Rekam Medis','icon' => 'fa-eye',       'desc' => 'Melihat riwayat rekam medis'],
+                'tambah' => ['label' => 'Input Diagnosa',   'icon' => 'fa-plus',      'desc' => 'Menginput diagnosa & resep'],
+                'edit'   => ['label' => 'Edit Diagnosa',    'icon' => 'fa-pen',       'desc' => 'Mengubah data diagnosa'],
+            ],
+            'Presensi' => [
+                'view'    => ['label' => 'Lihat Presensi',  'icon' => 'fa-eye',       'desc' => 'Melihat data presensi pegawai'],
+                'edit'    => ['label' => 'Setujui/Tolak',   'icon' => 'fa-check',     'desc' => 'Menyetujui atau menolak presensi'],
+                'hapus'   => ['label' => 'Hapus Presensi',  'icon' => 'fa-trash',     'desc' => 'Menghapus data presensi'],
+                'export'  => ['label' => 'Export Presensi', 'icon' => 'fa-file-export','desc' => 'Export data presensi ke Excel'],
+            ],
+        ];
+    }
+
     /** Halaman kelola jabatan dan hak akses. */
     public function index()
     {
@@ -22,7 +123,9 @@ class JabatanController extends Controller
             ->groupBy('jabatan_id')
             ->map(fn($items) => $items->keyBy('menu_id'));
 
-        return view('admin.jabatan', compact('jabatans', 'menus', 'hakAkses'));
+        $menuSubAkses = self::menuSubAkses();
+
+        return view('admin.jabatan', compact('jabatans', 'menus', 'hakAkses', 'menuSubAkses'));
     }
 
     /** Tambah jabatan baru. */
@@ -49,7 +152,7 @@ class JabatanController extends Controller
 
         if ($jabatan->pegawais_count > 0) {
             return redirect()->route('admin.jabatan')
-                ->with('error', 'Jabatan "' . $jabatan->nama_jabatan . '" tidak dapat dihapus karena masih memiliki ' . $jabatan->pegawais_count . ' pegawai. Ubah jabatan pegawai tersebut terlebih dahulu.');
+                ->with('error', 'Jabatan "' . $jabatan->nama_jabatan . '" tidak dapat dihapus karena masih memiliki ' . $jabatan->pegawais_count . ' pegawai.');
         }
 
         DB::transaction(function () use ($jabatan) {
@@ -61,7 +164,7 @@ class JabatanController extends Controller
             ->with('success', 'Jabatan "' . $jabatan->nama_jabatan . '" berhasil dihapus.');
     }
 
-    /** Update hak akses untuk satu jabatan. */
+    /** Update hak akses (sub_akses JSON) untuk satu jabatan. */
     public function updateAkses(Request $request, $id)
     {
         $jabatan = Jabatan::findOrFail($id);
@@ -76,24 +179,34 @@ class JabatanController extends Controller
         DB::transaction(function () use ($jabatan, $aksesData) {
             HakAkses::where('jabatan_id', $jabatan->id)->delete();
 
-            foreach ($aksesData as $menuId => $flags) {
+            foreach ($aksesData as $menuId => $subKeys) {
                 $menuId = (int) $menuId;
                 if (!$menuId) continue;
 
-                if (!empty($flags['lihat'])) {
+                // Bangun array sub_akses dari checkbox yang dicentang
+                $sub = [];
+                foreach ($subKeys as $key => $val) {
+                    if ($val == '1') {
+                        $sub[$key] = true;
+                    }
+                }
+
+                // Hanya simpan jika minimal 'view' aktif
+                if (!empty($sub['view'])) {
                     HakAkses::create([
                         'jabatan_id'  => $jabatan->id,
                         'menu_id'     => $menuId,
+                        'sub_akses'   => $sub,
+                        // Legacy columns — sync dari sub_akses
                         'bisa_lihat'  => true,
-                        'bisa_tambah' => !empty($flags['tambah']),
-                        'bisa_edit'   => !empty($flags['edit']),
-                        'bisa_hapus'  => !empty($flags['hapus']),
+                        'bisa_tambah' => !empty($sub['tambah']),
+                        'bisa_edit'   => !empty($sub['edit']),
+                        'bisa_hapus'  => !empty($sub['hapus']),
                     ]);
                 }
             }
         });
 
-        return redirect()->route('admin.jabatan')
-            ->with('success', 'Hak akses untuk jabatan "' . $jabatan->nama_jabatan . '" berhasil diperbarui.');
+        return response()->json(['success' => true, 'message' => 'Hak akses jabatan "' . $jabatan->nama_jabatan . '" berhasil disimpan.']);
     }
 }
