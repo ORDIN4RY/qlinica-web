@@ -126,39 +126,61 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-50">
+        @if(isset($error))
+          <tr>
+            <td colspan="4" class="text-center py-8 text-red-500 font-semibold">
+              <i class="fas fa-exclamation-triangle mr-2"></i> {{ $error }}
+            </td>
+          </tr>
+        @endif
+        
         @forelse($icdxs as $i => $icdx)
           <tr class="table-row">
             {{-- No --}}
             <td class="px-5 py-3.5 text-gray-400 font-semibold text-xs">
-              {{ $icdxs->firstItem() + $i }}
+              {{ $icdxs instanceof \Illuminate\Pagination\LengthAwarePaginator ? $icdxs->firstItem() + $i : $i + 1 }}
             </td>
             {{-- Kode --}}
             <td class="px-5 py-3.5">
               <span class="kode-badge">{{ $icdx->kode }}</span>
+              @if(isset($icdx->is_api))
+                <span class="ml-2 text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">API WHO</span>
+              @endif
             </td>
             {{-- Nama --}}
             <td class="px-5 py-3.5 text-gray-500 text-xs hide-sm">{{ $icdx->nama ?: '—' }}</td>
             {{-- Aksi --}}
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-2">
-                <button
-                  onclick="openEdit({{ $icdx->id }}, '{{ addslashes($icdx->kode) }}', '{{ addslashes($icdx->nama) }}')"
-                  class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition"
-                  title="Edit">
-                  <i class="fas fa-pen text-xs"></i>
-                </button>
-                <button
-                  onclick="openDel({{ $icdx->id }}, '{{ addslashes($icdx->kode) }}', '{{ addslashes($icdx->nama) }}')"
-                  class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition"
-                  title="Hapus">
-                  <i class="fas fa-trash text-xs"></i>
-                </button>
+                @if(isset($icdx->is_api))
+                  <form method="POST" action="{{ route('admin.icdx.store') }}" class="m-0 p-0">
+                    @csrf
+                    <input type="hidden" name="kode" value="{{ $icdx->kode }}">
+                    <input type="hidden" name="nama" value="{{ $icdx->nama }}">
+                    <button type="submit" class="text-[11px] bg-blue-900 text-white hover:bg-blue-800 px-3 py-1.5 rounded-lg transition shadow-sm font-semibold flex items-center gap-1.5">
+                      <i class="fas fa-download text-[10px]"></i> Simpan
+                    </button>
+                  </form>
+                @else
+                  <button
+                    onclick="openEdit({{ $icdx->id }}, '{{ addslashes($icdx->kode) }}', '{{ addslashes($icdx->nama) }}')"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition"
+                    title="Edit">
+                    <i class="fas fa-pen text-xs"></i>
+                  </button>
+                  <button
+                    onclick="openDel({{ $icdx->id }}, '{{ addslashes($icdx->kode) }}', '{{ addslashes($icdx->nama) }}')"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition"
+                    title="Hapus">
+                    <i class="fas fa-trash text-xs"></i>
+                  </button>
+                @endif
               </div>
             </td>
           </tr>
         @empty
           <tr>
-            <td colspan="5" class="text-center py-16 text-gray-400">
+            <td colspan="4" class="text-center py-16 text-gray-400">
               <i class="fas fa-file-medical-alt text-4xl mb-4 block opacity-30"></i>
               <p class="font-semibold">Tidak ada data ICD-X{{ $search ? ' untuk pencarian "' . $search . '"' : '' }}</p>
             </td>
@@ -169,7 +191,7 @@
   </div>
 
   {{-- Pagination --}}
-  @if($icdxs->hasPages())
+  @if($icdxs instanceof \Illuminate\Pagination\LengthAwarePaginator && $icdxs->hasPages())
     <div class="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
       <p class="text-xs text-gray-500">
         Menampilkan <strong>{{ $icdxs->firstItem() }}–{{ $icdxs->lastItem() }}</strong>
@@ -215,7 +237,7 @@
     </div>
   @else
     <div class="px-6 py-3 border-t border-gray-100">
-      <p class="text-xs text-gray-400">Total <strong>{{ number_format($icdxs->total()) }}</strong> data</p>
+      <p class="text-xs text-gray-400">Total <strong>{{ number_format(count($icdxs)) }}</strong> data</p>
     </div>
   @endif
 </div>
@@ -238,6 +260,21 @@
 
       <div class="modal-body">
         <div class="space-y-4">
+
+          {{-- WHO Search --}}
+          <div class="form-group border-b border-gray-100 pb-4 mb-2">
+            <label>Cari dari Database WHO (Online)</label>
+            <div class="flex gap-2 relative">
+              <input type="text" id="whoSearchInput" class="form-input flex-1" placeholder="Ketik kata kunci penyakit (Bhs. Inggris)...">
+              <button type="button" id="btnWhoSearch" class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-2 rounded-xl text-sm font-bold transition flex items-center justify-center">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+            <div id="whoLoader" class="hidden mt-2 text-xs text-blue-600"><i class="fas fa-spinner fa-spin mr-1"></i> Mencari...</div>
+            <div id="whoResults" class="mt-2 max-h-48 overflow-y-auto hidden border border-gray-200 rounded-xl bg-gray-50 shadow-inner">
+              <!-- Results go here -->
+            </div>
+          </div>
 
           {{-- Kode --}}
           <div class="form-group">
@@ -343,6 +380,13 @@
     ['fKode', 'fNama'].forEach(function(id) {
       document.getElementById(id).value = '';
     });
+    const whoSearchInput = document.getElementById('whoSearchInput');
+    const whoResults = document.getElementById('whoResults');
+    if(whoSearchInput) whoSearchInput.value = '';
+    if(whoResults) {
+        whoResults.innerHTML = '';
+        whoResults.classList.add('hidden');
+    }
   }
 
   function clearErrors() {
@@ -382,5 +426,86 @@
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') { closeModal(); closeDel(); }
   });
+
+  /* ── WHO API SEARCH ── */
+  const whoSearchInput = document.getElementById('whoSearchInput');
+  const btnWhoSearch = document.getElementById('btnWhoSearch');
+  const whoLoader = document.getElementById('whoLoader');
+  const whoResults = document.getElementById('whoResults');
+
+  btnWhoSearch.addEventListener('click', performWhoSearch);
+  whoSearchInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      performWhoSearch();
+    }
+  });
+
+  function performWhoSearch() {
+    const q = whoSearchInput.value.trim();
+    if (q.length < 2) return;
+
+    whoLoader.classList.remove('hidden');
+    whoResults.classList.add('hidden');
+    whoResults.innerHTML = '';
+
+    fetch(`/api/icd/search?q=${encodeURIComponent(q)}`)
+      .then(res => res.json())
+      .then(data => {
+        whoLoader.classList.add('hidden');
+        whoResults.classList.remove('hidden');
+        
+        if (data.error) {
+          whoResults.innerHTML = `<div class="p-3 text-xs text-red-500 text-center">Gagal memuat: ${data.error}</div>`;
+          return;
+        }
+
+        const entities = data.DestinationEntities || [];
+        if (entities.length === 0) {
+          whoResults.innerHTML = `<div class="p-3 text-xs text-gray-500 text-center">Tidak ada hasil ditemukan.</div>`;
+          return;
+        }
+
+        let html = '<div class="divide-y divide-gray-200">';
+        entities.forEach(entity => {
+          // Hanya ambil jika memiliki theCode (artinya itu penyakit spesifik, bukan sekadar grup besar)
+          if (entity.theCode) {
+            // Bersihkan tag HTML dari Title
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = entity.Title || '';
+            const cleanTitle = tempDiv.textContent || tempDiv.innerText || '';
+
+            html += `
+              <div class="p-3 hover:bg-blue-50 cursor-pointer transition flex justify-between items-center" onclick="selectWhoResult('${entity.theCode}', '${cleanTitle.replace(/'/g, "\\'")}')">
+                <div>
+                  <span class="font-bold text-xs text-blue-800">${entity.theCode}</span>
+                  <p class="text-xs text-gray-600 mt-0.5">${cleanTitle}</p>
+                </div>
+                <i class="fas fa-arrow-right text-gray-300 text-xs"></i>
+              </div>
+            `;
+          }
+        });
+        html += '</div>';
+
+        if (html === '<div class="divide-y divide-gray-200"></div>') {
+            html = `<div class="p-3 text-xs text-gray-500 text-center">Hasil tidak memiliki kode spesifik.</div>`;
+        }
+
+        whoResults.innerHTML = html;
+      })
+      .catch(err => {
+        whoLoader.classList.add('hidden');
+        whoResults.classList.remove('hidden');
+        whoResults.innerHTML = `<div class="p-3 text-xs text-red-500 text-center">Terjadi kesalahan koneksi.</div>`;
+      });
+  }
+
+  function selectWhoResult(kode, nama) {
+    document.getElementById('fKode').value = kode;
+    document.getElementById('fNama').value = nama;
+    whoResults.classList.add('hidden');
+    whoSearchInput.value = '';
+  }
 </script>
 @endpush

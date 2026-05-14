@@ -3,27 +3,73 @@
 namespace App\Http\Controllers;
 
 use App\Models\Icdx;
+use App\Services\IcdService;
 use Illuminate\Http\Request;
 
 class IcdxController extends Controller
 {
+    public function __construct(protected IcdService $icd) {}
+
+    public function searchApi(Request $request)
+    {
+        $request->validate(['q' => 'required|string|min:2']);
+        try {
+            return response()->json($this->icd->search($request->q));
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function detailApi(string $code)
+    {
+        try {
+            return response()->json($this->icd->getByCode($code));
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
     /** Tampilkan halaman daftar ICD-X. */
     public function index(Request $request)
     {
         $search = $request->input('search');
         $perPage = $request->input('per_page', 25);
+        
+        $apiResults = null;
+        $error = null;
 
-        $icdxs = Icdx::when($search, function ($q) use ($search) {
-                $q->where('kode', 'like', "%{$search}%")
-                  ->orWhere('nama', 'like', "%{$search}%");
-            })
-            ->orderBy('kode')
-            ->paginate($perPage)
-            ->withQueryString();
+        if ($search) {
+            // Jika ada pencarian, ambil dari API WHO
+            try {
+                $data = $this->icd->search($search);
+                if (isset($data['DestinationEntities'])) {
+                    $apiResults = collect($data['DestinationEntities'])
+                        ->filter(fn($item) => !empty($item['theCode']))
+                        ->map(function($item) {
+                            return (object) [
+                                'kode' => $item['theCode'],
+                                'nama' => strip_tags($item['Title']),
+                                'is_api' => true
+                            ];
+                        })->values();
+                } else {
+                    $apiResults = collect([]);
+                }
+            } catch (\Exception $e) {
+                $error = "Gagal menghubungi API WHO: " . $e->getMessage();
+                $apiResults = collect([]);
+            }
+            $icdxs = $apiResults;
+            $total = count($apiResults);
+        } else {
+            // Jika tidak ada pencarian, ambil dari database lokal
+            $icdxs = Icdx::orderBy('kode')
+                ->paginate($perPage)
+                ->withQueryString();
+            $total = Icdx::count();
+        }
 
-        $total = Icdx::count();
-
-        return view('icdx', compact('icdxs', 'search', 'total', 'perPage'));
+        return view('icdx', compact('icdxs', 'search', 'total', 'perPage', 'error'));
     }
 
     /** Simpan data ICD-X baru. */
