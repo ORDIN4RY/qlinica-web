@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email', 100)->unique();
             $table->string('phone', 15)->nullable();
             $table->string('password');
-            $table->enum('role', ['pasien', 'pegawai', 'admin', 'dokter', 'apoteker', 'perawat'])->default('pasien');
+            $table->enum('role', ['pasien', 'pegawai', 'admin'])->default('pasien');
             $table->boolean('is_active')->default(true);
             $table->string('foto', 150)->nullable();
             $table->rememberToken();
