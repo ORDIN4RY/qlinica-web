@@ -43,7 +43,6 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/login-admin', [AuthController::class, 'showLoginPetugas'])->name('login.petugas');
 Route::post('/login-admin', [AuthController::class, 'loginPetugas'])->name('login.petugas.submit');
 
-<<<<<<< HEAD
 // Protected Routes Khusus Admin
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('beranda_admin');
@@ -59,11 +58,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Laporan
     Route::get('/admin/laporan',   function () { return view('laporan'); })->name('admin.laporan');
     Route::get('/admin/laporan/penanganan', [LaporanController::class, 'penanganan'])->name('admin.laporan.penanganan');
-=======
-// ═══════════════════════════════════════════════════════════════════════════
-// PROTECTED ROUTES — BERBASIS MENU & JABATAN
-// ═══════════════════════════════════════════════════════════════════════════
->>>>>>> 6967a5207292bc5b640edfce91e6f7589acaab0b
+});
 
 // ── Dashboard ──
 Route::middleware(['auth', 'menu:Dashboard'])->group(function () {
@@ -137,7 +132,8 @@ Route::middleware(['auth', 'menu:Laporan'])->group(function () {
 
 // ── Komentar ──
 Route::middleware(['auth', 'menu:Komentar'])->group(function () {
-    Route::get('/admin/komentar', fn() => view('admin.komentar'))->name('admin.komentar');
+    Route::get('/admin/komentar', [KomentarController::class, 'index'])->name('admin.komentar');
+    Route::delete('/admin/komentar/{id}', [KomentarController::class, 'destroy'])->name('admin.komentar.destroy');
 });
 
 // ── Jabatan & Hak Akses (hanya Admin) ──
@@ -191,7 +187,6 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
         return view('pemesanan', compact('user', 'pasien'));
     })->name('pemesanan.publik');
 });
-<<<<<<< HEAD
 
 // Protected Routes Khusus Apoteker
 Route::middleware(['auth', 'role:apoteker'])->group(function () {
@@ -219,9 +214,3 @@ Route::middleware(['auth', 'role:dokter'])->group(function () {
     Route::post('/dokter/antrian/{antrianId}/diagnosa', [DokterController::class, 'simpanDiagnosa'])->name('dokter.antrian.diagnosa');
     Route::get('/dokter/pasien', [DokterController::class, 'pasienIndex'])->name('dokter.pasien');
 });
-
-// routes komentar/feedback
-
-
-=======
->>>>>>> 6967a5207292bc5b640edfce91e6f7589acaab0b
