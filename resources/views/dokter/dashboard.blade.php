@@ -1,4 +1,4 @@
-@extends('layouts.dokter')
+@extends('layouts.app')
 
 @section('title', 'Dashboard Dokter')
 @section('page-title', 'Dashboard Dokter')
@@ -49,11 +49,11 @@
       <i class="fas fa-bolt text-blue-500"></i> Aksi Cepat
     </h2>
     <div class="space-y-3">
-      <a href="{{ route('dokter.antrian') }}"
+      <a href="{{ route('admin.pemesanan') }}"
          class="flex items-center gap-3 px-5 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition font-semibold text-sm">
         <i class="fas fa-users"></i> Lihat Antrian Pasien Hari Ini
       </a>
-      <a href="{{ route('dokter.pasien') }}"
+      <a href="{{ route('admin.pasien') }}"
          class="flex items-center gap-3 px-5 py-3.5 bg-slate-700 hover:bg-slate-800 text-white rounded-xl transition font-semibold text-sm">
         <i class="fas fa-notes-medical"></i> Lihat Data Semua Pasien
       </a>

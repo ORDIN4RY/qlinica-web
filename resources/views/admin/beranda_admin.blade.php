@@ -17,6 +17,8 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 14px;
       margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
     }
 
     .kpi-card {
@@ -26,6 +28,7 @@
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
       position: relative;
+      z-index: 1;
       overflow: hidden;
       transition: transform .2s, box-shadow .2s;
       animation: riseUp .4s ease both;
@@ -137,8 +140,9 @@
     .date-btn:hover { background: #dbeafe; }
     .date-btn svg { width: 13px; height: 13px; flex-shrink: 0; transition: transform .2s; }
     .date-btn.open svg.chevron { transform: rotate(180deg); }
-    .date-picker { position: relative; }
-    .date-drop { position: absolute; top: calc(100% + 8px); right: 0; width: 260px; background: var(--putih); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 16px 48px rgba(15,33,68,.14); padding: 16px; z-index: 600; display: none; }
+    #dateWrapper { position: relative; z-index: 99999 !important; }
+    .date-picker { position: relative; z-index: 99999; }
+    .date-drop { position: absolute; top: calc(100% + 8px); right: 0; width: 260px; background: var(--putih); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 16px 48px rgba(15,33,68,.14); padding: 16px; z-index: 999999 !important; display: none; }
     .date-drop.open { display: block; animation: fadeDown .18s ease; }
     @keyframes fadeDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
     .dd-tahun-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
@@ -165,8 +169,7 @@
 
 @section('content')
 
-  <!-- Date Picker di topbar (inject lewat JS, atau taruh di atas KPI) -->
-  <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+  <div id="dateWrapper" style="display:flex; justify-content:flex-end; margin-bottom:16px;">
     <div class="date-picker" id="datePicker">
       <div class="date-btn" id="dateBtn">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">

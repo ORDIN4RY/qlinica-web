@@ -67,6 +67,9 @@ class JabatanController extends Controller
                 'edit'   => ['label' => 'Edit Data',       'icon' => 'fa-pen',        'desc' => 'Mengubah data pegawai'],
                 'hapus'  => ['label' => 'Hapus Data',      'icon' => 'fa-trash',      'desc' => 'Menghapus data pegawai'],
             ],
+            'Presensi' => [
+                'view'   => ['label' => 'Lihat Data',      'icon' => 'fa-eye',        'desc' => 'Melihat data presensi pegawai'],
+            ],
             'Resep' => [
                 'view'   => ['label' => 'Lihat Resep',     'icon' => 'fa-eye',        'desc' => 'Melihat daftar resep masuk'],
                 'edit'   => ['label' => 'Proses Resep',    'icon' => 'fa-check',      'desc' => 'Mengubah status & memproses resep'],

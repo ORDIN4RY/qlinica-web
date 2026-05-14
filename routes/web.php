@@ -43,22 +43,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/login-admin', [AuthController::class, 'showLoginPetugas'])->name('login.petugas');
 Route::post('/login-admin', [AuthController::class, 'loginPetugas'])->name('login.petugas.submit');
 
-// Protected Routes Khusus Admin
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('beranda_admin');
-    Route::get('/admin/pemesanan', [AntrianController::class, 'index'])->name('admin.pemesanan');
-    Route::post('/admin/antrian', [AntrianController::class, 'store'])->name('admin.antrian.store');
-    Route::patch('/admin/antrian/{id}/status', [AntrianController::class, 'updateStatus'])->name('admin.antrian.status');
-    Route::post('/admin/antrian/{id}/panggil', [AntrianController::class, 'panggilPeriksa'])->name('admin.antrian.panggil');
-    Route::patch('/admin/antrian/{id}/dilayani', [AntrianController::class, 'updateStatus'])->name('admin.antrian.dilayani');
-    Route::patch('/admin/antrian/{id}/selesai', [AntrianController::class, 'updateStatus'])->name('admin.antrian.selesai');
-    Route::get('/admin/komentar', [KomentarController::class, 'index'])->name('admin.komentar');
-    Route::delete('/admin/komentar/{id}', [KomentarController::class, 'destroy'])->name('admin.komentar.destroy');
 
-    // Laporan
-    Route::get('/admin/laporan',   function () { return view('laporan'); })->name('admin.laporan');
-    Route::get('/admin/laporan/penanganan', [LaporanController::class, 'penanganan'])->name('admin.laporan.penanganan');
-});
 
 // ── Dashboard ──
 Route::middleware(['auth', 'menu:Dashboard'])->group(function () {
@@ -76,8 +61,8 @@ Route::middleware(['auth', 'menu:Antrian'])->group(function () {
     Route::patch('/admin/antrian/{id}/dilayani', [AntrianController::class, 'updateStatus'])->name('admin.antrian.dilayani')->middleware('menu:Antrian,edit');
     Route::patch('/admin/antrian/{id}/selesai', [AntrianController::class, 'updateStatus'])->name('admin.antrian.selesai')->middleware('menu:Antrian,edit');
 
-    Route::get('/dokter/antrian', [DokterController::class, 'antrianIndex'])->name('dokter.antrian');
-    Route::patch('/dokter/antrian/{id}/panggil', [DokterController::class, 'panggilAntrian'])->name('dokter.antrian.panggil')->middleware('menu:Antrian,edit');
+    // Route::get('/dokter/antrian', [DokterController::class, 'antrianIndex'])->name('dokter.antrian');
+    // Route::patch('/dokter/antrian/{id}/panggil', [DokterController::class, 'panggilAntrian'])->name('dokter.antrian.panggil')->middleware('menu:Antrian,edit');
 });
 
 // ── Pasien ──
@@ -89,7 +74,7 @@ Route::middleware(['auth', 'menu:Pasien'])->group(function () {
     Route::delete('/admin/pasien/{id}', [PasienController::class, 'destroy'])->name('admin.pasien.destroy')->middleware('menu:Pasien,hapus');
     Route::post('/admin/pasien/{id}/create-account', [PasienController::class, 'createAccount'])->name('admin.pasien.create-account')->middleware('menu:Pasien,tambah');
 
-    Route::get('/dokter/pasien', [DokterController::class, 'pasienIndex'])->name('dokter.pasien');
+    // Route::get('/dokter/pasien', [DokterController::class, 'pasienIndex'])->name('dokter.pasien');
 });
 
 // ── Pegawai ──
@@ -128,6 +113,7 @@ Route::middleware(['auth', 'menu:ICDX'])->group(function () {
 Route::middleware(['auth', 'menu:Laporan'])->group(function () {
     Route::get('/admin/laporan',   function () { return view('laporan'); })->name('admin.laporan');
     Route::get('/admin/laporan/penanganan', [LaporanController::class, 'penanganan'])->name('admin.laporan.penanganan');
+    Route::get('/apoteker/laporan', function () { return view('apoteker.laporan'); })->name('apoteker.laporan');
 });
 
 // ── Komentar ──
@@ -188,29 +174,4 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
     })->name('pemesanan.publik');
 });
 
-// Protected Routes Khusus Apoteker
-Route::middleware(['auth', 'role:apoteker'])->group(function () {
-    Route::get('/apoteker/dashboard', function () {
-        return view('apoteker.dashboard');
-    })->name('apoteker.dashboard');
 
-    Route::get('/apoteker/obat', function () {
-        return view('apoteker.obat');
-    })->name('apoteker.obat');
-
-    Route::get('/apoteker/resep', [ResepController::class, 'index'])->name('apoteker.resep');
-    Route::patch('/apoteker/resep/{resep}', [ResepController::class, 'update'])->name('apoteker.resep.update');
-
-    Route::get('/apoteker/laporan', function () {
-        return view('apoteker.laporan');
-    })->name('apoteker.laporan');
-});
-
-// Protected Routes Khusus Dokter
-Route::middleware(['auth', 'role:dokter'])->group(function () {
-    Route::get('/dokter/dashboard', [DokterController::class, 'dashboard'])->name('dokter.dashboard');
-    Route::get('/dokter/antrian', [DokterController::class, 'antrianIndex'])->name('dokter.antrian');
-    Route::patch('/dokter/antrian/{id}/panggil', [DokterController::class, 'panggilAntrian'])->name('dokter.antrian.panggil');
-    Route::post('/dokter/antrian/{antrianId}/diagnosa', [DokterController::class, 'simpanDiagnosa'])->name('dokter.antrian.diagnosa');
-    Route::get('/dokter/pasien', [DokterController::class, 'pasienIndex'])->name('dokter.pasien');
-});

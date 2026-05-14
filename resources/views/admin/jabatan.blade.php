@@ -168,7 +168,7 @@
     <i class="fas fa-shield-alt text-lg"></i>
   </div>
   <div>
-    <h4 class="font-bold text-blue-900 mb-1">Pengaturan Role & Hak Akses (Extension Style)</h4>
+    <h4 class="font-bold text-blue-900 mb-1">Pengaturan Role & Hak Akses</h4>
     <p class="text-sm text-blue-700 leading-relaxed max-w-4xl">
       Pilih jabatan di sebelah kiri. Aktifkan menu menggunakan toggle. Jika aktif, klik kotak menu untuk melihat sub-akses spesifik (seperti jenis dashboard atau izin operasi). 
       <br><span class="font-bold mt-1 inline-block">Catatan:</span> Role Admin akan mem-bypass semua hak akses di bawah ini.
@@ -452,10 +452,22 @@
   /* ── Sub Card Select ── */
   function toggleSubCard(cardEl) {
     const cb = cardEl.querySelector('.sub-cb');
+    const menuBlock = cardEl.closest('.menu-block');
+    const isDashboard = menuBlock.querySelector('h4').textContent.trim() === 'Dashboard';
+    
     // checkbox is already toggled by the browser because of label wrapping,
     // so we just read its state and style the card.
     setTimeout(() => {
       if (cb.checked) {
+        if (isDashboard) {
+           // Khusus dashboard: matikan pilihan lain
+           menuBlock.querySelectorAll('.sub-cb').forEach(otherCb => {
+              if (otherCb !== cb) {
+                 otherCb.checked = false;
+                 otherCb.closest('.sub-card').classList.remove('checked');
+              }
+           });
+        }
         cardEl.classList.add('checked');
       } else {
         cardEl.classList.remove('checked');
@@ -466,6 +478,31 @@
   /* ── AJAX Save ── */
   async function saveAkses(jabatanId) {
     const form = document.getElementById('form-jabatan-' + jabatanId);
+
+    // Validasi Dashboard harus pilih setidaknya 1 sub-akses jika diaktifkan
+    const menuBlocks = form.querySelectorAll('.menu-block');
+    let isValid = true;
+    let errorMessage = '';
+
+    menuBlocks.forEach(block => {
+      const titleEl = block.querySelector('h4');
+      if (titleEl && titleEl.textContent.trim() === 'Dashboard') {
+        const viewCb = block.querySelector('.view-cb');
+        if (viewCb && viewCb.checked) {
+          const subCbs = block.querySelectorAll('.sub-cb:checked');
+          if (subCbs.length === 0) {
+            isValid = false;
+            errorMessage = 'Harap pilih minimal 1 jenis Tampilan Dashboard!';
+          }
+        }
+      }
+    });
+
+    if (!isValid) {
+      showToast(errorMessage, 'error');
+      return; // Berhenti di sini, jangan submit
+    }
+
     const btn = document.getElementById('btnSave-' + jabatanId);
     const originalText = btn.innerHTML;
     

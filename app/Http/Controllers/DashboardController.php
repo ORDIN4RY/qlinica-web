@@ -15,6 +15,37 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
+
+        // 1. Bypass khusus Admin (via tombol Cycle di sidebar)
+        if ($user->role === 'admin') {
+            if ($request->has('view')) {
+                session(['bypass_view' => $request->query('view')]);
+                return redirect()->route('beranda_admin');
+            }
+
+            $viewType = session('bypass_view', 'admin');
+            if ($viewType === 'dokter') {
+                return app(\App\Http\Controllers\DokterController::class)->dashboard();
+            }
+            if ($viewType === 'apoteker') {
+                return view('apoteker.dashboard');
+            }
+            // Fallthrough ke blok admin jika viewType = admin
+        } else {
+            // 2. Render sesuai sub-akses (Tetap di rute /admin/dashboard)
+            if (!$user->hasMenuAccess('Dashboard', 'admin_dashboard')) {
+                if ($user->hasMenuAccess('Dashboard', 'dokter_dashboard')) {
+                    return app(\App\Http\Controllers\DokterController::class)->dashboard();
+                }
+                if ($user->hasMenuAccess('Dashboard', 'apoteker_dashboard')) {
+                    return view('apoteker.dashboard');
+                }
+                // Fallback
+                return redirect()->route('admin.pasien');
+            }
+        }
+
         $year  = (int) $request->input('year', Carbon::now()->year);
         $month = (int) $request->input('month', Carbon::now()->month - 1); // 0-indexed untuk JS
 

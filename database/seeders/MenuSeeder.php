@@ -21,6 +21,7 @@ class MenuSeeder extends Seeder
             'Komentar',
             'Rekam Medis',
             'Jabatan',
+            'Presensi',
         ];
 
         foreach ($menus as $nama) {
