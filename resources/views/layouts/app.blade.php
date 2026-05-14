@@ -45,38 +45,68 @@
 
     <!-- Nav -->
     <nav class="flex-1 px-4 py-6 space-y-1">
+      @php $u = auth()->user(); @endphp
+
+      @if($u && $u->hasMenuAccess('Dashboard'))
       <a href="{{ route('beranda_admin') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('beranda_admin') ? 'active' : '' }}">
         <i class="fas fa-chart-pie w-5 text-center"></i> Dashboard
       </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Pasien'))
       <a href="{{ route('admin.pasien') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pasien*') ? 'active' : '' }}">
         <i class="fas fa-user-injured w-5 text-center"></i> Data Pasien
       </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Antrian'))
       <a href="{{ route('admin.pemesanan') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pemesanan*') ? 'active' : '' }}">
         <i class="fas fa-calendar-check w-5 text-center"></i> Pemesanan
       </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Pegawai'))
       <a href="{{ route('admin.pegawai') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pegawai*') ? 'active' : '' }}">
         <i class="fas fa-user-doctor w-5 text-center"></i> Pegawai
       </a>
+
       <a href="{{ route('admin.presensi') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.presensi*') ? 'active' : '' }}">
         <i class="fas fa-user-clock w-5 text-center"></i> Presensi
       </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Komentar'))
       <a href="{{ route('admin.komentar') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.komentar*') ? 'active' : '' }}">
         <i class="fas fa-comment w-5 text-center"></i> Komentar
       </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('ICDX'))
       <a href="{{ route('admin.icdx') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.icdx*') ? 'active' : '' }}">
         <i class="fas fa-file-medical-alt w-5 text-center"></i> ICD-X
       </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Laporan'))
       <a href="{{ route('admin.laporan.penanganan') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.laporan*') ? 'active' : '' }}">
         <i class="fas fa-chart-line w-5 text-center"></i> Lap. Penanganan
       </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Jabatan'))
+      <a href="{{ route('admin.jabatan') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.jabatan*') ? 'active' : '' }}">
+        <i class="fas fa-shield-alt w-5 text-center"></i> Jabatan & Akses
+      </a>
+      @endif
     </nav>
 
     <!-- User + Logout -->

@@ -45,22 +45,35 @@
 
     <!-- Nav -->
     <nav class="flex-1 px-4 py-6 space-y-1">
+      @php $u = auth()->user(); @endphp
+
+      @if($u && $u->hasMenuAccess('Dashboard'))
       <a href="{{ route('apoteker.dashboard') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('apoteker.dashboard') ? 'active' : '' }}">
         <i class="fas fa-home w-5 text-center"></i> Dashboard
       </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Obat'))
       <a href="{{ route('apoteker.obat') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('apoteker.obat*') ? 'active' : '' }}">
         <i class="fas fa-pills w-5 text-center"></i> Data Obat
       </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Resep'))
       <a href="{{ route('apoteker.resep') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('apoteker.resep*') ? 'active' : '' }}">
         <i class="fas fa-file-prescription w-5 text-center"></i> Resep
       </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Laporan'))
       <a href="{{ route('apoteker.laporan') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('apoteker.laporan*') ? 'active' : '' }}">
         <i class="fas fa-chart-bar w-5 text-center"></i> Laporan
       </a>
+      @endif
     </nav>
 
     <!-- User + Logout -->

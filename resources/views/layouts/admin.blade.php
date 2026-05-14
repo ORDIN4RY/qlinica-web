@@ -35,7 +35,7 @@
     </style>
 </head>
 <body>
-    <div class="sidebar">
+    <div class="sidebar" style="overflow-y: scroll;">
         <ul>
             <li><a href="{{ route('beranda_admin') }}" class="@yield('dashboard_active')">Dashboard</a></li>
             <li><a href="{{ route('admin.pasien') }}" class="@yield('pasien_active')">Pasien</a></li>

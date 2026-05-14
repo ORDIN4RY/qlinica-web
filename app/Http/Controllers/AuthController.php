@@ -108,15 +108,25 @@ class AuthController extends Controller
         $request->session()->regenerate();
         session(['last_activity_time' => time()]);
 
-        // Auto-redirect berdasarkan role
-        return redirect()->intended(match($user->role) {
-            'admin' => route('beranda_admin'),
-            'apoteker' => route('apoteker.dashboard'),
-            'dokter' => route('dokter.dashboard'), // Untuk masa depan
-            'perawat' => route('perawat.dashboard'), // Untuk masa depan
-            default => route('beranda_admin')
-        });
+        // Auto-redirect berdasarkan menu pertama yang bisa diakses
+        $menus = $user->accessibleMenus();
+        $firstMenu = $menus->keys()->first();
 
+        $redirectTo = match ($firstMenu) {
+            'Dashboard' => route('beranda_admin'),
+            'Resep' => route('apoteker.resep'),
+            'Obat' => route('apoteker.obat'),
+            'Antrian' => route('admin.pemesanan'),
+            'Pasien' => route('admin.pasien'),
+            'Pegawai' => route('admin.pegawai'),
+            'ICDX' => route('admin.icdx'),
+            'Laporan' => route('admin.laporan'),
+            'Komentar' => route('admin.komentar'),
+            'Jabatan' => route('admin.jabatan'),
+            default => route('beranda_admin'),
+        };
+
+        return redirect()->intended($redirectTo);
     }
 
     /** Logout. */

@@ -18,7 +18,7 @@ class AntrianController extends Controller
             ->get();
 
         $dokters = Pegawai::whereHas('user', function($q) {
-            $q->where('role', 'dokter');
+            $q->where('jabatan_id', '2');
         })->get();
 
         return view('admin.pemesanan', [
