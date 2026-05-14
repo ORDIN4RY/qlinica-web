@@ -56,6 +56,11 @@ class User extends Authenticatable
             return false;
         }
 
+        // Admin mendapat akses penuh ke semua menu
+        if ($this->role === 'admin') {
+            return true;
+        }
+
         $pegawai = $this->pegawai;
         if (!$pegawai || !$pegawai->jabatan_id) {
             return false;
@@ -88,6 +93,15 @@ class User extends Authenticatable
     {
         if ($this->role === 'pasien') {
             return collect();
+        }
+
+        // Admin mendapat akses ke semua menu yang ada
+        if ($this->role === 'admin') {
+            $allMenuNames = ['Dashboard', 'Antrian', 'Pasien', 'Pegawai', 'Resep', 'Obat',
+                             'ICDX', 'Laporan', 'Komentar', 'Jabatan', 'Rekam Medis'];
+            return collect($allMenuNames)->mapWithKeys(fn($menu) => [
+                $menu => ['lihat' => true, 'tambah' => true, 'edit' => true, 'hapus' => true]
+            ]);
         }
 
         $pegawai = $this->pegawai;

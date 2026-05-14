@@ -34,6 +34,8 @@ class SessionTimeout
                 $request->session()->regenerateToken();
 
                 $redirectTo = $isPasien ? '/' : route('login.petugas');
+                // Sanitize to prevent HTTP header injection (newlines in URL)
+                $redirectTo = preg_replace('/[\r\n]/', '', $redirectTo);
 
                 return redirect($redirectTo)
                     ->withErrors(['session' => 'Sesi Anda telah berakhir karena tidak aktif lebih dari 1 jam. Silakan login kembali.']);

@@ -66,7 +66,7 @@ class AuthController extends Controller
         $request->session()->regenerate();
         session(['last_activity_time' => time()]);
 
-        return redirect()->intended(route('pasien.portal'));
+        return redirect(route('pasien.portal'));
 
     }
 
@@ -126,7 +126,7 @@ class AuthController extends Controller
             default => route('beranda_admin'),
         };
 
-        return redirect()->intended($redirectTo);
+        return redirect($redirectTo);
     }
 
     /** Logout. */

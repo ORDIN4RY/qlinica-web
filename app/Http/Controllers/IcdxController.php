@@ -47,8 +47,8 @@ class IcdxController extends Controller
                         ->filter(fn($item) => !empty($item['theCode']))
                         ->map(function($item) {
                             return (object) [
-                                'kode' => $item['theCode'],
-                                'nama' => strip_tags($item['Title']),
+                                'kode' => trim($item['theCode'] ?? ''),
+                                'nama' => trim(strip_tags($item['Title'] ?? '')),
                                 'is_api' => true
                             ];
                         })->values();
@@ -75,6 +75,11 @@ class IcdxController extends Controller
     /** Simpan data ICD-X baru. */
     public function store(Request $request)
     {
+        $request->merge([
+            'kode' => trim($request->input('kode', '')),
+            'nama' => trim($request->input('nama', '')),
+        ]);
+
         $request->validate([
             'kode' => 'required|string|max:10|unique:icdx,kode',
             'nama' => 'required|string|max:255',
@@ -94,6 +99,11 @@ class IcdxController extends Controller
     {
         $icdx = Icdx::findOrFail($id);
 
+        $request->merge([
+            'kode' => trim($request->input('kode', '')),
+            'nama' => trim($request->input('nama', '')),
+        ]);
+
         $request->validate([
             'kode' => "required|string|max:10|unique:icdx,kode,{$id}",
             'nama' => 'required|string|max:255',
@@ -105,7 +115,7 @@ class IcdxController extends Controller
 
         $icdx->update($request->only('kode', 'nama'));
 
-        return redirect()->back()->with('success', 'Data ICD-X berhasil diperbarui.');
+        return redirect()->route('admin.icdx')->with('success', 'Data ICD-X berhasil diperbarui.');
     }
 
     /** Hapus data ICD-X. */
@@ -114,6 +124,6 @@ class IcdxController extends Controller
         $icdx = Icdx::findOrFail($id);
         $icdx->delete();
 
-        return redirect()->back()->with('success', 'Data ICD-X berhasil dihapus.');
+        return redirect()->route('admin.icdx')->with('success', 'Data ICD-X berhasil dihapus.');
     }
 }

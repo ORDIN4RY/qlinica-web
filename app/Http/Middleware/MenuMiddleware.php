@@ -35,17 +35,19 @@ class MenuMiddleware
             $firstMenu = $user->accessibleMenus()->keys()->first();
             $route = match ($firstMenu) {
                 'Dashboard' => route('beranda_admin'),
-                'Pasien' => route('admin.pasien'),
-                'Pegawai' => route('admin.pegawai'),
-                'Antrian' => route('admin.pemesanan'),
-                'Resep' => route('apoteker.resep'),
-                'Obat' => route('apoteker.obat'),
-                'ICDX' => route('admin.icdx'),
-                'Laporan' => route('admin.laporan'),
-                'Komentar' => route('admin.komentar'),
-                'Jabatan' => route('admin.jabatan'),
-                default => redirect('/'),
+                'Pasien'    => route('admin.pasien'),
+                'Pegawai'   => route('admin.pegawai'),
+                'Antrian'   => route('admin.pemesanan'),
+                'Resep'     => route('apoteker.resep'),
+                'Obat'      => route('apoteker.obat'),
+                'ICDX'      => route('admin.icdx'),
+                'Laporan'   => route('admin.laporan'),
+                'Komentar'  => route('admin.komentar'),
+                'Jabatan'   => route('admin.jabatan'),
+                default     => url('/'),
             };
+            // Sanitize to prevent HTTP header injection (newlines in URL)
+            $route = preg_replace('/[\r\n]/', '', $route);
             return redirect($route)
                 ->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
         }
