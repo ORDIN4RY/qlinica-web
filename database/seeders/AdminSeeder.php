@@ -17,7 +17,7 @@ class AdminSeeder extends Seeder
                 'name'      => 'Admin Sahaduta',
                 'email'     => 'admin@sahaduta.com',
                 'password'  => Hash::make('password'),
-                'role'      => 'pegawai',
+                'role'      => 'admin',
                 'is_active' => true,
                 'phone'     => null,
             ]

@@ -14,20 +14,12 @@ class HakAkses extends Model
     protected $fillable = [
         'jabatan_id',
         'menu_id',
-        'bisa_lihat',   // legacy — tetap dipertahankan untuk backward compat
-        'bisa_tambah',  // legacy
-        'bisa_edit',    // legacy
-        'bisa_hapus',   // legacy
-        'sub_akses',    // JSON — format baru: {"view": true, "admin_dashboard": true, ...}
+        'sub_akses',
     ];
 
     protected function casts(): array
     {
         return [
-            'bisa_lihat'   => 'boolean',
-            'bisa_tambah'  => 'boolean',
-            'bisa_edit'    => 'boolean',
-            'bisa_hapus'   => 'boolean',
             'sub_akses'    => 'array',
         ];
     }

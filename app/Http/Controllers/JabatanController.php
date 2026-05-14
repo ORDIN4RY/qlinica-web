@@ -197,11 +197,6 @@ class JabatanController extends Controller
                         'jabatan_id'  => $jabatan->id,
                         'menu_id'     => $menuId,
                         'sub_akses'   => $sub,
-                        // Legacy columns — sync dari sub_akses
-                        'bisa_lihat'  => true,
-                        'bisa_tambah' => !empty($sub['tambah']),
-                        'bisa_edit'   => !empty($sub['edit']),
-                        'bisa_hapus'  => !empty($sub['hapus']),
                     ]);
                 }
             }
