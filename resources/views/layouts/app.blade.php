@@ -26,6 +26,12 @@
       to   { opacity:1; transform:translateY(0); }
     }
     .fade-in-up { animation: fadeInUp 0.5s ease forwards; }
+    
+    /* Custom Scrollbar for Sidebar */
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
   </style>
   @stack('styles')
 </head>
@@ -36,7 +42,7 @@
   <!-- ===== SIDEBAR ===== -->
   <aside class="w-48 md:w-64 bg-blue-900 text-white flex flex-col fixed inset-y-0 left-0 z-30 shadow-2xl">
     <!-- Logo -->
-    <div class="flex items-center gap-3 px-6 py-5 border-b border-white/10">
+    <div class="flex items-center gap-3 px-6 py-5 border-b border-white/10 shrink-0">
       <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
         <i class="fas fa-clinic-medical text-white text-lg"></i>
       </div>
@@ -44,64 +50,101 @@
     </div>
 
     <!-- Nav -->
-    <nav class="flex-1 px-4 py-6 space-y-1">
+    <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto custom-scrollbar">
       @php $u = auth()->user(); @endphp
 
-      @if($u && $u->hasMenuAccess('Dashboard'))
+      @if($u && $u->hasMenuAccess('Dashboard Admin'))
       <a href="{{ route('beranda_admin') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('beranda_admin') ? 'active' : '' }}">
-        <i class="fas fa-chart-pie w-5 text-center"></i> Dashboard
+        <i class="fas fa-chart-pie w-5 text-center"></i> Dashboard Admin
       </a>
       @endif
 
-      @if($u && $u->hasMenuAccess('Pasien'))
-      <a href="{{ route('admin.pasien') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pasien*') ? 'active' : '' }}">
+      @if($u && $u->hasMenuAccess('Dashboard Dokter'))
+      <a href="{{ route('dokter.dashboard') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('dokter.dashboard') ? 'active' : '' }}">
+        <i class="fas fa-chart-pie w-5 text-center"></i> Dashboard Dokter
+      </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Dashboard Apoteker'))
+      <a href="{{ route('apoteker.dashboard') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('apoteker.dashboard') ? 'active' : '' }}">
+        <i class="fas fa-chart-pie w-5 text-center"></i> Dashboard Apoteker
+      </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Data Pasien'))
+      <a href="{{ $u->role === 'dokter' ? route('dokter.pasien') : route('admin.pasien') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pasien*', 'dokter.pasien*') ? 'active' : '' }}">
         <i class="fas fa-user-injured w-5 text-center"></i> Data Pasien
       </a>
       @endif
 
-      @if($u && $u->hasMenuAccess('Antrian'))
-      <a href="{{ route('admin.pemesanan') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pemesanan*') ? 'active' : '' }}">
-        <i class="fas fa-calendar-check w-5 text-center"></i> Pemesanan
+      @if($u && $u->hasMenuAccess('Antrian & Pemesanan'))
+      <a href="{{ $u->role === 'dokter' ? route('dokter.antrian') : route('admin.pemesanan') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pemesanan*', 'dokter.antrian*') ? 'active' : '' }}">
+        <i class="fas fa-calendar-check w-5 text-center"></i> Antrian & Pesan
       </a>
       @endif
 
-      @if($u && $u->hasMenuAccess('Pegawai'))
+      @if($u && $u->hasMenuAccess('Data Pegawai (Admin)'))
       <a href="{{ route('admin.pegawai') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pegawai*') ? 'active' : '' }}">
         <i class="fas fa-user-doctor w-5 text-center"></i> Pegawai
       </a>
+      @endif
 
+      @if($u && $u->hasMenuAccess('Presensi Pegawai (Admin)'))
       <a href="{{ route('admin.presensi') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.presensi*') ? 'active' : '' }}">
         <i class="fas fa-user-clock w-5 text-center"></i> Presensi
       </a>
       @endif
 
-      @if($u && $u->hasMenuAccess('Komentar'))
+      @if($u && $u->hasMenuAccess('Komentar & Feedback (Admin)'))
       <a href="{{ route('admin.komentar') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.komentar*') ? 'active' : '' }}">
         <i class="fas fa-comment w-5 text-center"></i> Komentar
       </a>
       @endif
 
-      @if($u && $u->hasMenuAccess('ICDX'))
+      @if($u && $u->hasMenuAccess('Data ICD-X (Admin)'))
       <a href="{{ route('admin.icdx') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.icdx*') ? 'active' : '' }}">
         <i class="fas fa-file-medical-alt w-5 text-center"></i> ICD-X
       </a>
       @endif
 
-      @if($u && $u->hasMenuAccess('Laporan'))
+      @if($u && $u->hasMenuAccess('Resep Obat (Apoteker)'))
+      <a href="{{ route('apoteker.resep') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('apoteker.resep*') ? 'active' : '' }}">
+        <i class="fas fa-file-prescription w-5 text-center"></i> Resep Obat
+      </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Data Obat (Apoteker)'))
+      <a href="{{ route('apoteker.obat') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('apoteker.obat*') ? 'active' : '' }}">
+        <i class="fas fa-pills w-5 text-center"></i> Data Obat
+      </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Laporan Apotek (Apoteker)'))
+      <a href="{{ route('apoteker.laporan') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('apoteker.laporan*') ? 'active' : '' }}">
+        <i class="fas fa-file-invoice-dollar w-5 text-center"></i> Lap. Apotek
+      </a>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Laporan Penanganan (Admin)'))
       <a href="{{ route('admin.laporan.penanganan') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.laporan*') ? 'active' : '' }}">
         <i class="fas fa-chart-line w-5 text-center"></i> Lap. Penanganan
       </a>
       @endif
 
-      @if($u && $u->hasMenuAccess('Jabatan'))
+      @if($u && $u->hasMenuAccess('Jabatan & Hak Akses (Admin)'))
       <a href="{{ route('admin.jabatan') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.jabatan*') ? 'active' : '' }}">
         <i class="fas fa-shield-alt w-5 text-center"></i> Jabatan & Akses
@@ -110,7 +153,7 @@
     </nav>
 
     <!-- User + Logout -->
-    <div class="px-4 py-5 border-t border-white/10">
+    <div class="px-4 py-5 border-t border-white/10 shrink-0">
       <div class="flex items-center gap-3 mb-4">
         <div class="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center font-bold text-sm">
           {{ Auth::check() ? strtoupper(substr(Auth::user()->name, 0, 1)) : 'A' }}
