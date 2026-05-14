@@ -24,15 +24,16 @@ class SessionTimeout
             $lastActivity = session('last_activity_time');
 
             if ($lastActivity !== null && (time() - $lastActivity) > $this->timeoutSeconds) {
-                // Simpan role SEBELUM logout agar bisa redirect ke halaman yang benar
-                $role = Auth::user()->role;
+                // Simpan info SEBELUM logout agar bisa redirect ke halaman yang benar
+                $user = Auth::user();
+                $isPasien = $user->role === 'pasien';
 
                 // Paksa logout
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                $redirectTo = ($role === 'admin') ? route('login.petugas') : '/';
+                $redirectTo = $isPasien ? '/' : route('login.petugas');
 
                 return redirect($redirectTo)
                     ->withErrors(['session' => 'Sesi Anda telah berakhir karena tidak aktif lebih dari 1 jam. Silakan login kembali.']);
