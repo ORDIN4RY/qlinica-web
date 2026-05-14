@@ -18,7 +18,7 @@ class PegawaiSeeder extends Seeder
                 'name'      => 'Dr. Ahmad Wijaya',
                 'email'     => 'dokter@sahaduta.com',
                 'password'  => Hash::make('password'),
-                'role'      => 'pegawai',
+                'role'      => 'dokter',
                 'is_active' => true,
                 'phone'     => '081234567890',
             ]
@@ -45,7 +45,7 @@ class PegawaiSeeder extends Seeder
                 'name'      => 'Siti Nurhaliza',
                 'email'     => 'apoteker@sahaduta.com',
                 'password'  => Hash::make('password'),
-                'role'      => 'pegawai',
+                'role'      => 'apoteker',
                 'is_active' => true,
                 'phone'     => '081234567891',
             ]
@@ -71,7 +71,7 @@ class PegawaiSeeder extends Seeder
                 'name'      => 'Maya Sari',
                 'email'     => 'perawat@sahaduta.com',
                 'password'  => Hash::make('password'),
-                'role'      => 'pegawai',
+                'role'      => 'perawat',
                 'is_active' => true,
                 'phone'     => '081234567892',
             ]
