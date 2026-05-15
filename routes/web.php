@@ -13,6 +13,7 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\IcdxController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\KomentarController;
+use App\Http\Controllers\AdminProfilController;
 
 // Public
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
@@ -54,6 +55,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::patch('/admin/antrian/{id}/selesai', [AntrianController::class, 'updateStatus'])->name('admin.antrian.selesai');
     Route::get('/admin/komentar', [KomentarController::class, 'index'])->name('admin.komentar');
     Route::delete('/admin/komentar/{id}', [KomentarController::class, 'destroy'])->name('admin.komentar.destroy');
+    // ── Profil Admin ──
+    Route::get('/admin/profil',          [AdminProfilController::class, 'index'])->name('admin.profil');
+    Route::put('/admin/profil',          [AdminProfilController::class, 'update'])->name('admin.profil.update');
+    Route::put('/admin/profil/password', [AdminProfilController::class, 'updatePassword'])->name('admin.profil.password');
+    Route::delete('/admin/profil/foto',  [AdminProfilController::class, 'deleteFoto'])->name('admin.profil.foto.delete');
 
     // Laporan
     Route::get('/admin/laporan',   function () { return view('laporan'); })->name('admin.laporan');
