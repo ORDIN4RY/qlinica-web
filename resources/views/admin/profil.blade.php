@@ -18,8 +18,11 @@
       @endif
     </div>
     <h2 class="font-bold text-lg text-gray-800">{{ $user->name }}</h2>
+    <p class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full inline-block mt-1 mb-2">
+      {{ $user->pegawai->jabatan->nama_jabatan ?? ($user->role === 'admin' ? 'Administrator' : 'Pegawai') }}
+    </p>
     <p class="text-sm text-gray-500 mb-1">{{ $user->email }}</p>
-    <p class="text-xs text-gray-400 mb-6">{{ $user->phone ?? 'Belum ada nomor telepon' }}</p>
+    <p class="text-xs text-gray-400 mb-6 font-mono">{{ $user->pegawai->nik ?? '-' }}</p>
 
     {{-- Form Upload Foto --}}
     <form method="POST" action="{{ route('admin.profil.update') }}" enctype="multipart/form-data" class="w-full">
@@ -67,16 +70,32 @@
               class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm outline-none transition">
           </div>
           <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">NIK</label>
+            <input type="text" value="{{ $user->pegawai->nik ?? '-' }}" disabled
+              class="w-full px-4 py-2.5 border border-gray-100 rounded-xl bg-gray-50 text-sm text-gray-400 cursor-not-allowed font-mono">
+            <p class="text-[10px] text-gray-400 mt-1">NIK tidak dapat diubah</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">Jabatan</label>
+            <input type="text" value="{{ $user->pegawai->jabatan->nama_jabatan ?? ($user->role === 'admin' ? 'Administrator' : 'Pegawai') }}" disabled
+              class="w-full px-4 py-2.5 border border-gray-100 rounded-xl bg-gray-50 text-sm text-gray-400 cursor-not-allowed">
+          </div>
+          <div>
             <label class="block text-sm font-medium text-gray-600 mb-1">Email</label>
             <input type="email" value="{{ $user->email }}" disabled
               class="w-full px-4 py-2.5 border border-gray-100 rounded-xl bg-gray-50 text-sm text-gray-400 cursor-not-allowed">
-            <p class="text-xs text-gray-400 mt-1">Email tidak dapat diubah</p>
+            <p class="text-[10px] text-gray-400 mt-1">Email tidak dapat diubah</p>
           </div>
-          <div class="md:col-span-2">
+          <div>
             <label class="block text-sm font-medium text-gray-600 mb-1">Nomor Telepon</label>
             <input type="text" name="phone" value="{{ old('phone', $user->phone) }}"
               placeholder="08xxxxxxxxxx"
               class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm outline-none transition">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-600 mb-1">Alamat</label>
+            <textarea name="alamat" rows="2"
+              class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm outline-none transition">{{ old('alamat', $user->pegawai->alamat ?? '') }}</textarea>
           </div>
         </div>
         <div class="mt-5 flex justify-end">

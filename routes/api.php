@@ -26,6 +26,8 @@ Route::prefix('mobile')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [MobileAuthController::class, 'logout']);
         Route::get('/me', [MobileAuthController::class, 'me']);
+        Route::put('/profile', [MobileAuthController::class, 'updateProfile']);
+        Route::post('/change-password', [MobileAuthController::class, 'changePassword']);
 
         // Presensi
         Route::get('/presensi', [MobilePresensiController::class, 'index']);

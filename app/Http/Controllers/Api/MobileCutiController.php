@@ -82,12 +82,14 @@ class MobileCutiController extends Controller
             ->whereYear('tanggal', now()->year)
             ->count();
 
+        $sisa = (int) ($pegawai->jatah_cuti ?? 0);
+
         return response()->json([
             'success' => true,
             'quota'   => [
-                'total'    => $pegawai->jatah_cuti,
+                'total'    => $sisa + $terpakai,
                 'terpakai' => $terpakai,
-                'sisa'     => max(0, $pegawai->jatah_cuti - $terpakai),
+                'sisa'     => $sisa,
             ]
         ]);
     }
@@ -127,7 +129,7 @@ class MobileCutiController extends Controller
                 ->whereYear('tanggal', now()->year)
                 ->count();
             
-            $sisa = $pegawai->jatah_cuti - $terpakai;
+            $sisa = (int) ($pegawai->jatah_cuti ?? 0);
 
             if ($days > $sisa) {
                 return response()->json(['success' => false, 'message' => "Jatah cuti tidak mencukupi. Sisa jatah: $sisa hari."], 422);

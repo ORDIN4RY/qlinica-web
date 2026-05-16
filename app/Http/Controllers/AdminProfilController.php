@@ -12,7 +12,8 @@ class AdminProfilController extends Controller
 {
     public function index()
     {
-        return view('admin.profil', ['user' => Auth::user()]);
+        $user = Auth::user();
+        return view('admin.profil', compact('user'));
     }
 
     public function update(Request $request)
@@ -20,11 +21,13 @@ class AdminProfilController extends Controller
         $user = Auth::user();
 
         $request->validate([
-            'name'  => 'required|string|max:100',
-            'phone' => 'nullable|string|max:15',
-            'foto'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'name'   => 'required|string|max:100',
+            'phone'  => 'nullable|string|max:15',
+            'alamat' => 'nullable|string',
+            'foto'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
+        // Update User
         $user->name  = $request->name;
         $user->phone = $request->phone;
 
@@ -35,8 +38,8 @@ class AdminProfilController extends Controller
             $path = $request->file('foto')->store('profil', 'public');
             $user->foto = $path;
         }
-
         $user->save();
+
         return back()->with('success', 'Profil berhasil diperbarui.');
     }
 

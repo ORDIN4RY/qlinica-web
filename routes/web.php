@@ -92,6 +92,7 @@ Route::middleware(['auth', 'menu:Pegawai'])->group(function () {
     Route::delete('/admin/pegawai/{id}', [PegawaiController::class, 'destroy'])->name('admin.pegawai.destroy')->middleware('menu:Pegawai,hapus');
     Route::get('/admin/presensi', [PresensiController::class, 'index'])->name('admin.presensi');
     Route::put('/admin/presensi/{id}', [PresensiController::class, 'update'])->name('admin.presensi.update');
+    Route::put('/admin/presensi/{id}/shift', [PresensiController::class, 'updateShift'])->name('admin.presensi.shift');
     Route::delete('/admin/presensi/{id}', [PresensiController::class, 'destroy'])->name('admin.presensi.destroy');
 
     });
