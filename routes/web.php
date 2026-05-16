@@ -13,6 +13,7 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\IcdxController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\KomentarController;
+use App\Http\Controllers\AdminProfilController;
 
 // Public
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
@@ -43,7 +44,12 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/login-admin', [AuthController::class, 'showLoginPetugas'])->name('login.petugas');
 Route::post('/login-admin', [AuthController::class, 'loginPetugas'])->name('login.petugas.submit');
 
-
+Route::middleware(['auth'])->group(function () {
+    Route::get('/admin/profil',          [AdminProfilController::class, 'index'])->name('admin.profil');
+    Route::put('/admin/profil',          [AdminProfilController::class, 'update'])->name('admin.profil.update');
+    Route::put('/admin/profil/password', [AdminProfilController::class, 'updatePassword'])->name('admin.profil.password');
+    Route::delete('/admin/profil/foto',  [AdminProfilController::class, 'deleteFoto'])->name('admin.profil.foto.delete');
+});
 
 // ── Dashboard ──
 Route::middleware(['auth', 'menu:Dashboard'])->group(function () {
