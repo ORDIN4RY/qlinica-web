@@ -13,10 +13,14 @@ class Presensi extends Model
 
     protected $fillable = [
         'pegawai_id',
+        'batch_id',
         'tanggal',
+        'jam_masuk',
+        'jam_keluar',
         'status',
         'approval_status',
         'keterangan',
+        'surat_dokter',
     ];
 
     public function pegawai()

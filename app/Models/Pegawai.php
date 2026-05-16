@@ -21,6 +21,7 @@ class Pegawai extends Model
         'no_sip',
         'alamat',
         'no_hp',
+        'jatah_cuti',
     ];
 
     public function user()
