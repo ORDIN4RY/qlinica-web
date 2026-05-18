@@ -11,7 +11,7 @@ use App\Models\ResepDetail;
 use App\Models\Obat;
 use App\Models\Antrian;
 use App\Models\Icdx;
-
+use App\Models\Pasien;
 class DokterController extends Controller
 {
     public function dashboard()
@@ -146,7 +146,16 @@ class DokterController extends Controller
         // antrian yang masuk status Dipanggil/Dilayani oleh admin
         $antrians = Antrian::with(['pasien', 'rekamMedis'])
             ->where('tanggal', now()->toDateString())
-            ->orderBy('no_antrian')
+            ->orderByRaw("
+                CASE 
+                    WHEN status = 'Dipanggil' THEN 1
+                    WHEN status = 'Menunggu' THEN 2
+                    WHEN status = 'Selesai' THEN 3
+                    WHEN status = 'Batal' THEN 4
+                    ELSE 5
+                END ASC
+            ")
+            ->orderBy('no_antrian', 'asc')
             ->get();
 
         return view('dokter.antrian', [
@@ -203,16 +212,22 @@ class DokterController extends Controller
     {
         $antrian = Antrian::findOrFail($antrianId);
         $pegawai = auth()->user()->pegawai;
+        $isAdmin = auth()->user()->role === 'admin';
 
         // Validasi bahwa antrian ini memang ditugaskan ke dokter yang sedang login
-        // Gunakan != bukan !== agar type-safe (int vs string dari DB)
-        if (!$antrian->rekamMedis || $antrian->rekamMedis->dokter_id != $pegawai->id) {
-            return redirect()->route('dokter.antrian')->with('error', 'Anda tidak memiliki akses untuk mendiagnosa pasien ini.');
+        // Admin diperbolehkan membypass validasi ini untuk keperluan pengujian/supervisi
+        if (!$isAdmin) {
+            if (!$pegawai) {
+                return redirect()->route('dokter.antrian')->with('error', 'Anda tidak memiliki akses untuk mendiagnosa pasien ini.');
+            }
+            if ($antrian->rekamMedis && $antrian->rekamMedis->dokter_id != $pegawai->id) {
+                return redirect()->route('dokter.antrian')->with('error', 'Anda tidak memiliki akses untuk mendiagnosa pasien ini.');
+            }
         }
 
-        // Validasi bahwa antrian sedang dalam status Dipanggil atau Dilayani
-        if (!in_array($antrian->status, ['Dipanggil', 'Dilayani'])) {
-            return redirect()->route('dokter.antrian')->with('error', 'Pasien harus dalam status Dipanggil atau Dilayani untuk memberikan diagnosa.');
+        // Validasi bahwa antrian sedang dalam status Dipanggil atau Selesai
+        if (!in_array($antrian->status, ['Dipanggil', 'Selesai'])) {
+            return redirect()->route('dokter.antrian')->with('error', 'Pasien harus dalam status Dipanggil untuk memberikan diagnosa.');
         }
 
         $request->validate([
@@ -258,7 +273,7 @@ class DokterController extends Controller
                     ['antrian_id' => $antrian->id],
                     [
                         'pasien_id' => $antrian->pasien_id,
-                        'dokter_id' => $pegawai->id,
+                        'dokter_id' => $pegawai ? $pegawai->id : ($antrian->rekamMedis ? $antrian->rekamMedis->dokter_id : 1),
                         'tanggal_periksa' => now(),
                         'anamnesis' => $request->anamnesis,
                         'pemeriksaan_fisik' => $request->pemeriksaan_fisik,
@@ -314,7 +329,7 @@ class DokterController extends Controller
 
                     $resep = Resep::create([
                         'rekam_medis_id' => $rekamMedis->id,
-                        'dokter_id' => $pegawai->id,
+                        'dokter_id' => $pegawai ? $pegawai->id : $rekamMedis->dokter_id,
                         'status' => 'Menunggu',
                         'catatan_dokter' => $request->catatan_dokter ?: $rekamMedis->catatan,
                     ]);
@@ -340,5 +355,44 @@ class DokterController extends Controller
         }
 
         return redirect()->route('dokter.antrian')->with('success', 'Diagnosa dan resep berhasil disimpan. Pasien telah selesai dilayani.');
+    }
+    public function showPasien($id)
+    {
+        $pasien = Pasien::with(['agama', 'pendidikan', 'pekerjaan'])->findOrFail($id);
+        
+        // Ambil riwayat kunjungan (Rekam Medis) pasien ini
+        $riwayatMedis = RekamMedis::with(['dokter', 'antrian', 'diagnosa.icdx', 'resep.resepDetails.obat'])
+            ->where('pasien_id', $pasien->id)
+            ->orderByDesc('tanggal_periksa')
+            ->get();
+
+        return view('dokter.pasien_show', compact('pasien', 'riwayatMedis'));
+    }
+
+    public function periksa($id)
+    {
+        $antrian = Antrian::with(['pasien', 'rekamMedis'])->findOrFail($id);
+        $pegawai = auth()->user()->pegawai;
+
+        $isAdmin = auth()->user()->role === 'admin';
+
+        // Validasi bahwa antrian ini memang ditugaskan ke dokter yang sedang login
+        // Admin diperbolehkan membypass validasi ini untuk keperluan pengujian/supervisi
+        if (!$isAdmin) {
+            if (!$pegawai) {
+                return redirect()->route('dokter.antrian')->with('error', 'Anda tidak memiliki akses untuk memeriksa pasien ini.');
+            }
+            if ($antrian->rekamMedis && $antrian->rekamMedis->dokter_id != $pegawai->id) {
+                return redirect()->route('dokter.antrian')->with('error', 'Anda tidak memiliki akses untuk memeriksa pasien ini.');
+            }
+        }
+
+        if (!in_array($antrian->status, ['Dipanggil', 'Selesai'])) {
+            return redirect()->route('dokter.antrian')->with('error', 'Pasien harus dalam status Dipanggil untuk memulai pemeriksaan.');
+        }
+
+        $obats = Obat::orderBy('nama')->get();
+
+        return view('dokter.periksa', compact('antrian', 'obats'));
     }
 }

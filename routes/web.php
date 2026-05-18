@@ -148,7 +148,9 @@ Route::middleware(['auth', 'menu:Jabatan'])->group(function () {
 // ── Rekam Medis ──
 Route::middleware(['auth', 'menu:Rekam Medis'])->group(function () {
     Route::get('/dokter/antrian', [DokterController::class, 'antrianIndex'])->name('dokter.antrian');
+    Route::get('/dokter/antrian/{id}/periksa', [DokterController::class, 'periksa'])->name('dokter.antrian.periksa');
     Route::get('/dokter/pasien', [DokterController::class, 'pasienIndex'])->name('dokter.pasien');
+    Route::get('/dokter/pasien/{id}', [DokterController::class, 'showPasien'])->name('dokter.pasien.show');
     Route::post('/dokter/antrian/{antrianId}/diagnosa', [DokterController::class, 'simpanDiagnosa'])->name('dokter.antrian.diagnosa')->middleware('menu:Rekam Medis,tambah');
 });
 
