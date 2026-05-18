@@ -372,7 +372,7 @@
         <a href="#" class="text-blue-900 hover:text-blue-700 transition-all duration-300 hover:scale-110"><i class="fab fa-instagram"></i></a>
         <a href="#" class="text-blue-900 hover:text-blue-700 transition-all duration-300 hover:scale-110"><i class="fab fa-twitter"></i></a>
       </div>
-      <p>&copy; 2025 Sahaduta.</p>
+      <p>&copy; 2026 Sahaduta.</p>
     </div>
   </footer>
 

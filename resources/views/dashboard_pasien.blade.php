@@ -274,43 +274,110 @@
                 </button>
               </div>
 
+              {{-- Alert profil --}}
+              <div id="profilAlert" class="hidden mb-4 px-4 py-3 rounded-xl text-sm font-medium"></div>
+
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="gridProfil">
-                <!-- Field tampilan/edit -->
+
+                {{-- Nama --}}
                 <div class="space-y-1">
-                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Nama Lengkap</label>
-                  <input type="text" id="fNamaLengkap" value="{{ $pasien->nama ?? '' }}" readonly class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Nama Lengkap <span class="text-red-400 hidden edit-required">*</span></label>
+                  <input type="text" id="fNamaLengkap" value="{{ $pasien->nama ?? '' }}" readonly
+                    class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
                 </div>
+
+                {{-- No RM (readonly always) --}}
                 <div class="space-y-1">
                   <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">No. Rekam Medik</label>
-                  <input type="text" value="{{ $pasien->no_rm ?? '' }}" readonly class="w-full border border-gray-200 bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-500 cursor-not-allowed outline-none">
+                  <input type="text" value="{{ $pasien->no_rm ?? '' }}" readonly
+                    class="w-full border border-gray-200 bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-500 cursor-not-allowed outline-none">
                 </div>
+
+                {{-- NIK --}}
                 <div class="space-y-1">
-                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">NIK</label>
-                  <input type="text" id="fNik" value="{{ $pasien->nik ?? '' }}" readonly class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">NIK (16 digit)</label>
+                  <input type="text" id="fNik" value="{{ $pasien->nik ?? '' }}" maxlength="16" readonly
+                    class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
                 </div>
+
+                {{-- Tanggal Lahir --}}
                 <div class="space-y-1">
-                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Tanggal Lahir</label>
-                  <input type="date" id="fTglLahir" value="{{ $pasien->tgl_lahir ?? '' }}" readonly class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Tanggal Lahir <span class="text-red-400 hidden edit-required">*</span></label>
+                  <input type="date" id="fTglLahir" value="{{ $pasien->tgl_lahir ? $pasien->tgl_lahir->format('Y-m-d') : '' }}" readonly
+                    class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
                 </div>
-                <div class="space-y-1">
-                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Jenis Kelamin</label>
-                  <input type="text" id="fJenkel" value="{{ $pasien->jenis_kelamin ?? '' }}" readonly class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+
+                {{-- Jenis Kelamin --}}
+                <div class="space-y-1" id="wrapJenkel">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Jenis Kelamin <span class="text-red-400 hidden edit-required">*</span></label>
+                  {{-- tampilan readonly --}}
+                  <input type="text" id="fJenkelDisplay"
+                    value="{{ $pasien->jenis_kelamin === 'L' ? 'Laki-laki' : ($pasien->jenis_kelamin === 'P' ? 'Perempuan' : '') }}"
+                    readonly class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none">
+                  {{-- dropdown saat edit --}}
+                  <select id="fJenkel" class="profil-select hidden w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                    <option value="L" {{ $pasien->jenis_kelamin === 'L' ? 'selected' : '' }}>Laki-laki</option>
+                    <option value="P" {{ $pasien->jenis_kelamin === 'P' ? 'selected' : '' }}>Perempuan</option>
+                  </select>
                 </div>
-                <div class="space-y-1 sm:col-span-2">
-                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Alamat</label>
-                  <input type="text" id="fAlamat" value="{{ $pasien->alamat ?? '' }}" readonly class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
-                </div>
+
+                {{-- Golongan Darah --}}
                 <div class="space-y-1">
                   <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Golongan Darah</label>
-                  <input type="text" id="fDarah" value="{{ $pasien->golongan_darah ?? '' }}" readonly class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                  {{-- tampilan readonly --}}
+                  <input type="text" id="fDarahDisplay" value="{{ $pasien->golongan_darah ?? '-' }}"
+                    readonly class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none">
+                  {{-- dropdown saat edit --}}
+                  <select id="fDarah" class="profil-select hidden w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                    <option value="">— Pilih —</option>
+                    @foreach(['A','B','AB','O'] as $gol)
+                      <option value="{{ $gol }}" {{ $pasien->golongan_darah === $gol ? 'selected' : '' }}>{{ $gol }}</option>
+                    @endforeach
+                  </select>
                 </div>
-              </div>
 
-              <!-- Tombol simpan (hidden saat readonly) -->
+                {{-- Alamat --}}
+                <div class="space-y-1 sm:col-span-2">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Alamat</label>
+                  <input type="text" id="fAlamat" value="{{ $pasien->alamat ?? '' }}" readonly
+                    class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                </div>
+
+                {{-- Desa --}}
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Desa / Kelurahan</label>
+                  <input type="text" id="fDesa" value="{{ $pasien->desa ?? '' }}" readonly
+                    class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                </div>
+
+                {{-- Kota --}}
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Kota / Kabupaten</label>
+                  <input type="text" id="fKota" value="{{ $pasien->kota ?? '' }}" readonly
+                    class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                </div>
+
+                {{-- Nama KK --}}
+                <div class="space-y-1 sm:col-span-2">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Nama Kepala Keluarga</label>
+                  <input type="text" id="fNamaKk" value="{{ $pasien->nama_kk ?? '' }}" readonly
+                    class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition">
+                </div>
+
+                {{-- Riwayat Alergi --}}
+                <div class="space-y-1 sm:col-span-2">
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Riwayat Alergi</label>
+                  <textarea id="fAlergi" rows="2" readonly
+                    class="profil-input w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-800 focus:border-blue-900 outline-none transition resize-none">{{ $pasien->riwayat_alergi ?? '' }}</textarea>
+                </div>
+
+              </div>{{-- end grid --}}
+
+              {{-- Tombol simpan (hidden saat readonly) --}}
               <div id="btnSaveRow" class="hidden mt-5 flex gap-3 justify-end">
-                <button onclick="batalEditProfil()" class="border border-gray-300 text-gray-600 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">Batal</button>
-                <button onclick="simpanProfil()" class="btn-anim bg-blue-900 hover:bg-blue-800 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-md">
-                  <i class="fas fa-save mr-1"></i> Simpan Perubahan
+                <button type="button" onclick="batalEditProfil()" class="border border-gray-300 text-gray-600 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">Batal</button>
+                <button type="button" onclick="simpanProfil()" id="btnSimpanProfil" class="btn-anim bg-blue-900 hover:bg-blue-800 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-md flex items-center gap-1.5">
+                  <i class="fas fa-save"></i> Simpan Perubahan
                 </button>
               </div>
             </div>
@@ -658,26 +725,114 @@
     // ================================================================
     // EDIT PROFIL
     // ================================================================
+    const PROFIL_URL  = '{{ route("pasien.profil.update") }}';
+    const PROFIL_CSRF = '{{ csrf_token() }}';
+
     function toggleEditProfil() {
-      const inputs = document.querySelectorAll('.profil-input');
-      inputs.forEach(i => { i.readOnly = false; i.classList.add('border-blue-300','bg-white'); i.classList.remove('bg-gray-50'); });
+      // Aktifkan semua input
+      document.querySelectorAll('.profil-input').forEach(el => {
+        if (el.tagName === 'TEXTAREA') el.readOnly = false;
+        else el.readOnly = false;
+        el.classList.add('border-blue-300', 'bg-white');
+        el.classList.remove('bg-gray-50');
+      });
+      // Tampilkan select dropdown, sembunyikan input display
+      document.getElementById('fJenkelDisplay').classList.add('hidden');
+      document.getElementById('fJenkel').classList.remove('hidden');
+      document.getElementById('fDarahDisplay').classList.add('hidden');
+      document.getElementById('fDarah').classList.remove('hidden');
+      // Tanda bintang required
+      document.querySelectorAll('.edit-required').forEach(el => el.classList.remove('hidden'));
       document.getElementById('btnEdit').classList.add('hidden');
       document.getElementById('btnSaveRow').classList.remove('hidden');
+      document.getElementById('profilAlert').classList.add('hidden');
     }
+
     function batalEditProfil() {
-      const inputs = document.querySelectorAll('.profil-input');
-      inputs.forEach(i => { i.readOnly = true; i.classList.remove('border-blue-300','bg-white'); i.classList.add('bg-gray-50'); });
+      document.querySelectorAll('.profil-input').forEach(el => {
+        el.readOnly = true;
+        el.classList.remove('border-blue-300', 'bg-white');
+        el.classList.add('bg-gray-50');
+      });
+      document.getElementById('fJenkelDisplay').classList.remove('hidden');
+      document.getElementById('fJenkel').classList.add('hidden');
+      document.getElementById('fDarahDisplay').classList.remove('hidden');
+      document.getElementById('fDarah').classList.add('hidden');
+      document.querySelectorAll('.edit-required').forEach(el => el.classList.add('hidden'));
       document.getElementById('btnEdit').classList.remove('hidden');
       document.getElementById('btnSaveRow').classList.add('hidden');
+      document.getElementById('profilAlert').classList.add('hidden');
     }
-    function simpanProfil() {
-      const nama = document.getElementById('fNamaLengkap').value.trim();
-      if (!nama) return;
-      document.getElementById('namaLengkap').textContent = nama;
-      document.getElementById('namaUser').textContent = nama;
-      document.getElementById('greetName').textContent = nama;
-      batalEditProfil();
-      showToast('Profil berhasil diperbarui!');
+
+    async function simpanProfil() {
+      const nama    = document.getElementById('fNamaLengkap').value.trim();
+      const tgl     = document.getElementById('fTglLahir').value;
+      const jenkel  = document.getElementById('fJenkel').value;
+
+      if (!nama || !tgl || !jenkel) {
+        showProfilAlert('Nama, tanggal lahir, dan jenis kelamin wajib diisi.', 'red');
+        return;
+      }
+
+      const btn = document.getElementById('btnSimpanProfil');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+
+      const payload = {
+        _method:        'PUT',
+        nama,
+        nik:            document.getElementById('fNik').value.trim() || null,
+        tgl_lahir:      tgl,
+        jenis_kelamin:  jenkel,
+        golongan_darah: document.getElementById('fDarah').value || null,
+        alamat:         document.getElementById('fAlamat').value.trim() || null,
+        desa:           document.getElementById('fDesa').value.trim() || null,
+        kota:           document.getElementById('fKota').value.trim() || null,
+        nama_kk:        document.getElementById('fNamaKk').value.trim() || null,
+        riwayat_alergi: document.getElementById('fAlergi').value.trim() || null,
+      };
+
+      try {
+        const res  = await fetch(PROFIL_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': PROFIL_CSRF, 'Accept': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          const p = data.pasien;
+          // Update display values
+          document.getElementById('namaLengkap').textContent = p.nama;
+          document.getElementById('namaUser').textContent    = p.nama;
+          document.getElementById('greetName').textContent   = p.nama;
+          // Update display-only fields
+          document.getElementById('fJenkelDisplay').value  = p.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan';
+          document.getElementById('fDarahDisplay').value   = p.golongan_darah || '-';
+          batalEditProfil();
+          showToast('Profil berhasil diperbarui!');
+        } else {
+          const errors = data.errors
+            ? Object.values(data.errors).flat().join(' | ')
+            : (data.message || 'Gagal menyimpan.');
+          showProfilAlert(errors, 'red');
+        }
+      } catch (err) {
+        showProfilAlert('Terjadi kesalahan koneksi.', 'red');
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
+      }
+    }
+
+    function showProfilAlert(msg, type) {
+      const box = document.getElementById('profilAlert');
+      const cls = { red: 'bg-red-50 border border-red-300 text-red-700', green: 'bg-green-50 border border-green-300 text-green-700' };
+      box.className = `mb-4 px-4 py-3 rounded-xl text-sm font-medium ${cls[type]}`;
+      box.textContent = msg;
+      box.classList.remove('hidden');
+      setTimeout(() => box.classList.add('hidden'), 5000);
     }
 
     // ================================================================

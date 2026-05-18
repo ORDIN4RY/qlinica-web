@@ -183,6 +183,45 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
 
     Route::post('/dashboard-pasien/antrian', [AntrianController::class, 'storePasien'])->name('pasien.antrian.store');
     Route::post('/dashboard-pasien/antrian/{id}/cancel', [AntrianController::class, 'cancelPasien'])->name('pasien.antrian.cancel');
+    Route::put('/dashboard-pasien/profil', function (\Illuminate\Http\Request $request) {
+        $user   = auth()->user();
+        $pasien = $user->pasien;
+        if (!$pasien) {
+            return response()->json(['success' => false, 'message' => 'Data pasien tidak ditemukan.'], 404);
+        }
+
+        $validated = $request->validate([
+            'nama'          => 'required|string|max:100',
+            'nik'           => 'nullable|string|size:16|unique:pasien,nik,' . $pasien->id,
+            'tgl_lahir'     => 'required|date',
+            'jenis_kelamin' => 'required|in:L,P',
+            'golongan_darah'=> 'nullable|in:A,B,AB,O',
+            'alamat'        => 'nullable|string|max:255',
+            'desa'          => 'nullable|string|max:50',
+            'kota'          => 'nullable|string|max:50',
+            'nama_kk'       => 'nullable|string|max:100',
+            'riwayat_alergi'=> 'nullable|string',
+        ]);
+
+        $pasien->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profil berhasil diperbarui.',
+            'pasien'  => [
+                'nama'          => $pasien->nama,
+                'nik'           => $pasien->nik,
+                'tgl_lahir'     => $pasien->tgl_lahir?->format('Y-m-d'),
+                'jenis_kelamin' => $pasien->jenis_kelamin,
+                'golongan_darah'=> $pasien->golongan_darah,
+                'alamat'        => $pasien->alamat,
+                'desa'          => $pasien->desa,
+                'kota'          => $pasien->kota,
+                'nama_kk'       => $pasien->nama_kk,
+                'riwayat_alergi'=> $pasien->riwayat_alergi,
+            ],
+        ]);
+    })->name('pasien.profil.update');
 
     // ── Polling: status antrian realtime ──
     Route::get('/dashboard-pasien/antrian/status', function () {
