@@ -112,22 +112,18 @@ class AuthController extends Controller
         $menus = $user->accessibleMenus();
         $firstMenu = $menus->keys()->first();
 
-        $user = auth()->user();
         $redirectTo = match ($firstMenu) {
-            'Dashboard Admin'               => route('beranda_admin'),
-            'Dashboard Dokter'              => route('dokter.dashboard'),
-            'Dashboard Apoteker'            => route('apoteker.dashboard'),
-            'Data Pasien'                   => ($user->role === 'dokter' ? route('dokter.pasien') : route('admin.pasien')),
-            'Antrian & Pemesanan'           => ($user->role === 'dokter' ? route('dokter.antrian') : route('admin.pemesanan')),
-            'Resep Obat (Apoteker)'         => route('apoteker.resep'),
-            'Data Obat (Apoteker)'          => route('apoteker.obat'),
-            'Data Pegawai (Admin)'          => route('admin.pegawai'),
-            'Presensi Pegawai (Admin)'       => route('admin.presensi'),
-            'Data ICD-X (Admin)'             => route('admin.icdx'),
-            'Laporan Penanganan (Admin)'     => route('admin.laporan.penanganan'),
-            'Komentar & Feedback (Admin)'    => route('admin.komentar'),
-            'Jabatan & Hak Akses (Admin)'    => route('admin.jabatan'),
-            default                         => route('beranda_admin'),
+            'Dashboard' => route('beranda_admin'),
+            'Resep' => route('apoteker.resep'),
+            'Obat' => route('apoteker.obat'),
+            'Antrian' => route('admin.pemesanan'),
+            'Pasien' => route('admin.pasien'),
+            'Pegawai' => route('admin.pegawai'),
+            'ICDX' => route('admin.icdx'),
+            'Laporan' => route('admin.laporan'),
+            'Komentar' => route('admin.komentar'),
+            'Jabatan' => route('admin.jabatan'),
+            default => route('beranda_admin'),
         };
 
         return redirect($redirectTo);

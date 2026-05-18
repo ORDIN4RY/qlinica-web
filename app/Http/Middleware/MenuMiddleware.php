@@ -34,22 +34,17 @@ class MenuMiddleware
             // Redirect ke halaman yang sesuai berdasarkan menu pertama yang bisa diakses
             $firstMenu = $user->accessibleMenus()->keys()->first();
             $route = match ($firstMenu) {
-                'Dashboard Admin'               => route('beranda_admin'),
-                'Dashboard Dokter'              => route('dokter.dashboard'),
-                'Dashboard Apoteker'            => route('apoteker.dashboard'),
-                'Data Pasien'                   => ($user->role === 'dokter' ? route('dokter.pasien') : route('admin.pasien')),
-                'Antrian & Pemesanan'           => ($user->role === 'dokter' ? route('dokter.antrian') : route('admin.pemesanan')),
-                'Rekam Medis & Diagnosa (Dokter)' => route('dokter.antrian'),
-                'Resep Obat (Apoteker)'         => route('apoteker.resep'),
-                'Data Obat (Apoteker)'          => route('apoteker.obat'),
-                'Laporan Apotek (Apoteker)'      => route('apoteker.laporan'),
-                'Data Pegawai (Admin)'          => route('admin.pegawai'),
-                'Presensi Pegawai (Admin)'       => route('admin.presensi'),
-                'Data ICD-X (Admin)'             => route('admin.icdx'),
-                'Laporan Penanganan (Admin)'     => route('admin.laporan.penanganan'),
-                'Komentar & Feedback (Admin)'    => route('admin.komentar'),
-                'Jabatan & Hak Akses (Admin)'    => route('admin.jabatan'),
-                default                         => route('home'),
+                'Dashboard' => route('beranda_admin'),
+                'Pasien'    => route('admin.pasien'),
+                'Pegawai'   => route('admin.pegawai'),
+                'Antrian'   => route('admin.pemesanan'),
+                'Resep'     => route('apoteker.resep'),
+                'Obat'      => route('apoteker.obat'),
+                'ICDX'      => route('admin.icdx'),
+                'Laporan'   => route('admin.laporan'),
+                'Komentar'  => route('admin.komentar'),
+                'Jabatan'   => route('admin.jabatan'),
+                default     => url('/'),
             };
             // Sanitize to prevent HTTP header injection (newlines in URL)
             $route = preg_replace('/[\r\n]/', '', $route);

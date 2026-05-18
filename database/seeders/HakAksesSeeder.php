@@ -3,78 +3,113 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Jabatan;
-use App\Models\Menu;
 use App\Models\HakAkses;
+use App\Models\Menu;
 
 class HakAksesSeeder extends Seeder
 {
     public function run(): void
     {
-        $menuMap = Menu::pluck('id', 'nama_menu');
-        $jabatanMap = Jabatan::pluck('id', 'nama_jabatan');
+        // Mendapatkan ID menu berdasarkan namanya untuk kemudahan
+        $menus = Menu::pluck('id', 'nama_menu');
 
-        // Definisi hak akses per jabatan
-        // Format: nama_jabatan => [ nama_menu => [lihat, tambah, edit, hapus], ... ]
+        // 1 = Dokter
+        // 2 = Perawat
+        // 3 = Resepsionis
+        // 4 = Apoteker
+
         $akses = [
-            'Admin' => [
-                'Dashboard Admin'             => [1,1,1,1],
-                'Data Pasien'                 => [1,1,1,1],
-                'Data Pegawai (Admin)'        => [1,1,1,1],
-                'Presensi Pegawai (Admin)'    => [1,1,1,1],
-                'Antrian & Pemesanan'         => [1,1,1,1],
-                'Data ICD-X (Admin)'          => [1,1,1,1],
-                'Laporan Penanganan (Admin)'  => [1,1,1,1],
-                'Komentar & Feedback (Admin)' => [1,1,1,1],
-                'Jabatan & Hak Akses (Admin)' => [1,1,1,1],
+            // Hak Akses Dokter
+            [
+                'jabatan_id' => 1,
+                'menu_id' => $menus['Dashboard'],
+                'sub_akses' => ['view' => true, 'dokter_dashboard' => true],
             ],
-            'Dokter' => [
-                'Dashboard Dokter'            => [1,0,0,0],
-                'Data Pasien'                 => [1,0,1,0],
-                'Antrian & Pemesanan'         => [1,1,1,0],
-                'Rekam Medis & Diagnosa (Dokter)' => [1,1,1,0],
+            [
+                'jabatan_id' => 1,
+                'menu_id' => $menus['Pasien'],
+                'sub_akses' => ['view' => true],
             ],
-            'Apoteker' => [
-                'Dashboard Apoteker'          => [1,0,0,0],
-                'Resep Obat (Apoteker)'       => [1,1,1,0],
-                'Data Obat (Apoteker)'        => [1,1,1,1],
-                'Laporan Apotek (Apoteker)'   => [1,0,0,0],
+            [
+                'jabatan_id' => 1,
+                'menu_id' => $menus['Antrian'],
+                'sub_akses' => ['view' => true, 'panggil' => true],
             ],
-            'Perawat' => [
-                'Dashboard Admin'             => [1,0,0,0],
-                'Antrian & Pemesanan'         => [1,1,1,0],
+            [
+                'jabatan_id' => 1,
+                'menu_id' => $menus['Rekam Medis'],
+                'sub_akses' => ['view' => true, 'tambah' => true, 'edit' => true],
             ],
-            'Resepsionis' => [
-                'Dashboard Admin'             => [1,0,0,0],
-                'Antrian & Pemesanan'         => [1,1,1,0],
-                'Data Pasien'                 => [1,1,1,0],
+            [
+                'jabatan_id' => 1,
+                'menu_id' => $menus['ICDX'],
+                'sub_akses' => ['view' => true],
+            ],
+
+            // Hak Akses Perawat
+            [
+                'jabatan_id' => 2,
+                'menu_id' => $menus['Dashboard'],
+                'sub_akses' => ['view' => true, 'dokter_dashboard' => true],
+            ],
+            [
+                'jabatan_id' => 2,
+                'menu_id' => $menus['Pasien'],
+                'sub_akses' => ['view' => true],
+            ],
+            [
+                'jabatan_id' => 2,
+                'menu_id' => $menus['Antrian'],
+                'sub_akses' => ['view' => true],
+            ],
+            [
+                'jabatan_id' => 2,
+                'menu_id' => $menus['Rekam Medis'],
+                'sub_akses' => ['view' => true],
+            ],
+
+            // Hak Akses Resepsionis
+            [
+                'jabatan_id' => 3,
+                'menu_id' => $menus['Dashboard'],
+                'sub_akses' => ['view' => true, 'admin_dashboard' => true],
+            ],
+            [
+                'jabatan_id' => 3,
+                'menu_id' => $menus['Pasien'],
+                'sub_akses' => ['view' => true, 'tambah' => true, 'edit' => true, 'hapus' => true, 'akun' => true],
+            ],
+            [
+                'jabatan_id' => 3,
+                'menu_id' => $menus['Antrian'],
+                'sub_akses' => ['view' => true, 'tambah' => true, 'edit' => true, 'hapus' => true],
+            ],
+            
+            // Hak Akses Apoteker
+            [
+                'jabatan_id' => 4,
+                'menu_id' => $menus['Dashboard'],
+                'sub_akses' => ['view' => true, 'apoteker_dashboard' => true],
+            ],
+            [
+                'jabatan_id' => 4,
+                'menu_id' => $menus['Resep'],
+                'sub_akses' => ['view' => true, 'edit' => true],
+            ],
+            [
+                'jabatan_id' => 4,
+                'menu_id' => $menus['Obat'],
+                'sub_akses' => ['view' => true, 'tambah' => true, 'edit' => true, 'hapus' => true],
+            ],
+            [
+                'jabatan_id' => 4,
+                'menu_id' => $menus['Pasien'],
+                'sub_akses' => ['view' => true],
             ],
         ];
 
-        foreach ($akses as $namaJabatan => $menuList) {
-            if (!isset($jabatanMap[$namaJabatan])) {
-                continue;
-            }
-            $jabatanId = $jabatanMap[$namaJabatan];
-
-            foreach ($menuList as $namaMenu => $flags) {
-                if (!isset($menuMap[$namaMenu])) {
-                    continue;
-                }
-                $menuId = $menuMap[$namaMenu];
-
-                HakAkses::updateOrCreate(
-                    ['jabatan_id' => $jabatanId, 'menu_id' => $menuId],
-                    [
-                        'jabatan_id'  => $jabatanId,
-                        'menu_id'     => $menuId,
-                        'bisa_lihat'  => $flags[0],
-                        'bisa_tambah' => $flags[1],
-                        'bisa_edit'   => $flags[2],
-                        'bisa_hapus'  => $flags[3],
-                    ]
-                );
-            }
+        foreach ($akses as $data) {
+            HakAkses::create($data);
         }
     }
 }

@@ -77,6 +77,7 @@ class PegawaiController extends Controller
                 'no_sip'       => $request->no_sip,
                 'alamat'       => $request->alamat,
                 'no_hp'        => $request->no_hp,
+                'hari_libur'   => $request->hari_libur,
             ]);
         });
 
@@ -135,6 +136,7 @@ class PegawaiController extends Controller
                 'no_sip'       => $request->no_sip,
                 'alamat'       => $request->alamat,
                 'no_hp'        => $request->no_hp,
+                'hari_libur'   => $request->hari_libur,
             ]);
         });
 

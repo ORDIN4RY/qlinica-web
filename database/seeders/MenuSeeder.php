@@ -10,21 +10,18 @@ class MenuSeeder extends Seeder
     public function run(): void
     {
         $menus = [
-            'Dashboard Admin',
-            'Dashboard Dokter',
-            'Dashboard Apoteker',
-            'Data Pasien',
-            'Antrian & Pemesanan',
-            'Rekam Medis & Diagnosa (Dokter)',
-            'Resep Obat (Apoteker)',
-            'Data Obat (Apoteker)',
-            'Laporan Apotek (Apoteker)',
-            'Data Pegawai (Admin)',
-            'Presensi Pegawai (Admin)',
-            'Data ICD-X (Admin)',
-            'Laporan Penanganan (Admin)',
-            'Komentar & Feedback (Admin)',
-            'Jabatan & Hak Akses (Admin)',
+            'Dashboard',
+            'Pasien',
+            'Pegawai',
+            'Antrian',
+            'Resep',
+            'Obat',
+            'ICDX',
+            'Laporan',
+            'Komentar',
+            'Rekam Medis',
+            'Jabatan',
+            'Presensi',
         ];
 
         foreach ($menus as $nama) {

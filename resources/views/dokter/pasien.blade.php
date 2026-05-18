@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.dokter')
 
 @section('title', 'Data Pasien')
 @section('page-title', 'Data Pasien')

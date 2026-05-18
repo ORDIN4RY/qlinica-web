@@ -2,15 +2,14 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
@@ -31,7 +30,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
     }
 
@@ -46,80 +45,74 @@ class User extends Authenticatable
     }
 
     /**
-     * Cek apakah user (pegawai) punya akses ke menu tertentu berdasarkan jabatannya.
-     * Level: lihat | tambah | edit | hapus
-     * Pasien selalu dianggap punya akses ke portal pasien saja (diatur route).
+     * Cek akses ke menu (dan opsional sub-akses tertentu).
+     *
+     * $menuName  = nama menu di tabel `menu` (misal 'Dashboard', 'Pegawai')
+     * $subKey    = key sub-akses (misal 'view', 'tambah', 'admin_dashboard')
+     *              Jika null → cukup cek apakah menu diaktifkan (ada row hak_akses dengan 'view' = true)
+     *
+     * Role 'admin' mendapat bypass penuh.
+     * Role 'pasien' tidak punya akses pegawai apapun.
      */
-    public function hasMenuAccess(string $menuName, ?string $level = null): bool
+    public function hasMenuAccess(string $menuName, ?string $subKey = null): bool
     {
-        if ($this->role === 'pasien') {
-            return false;
-        }
-
-        // Admin mendapat akses penuh ke semua menu
-        if ($this->role === 'admin') {
-            return true;
-        }
+        if ($this->role === 'pasien') return false;
+        if ($this->role === 'admin')  return true;
 
         $pegawai = $this->pegawai;
-        if (!$pegawai || !$pegawai->jabatan_id) {
-            return false;
-        }
+        if (!$pegawai || !$pegawai->jabatan_id) return false;
 
-        $query = \App\Models\HakAkses::where('jabatan_id', $pegawai->jabatan_id)
-            ->whereHas('menu', fn($q) => $q->where('nama_menu', $menuName));
+        $ha = \App\Models\HakAkses::where('jabatan_id', $pegawai->jabatan_id)
+            ->whereHas('menu', fn($q) => $q->where('nama_menu', $menuName))
+            ->first();
 
-        if ($level) {
-            $column = match ($level) {
-                'lihat' => 'bisa_lihat',
-                'tambah' => 'bisa_tambah',
-                'edit' => 'bisa_edit',
-                'hapus' => 'bisa_hapus',
-                default => null,
+        if (!$ha) return false;
+
+        $sub = $ha->sub_akses ?? [];
+
+        // Cek apakah menu aktif sama sekali (harus ada 'view' di sub_akses)
+        if (!($sub['view'] ?? false)) return false;
+
+        // Jika sub-key spesifik diminta, cek keberadaannya
+        if ($subKey && $subKey !== 'lihat') {
+            // Map legacy level names → sub_akses keys
+            $key = match ($subKey) {
+                'tambah' => 'tambah',
+                'edit'   => 'edit',
+                'hapus'  => 'hapus',
+                default  => $subKey,
             };
-            if ($column) {
-                $query->where($column, true);
-            }
+            return !empty($sub[$key]);
         }
 
-        return $query->exists();
+        return true;
     }
 
     /**
-     * Dapatkan koleksi menu beserta level akses yang bisa diakses user ini.
-     * Format: ['nama_menu' => ['lihat'=>true, 'tambah'=>false, ...]]
+     * Dapatkan koleksi menu beserta sub-akses yang bisa diakses user.
+     * Format: ['nama_menu' => ['view' => true, 'tambah' => false, ...]]
      */
     public function accessibleMenus(): \Illuminate\Support\Collection
     {
-        if ($this->role === 'pasien') {
-            return collect();
-        }
+        if ($this->role === 'pasien') return collect();
 
-        // Admin mendapat akses ke semua menu yang ada
         if ($this->role === 'admin') {
             $allMenuNames = ['Dashboard', 'Antrian', 'Pasien', 'Pegawai', 'Resep', 'Obat',
-                             'ICDX', 'Laporan', 'Komentar', 'Jabatan', 'Rekam Medis'];
+                             'ICDX', 'Laporan', 'Komentar', 'Jabatan', 'Rekam Medis', 'Presensi'];
             return collect($allMenuNames)->mapWithKeys(fn($menu) => [
-                $menu => ['lihat' => true, 'tambah' => true, 'edit' => true, 'hapus' => true]
+                $menu => ['view' => true, 'tambah' => true, 'edit' => true, 'hapus' => true]
             ]);
         }
 
         $pegawai = $this->pegawai;
-        if (!$pegawai || !$pegawai->jabatan_id) {
-            return collect();
-        }
+        if (!$pegawai || !$pegawai->jabatan_id) return collect();
 
         return \App\Models\HakAkses::with('menu')
             ->where('jabatan_id', $pegawai->jabatan_id)
-            ->where('bisa_lihat', true)
             ->get()
+            ->filter(fn($ha) => !empty(($ha->sub_akses ?? [])['view']))
             ->mapWithKeys(fn($ha) => [
-                $ha->menu->nama_menu => [
-                    'lihat' => $ha->bisa_lihat,
-                    'tambah' => $ha->bisa_tambah,
-                    'edit' => $ha->bisa_edit,
-                    'hapus' => $ha->bisa_hapus,
-                ]
+                $ha->menu->nama_menu => $ha->sub_akses ?? []
             ]);
     }
 }

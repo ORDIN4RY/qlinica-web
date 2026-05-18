@@ -120,10 +120,12 @@
 
 {{-- ─── TOOLBAR ─────────────────────────────────────────────────────── --}}
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+  @if(auth()->user()->hasMenuAccess('Pegawai', 'tambah'))
   <button id="btnTambah"
     class="flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-md">
     <i class="fas fa-plus text-xs"></i> Tambah Pegawai
   </button>
+  @endif
 
   <form method="GET" action="{{ route('admin.pegawai') }}" class="flex items-center gap-2">
     <div class="relative">
@@ -196,18 +198,22 @@
                   title="Detail">
                   <i class="fas fa-info text-xs"></i>
                 </button>
+                @if(auth()->user()->hasMenuAccess('Pegawai', 'edit'))
                 <button
                   onclick="openEdit({{ $p->id }})"
                   class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition"
                   title="Edit">
                   <i class="fas fa-pen text-xs"></i>
                 </button>
+                @endif
+                @if(auth()->user()->hasMenuAccess('Pegawai', 'hapus'))
                 <button
                   onclick="openDel({{ $p->id }}, '{{ addslashes($p->nama) }}')"
                   class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition"
                   title="Hapus">
                   <i class="fas fa-trash text-xs"></i>
                 </button>
+                @endif
               </div>
             </td>
           </tr>
