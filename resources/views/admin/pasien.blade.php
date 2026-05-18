@@ -127,13 +127,14 @@
 
 {{-- ─── TOOLBAR ─────────────────────────────────────────────────────── --}}
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+
+    @if(auth()->user()->hasMenuAccess('Pasien', 'tambah'))
     <button id="btnTambah"
       class="flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-md">
       <i class="fas fa-plus text-xs"></i> Tambah Pasien
     </button>
-  </div>
-
-  <form method="GET" action="{{ route('admin.pasien') }}" class="flex items-center gap-2">
+    @endif
+    <form method="GET" action="{{ route('admin.pasien') }}" class="flex items-center gap-2">
     <div class="relative">
       <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
       <input type="text" name="search" value="{{ $search ?? '' }}"
@@ -151,6 +152,9 @@
       </a>
     @endif
   </form>
+  </div>
+
+  
 </div>
 
 {{-- Tampilkan Error Validasi (jika ada) --}}
@@ -180,10 +184,8 @@
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Pasien</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Tgl Lahir / Umur</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">J. Kelamin</th>
-          <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Gol. Darah</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">No HP</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Kota</th>
-          <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Riwayat Alergi</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
         </tr>
       </thead>
@@ -225,25 +227,10 @@
                 <span class="badge-p text-xs font-bold px-3 py-1 rounded-full">Perempuan</span>
               @endif
             </td>
-            {{-- Golongan Darah --}}
-            <td class="px-5 py-4">
-              @if($p->golongan_darah)
-                @php $gd = strtolower($p->golongan_darah); @endphp
-                <span class="blood-{{ $gd }} text-xs font-bold w-8 h-8 rounded-lg inline-flex items-center justify-center">
-                  {{ $p->golongan_darah }}
-                </span>
-              @else
-                <span class="text-gray-300 text-xs">—</span>
-              @endif
-            </td>
             {{-- No HP --}}
             <td class="px-5 py-4 text-gray-500 text-xs">{{ $p->user->phone ?? '—' }}</td>
             {{-- Kota --}}
             <td class="px-5 py-4 text-gray-600 text-xs">{{ $p->kota ?: ($p->desa ?: '—') }}</td>
-            {{-- Riwayat Alergi --}}
-            <td class="px-5 py-4 text-gray-600 text-xs">
-              {{ $p->riwayat_alergi ?: '—' }}
-            </td>
             {{-- Aksi --}}
             <td class="px-5 py-4">
               <div class="flex items-center gap-2">
@@ -253,18 +240,22 @@
                   title="Info">
                   <i class="fas fa-info text-xs"></i>
                 </button>
+                @if(auth()->user()->hasMenuAccess('Pasien', 'edit'))
                 <button
                   onclick="openEdit({{ $p->id }})"
                   class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition"
                   title="Edit">
                   <i class="fas fa-pen text-xs"></i>
                 </button>
+                @endif
+                @if(auth()->user()->hasMenuAccess('Pasien', 'hapus'))
                 <button
                   onclick="openDel({{ $p->id }}, '{{ addslashes($p->nama) }}')"
                   class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition"
                   title="Hapus">
                   <i class="fas fa-trash text-xs"></i>
                 </button>
+                @endif
               </div>
             </td>
           </tr>
