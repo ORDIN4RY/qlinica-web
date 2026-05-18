@@ -115,24 +115,36 @@
       @endif
 
       <!-- ================= PELAYANAN MEDIS ================= -->
-      @if(($u && $u->hasMenuAccess('Antrian')) || ($u && $u->hasMenuAccess('Pasien')) || ($u && $u->hasMenuAccess('Resep')) || ($u && $u->hasMenuAccess('Obat')))
+      @if(($u && $u->hasMenuAccess('Antrian')) || ($u && $u->hasMenuAccess('Rekam Medis')) || ($u && $u->hasMenuAccess('Pasien')) || ($u && $u->hasMenuAccess('Resep')) || ($u && $u->hasMenuAccess('Obat')))
       <div class="px-2 mt-6 mb-2 text-[10px] font-bold text-white/40 uppercase tracking-wider">Pelayanan Medis</div>
       @endif
 
       @if($u && $u->hasMenuAccess('Antrian'))
       <a href="{{ route('admin.pemesanan') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pemesanan*') || request()->routeIs('dokter.antrian*') ? 'active' : '' }}">
-        <i class="fas fa-calendar-check w-5 text-center"></i> Antrian Pasien
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pemesanan*') ? 'active' : '' }}">
+        <i class="fas fa-calendar-check w-5 text-center"></i> Antrian Pendaftaran
       </a>
       @endif
 
-
-
-
       @if($u && $u->hasMenuAccess('Pasien'))
       <a href="{{ route('admin.pasien') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pasien*') || request()->routeIs('dokter.pasien*') ? 'active' : '' }}">
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pasien*') ? 'active' : '' }}">
         <i class="fas fa-user-injured w-5 text-center"></i> Data Pasien
+      </a>
+      @endif
+
+      <!-- ================= KLINIS ================= -->
+      @if($u && $u->hasMenuAccess('Rekam Medis'))
+      <div class="px-2 mt-4 mb-2 text-[10px] font-bold text-white/40 uppercase tracking-wider">Klinis </div>
+      
+      <a href="{{ route('dokter.antrian') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('dokter.antrian*') ? 'active' : '' }}">
+        <i class="fas fa-stethoscope w-5 text-center"></i> Antrian Pemeriksaan
+      </a>
+      
+      <a href="{{ route('dokter.pasien') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('dokter.pasien*') ? 'active' : '' }}">
+        <i class="fas fa-notes-medical w-5 text-center"></i> Riwayat Medis Pasien
       </a>
       @endif
 

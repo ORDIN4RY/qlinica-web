@@ -5,6 +5,13 @@
 @section('page-subtitle', 'Selamat datang, Dr. {{ Auth::user()?->name ?? "Dokter" }}')
 
 @section('content')
+@php
+  $activeQueues = \App\Models\Antrian::with(['pasien', 'rekamMedis'])
+      ->where('tanggal', now()->toDateString())
+      ->whereIn('status', ['Dipanggil', 'Dilayani'])
+      ->orderBy('no_antrian')
+      ->get();
+@endphp
 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
 
   <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 shadow-sm text-white">
@@ -44,33 +51,64 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-  <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-    <h2 class="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
-      <i class="fas fa-bolt text-blue-500"></i> Aksi Cepat
-    </h2>
-    <div class="space-y-3">
-      <a href="{{ route('admin.pemesanan') }}"
-         class="flex items-center gap-3 px-5 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition font-semibold text-sm">
-        <i class="fas fa-users"></i> Lihat Antrian Pasien Hari Ini
-      </a>
-      <a href="{{ route('admin.pasien') }}"
-         class="flex items-center gap-3 px-5 py-3.5 bg-slate-700 hover:bg-slate-800 text-white rounded-xl transition font-semibold text-sm">
-        <i class="fas fa-notes-medical"></i> Lihat Data Semua Pasien
-      </a>
+  <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm flex flex-col justify-between">
+    <div>
+      <h2 class="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
+        <i class="fas fa-bolt text-blue-500"></i> Aksi Cepat
+      </h2>
+      <div class="space-y-3">
+        <a href="{{ route('dokter.antrian') }}"
+           class="flex items-center gap-3 px-5 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition font-semibold text-sm">
+          <i class="fas fa-users"></i> Lihat Antrian Pasien Hari Ini
+        </a>
+        <a href="{{ route('dokter.pasien') }}"
+           class="flex items-center gap-3 px-5 py-3.5 bg-slate-700 hover:bg-slate-800 text-white rounded-xl transition font-semibold text-sm">
+          <i class="fas fa-notes-medical"></i> Lihat Data Semua Pasien
+        </a>
+      </div>
+    </div>
+    <div class="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100 text-xs text-blue-700">
+      <i class="fas fa-info-circle mr-1.5"></i>
+      Pilih menu <strong>Antrian Pasien</strong> untuk mulai mendiagnosa pasien dan membuatkan resep digital secara cepat.
     </div>
   </div>
 
-  <div class="bg-blue-50 rounded-2xl border border-blue-200 p-6 shadow-sm">
-    <h2 class="font-bold text-lg text-slate-800 mb-3 flex items-center gap-2">
-      <i class="fas fa-info-circle text-blue-500"></i> Panduan Alur Kerja
+  <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm flex flex-col">
+    <h2 class="font-bold text-lg text-gray-800 mb-4 flex items-center justify-between">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-user-clock text-emerald-500"></i> Pasien Aktif Saat Ini
+      </span>
+      <span class="text-xs bg-emerald-50 text-emerald-600 font-semibold px-2.5 py-1 rounded-full border border-emerald-100 flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Live
+      </span>
     </h2>
-    <ol class="space-y-2 text-sm text-slate-700 list-none">
-      <li class="flex gap-2"><span class="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">1</span> Admin mendaftarkan & memanggil pasien</li>
-      <li class="flex gap-2"><span class="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">2</span> Pasien muncul di <strong>Antrian Pasien</strong> dengan status <em>Dipanggil</em></li>
-      <li class="flex gap-2"><span class="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">3</span> Dokter klik <strong>"Diagnosa & Resep"</strong> untuk mengisi form</li>
-      <li class="flex gap-2"><span class="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">4</span> Resep bersifat opsional, pilih <em>Ya</em> jika diperlukan</li>
-      <li class="flex gap-2"><span class="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">5</span> Simpan → status pasien otomatis <strong>Selesai</strong></li>
-    </ol>
+    <div class="flex-1 overflow-y-auto max-h-[300px] pr-1">
+      @if($activeQueues->isEmpty())
+        <div class="text-center py-10 text-gray-400">
+          <i class="fas fa-check-circle text-4xl mb-3 text-emerald-500 opacity-80"></i>
+          <p class="font-semibold text-sm text-gray-700">Tidak ada pasien aktif</p>
+          <p class="text-xs text-gray-400 mt-1 max-w-[280px] mx-auto">Semua pasien selesai dilayani atau menunggu panggilan dari Admin.</p>
+        </div>
+      @else
+        <div class="space-y-3">
+          @foreach($activeQueues as $aq)
+            <div class="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-bold font-mono px-2 py-0.5 bg-blue-50 text-blue-600 rounded border border-blue-200">#{{ $aq->no_antrian }}</span>
+                  <span class="text-[10px] font-semibold px-2 py-0.5 bg-amber-50 text-amber-700 rounded border border-amber-200 capitalize">{{ $aq->status }}</span>
+                </div>
+                <h4 class="font-semibold text-sm text-gray-800 mt-1.5 truncate">{{ $aq->pasien->nama ?? '—' }}</h4>
+                <p class="text-[10px] text-gray-500 mt-0.5 font-mono">RM: {{ $aq->pasien->no_rm ?? '—' }}</p>
+              </div>
+              <a href="{{ route('dokter.antrian') }}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0 shadow-sm">
+                Periksa <i class="fas fa-chevron-right text-[9px]"></i>
+              </a>
+            </div>
+          @endforeach
+        </div>
+      @endif
+    </div>
   </div>
 
 </div>
