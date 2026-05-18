@@ -14,6 +14,7 @@ use App\Http\Controllers\IcdxController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\KomentarController;
 use App\Http\Controllers\AdminProfilController;
+use App\Http\Controllers\ObatController;
 
 // Public
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
@@ -105,7 +106,10 @@ Route::middleware(['auth', 'menu:Resep'])->group(function () {
 
 // ── Obat ──
 Route::middleware(['auth', 'menu:Obat'])->group(function () {
-    Route::get('/apoteker/obat', fn() => view('apoteker.obat'))->name('apoteker.obat');
+    Route::get('/apoteker/obat',            [ObatController::class, 'index'])->name('apoteker.obat');
+    Route::post('/apoteker/obat',           [ObatController::class, 'store'])->name('apoteker.obat.store');
+    Route::put('/apoteker/obat/{id}',       [ObatController::class, 'update'])->name('apoteker.obat.update');
+    Route::delete('/apoteker/obat/{id}',    [ObatController::class, 'destroy'])->name('apoteker.obat.destroy');
 });
 
 // ── ICDX ──
@@ -173,6 +177,64 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
 
     Route::post('/dashboard-pasien/antrian', [AntrianController::class, 'storePasien'])->name('pasien.antrian.store');
     Route::post('/dashboard-pasien/antrian/{id}/cancel', [AntrianController::class, 'cancelPasien'])->name('pasien.antrian.cancel');
+
+    // ── Polling: status antrian realtime ──
+    Route::get('/dashboard-pasien/antrian/status', function () {
+        $user   = auth()->user();
+        $pasien = $user->pasien ?? null;
+
+        $today = now()->toDateString();
+
+        $dilayani = \App\Models\Antrian::where('tanggal', $today)
+            ->where('status', 'Dipanggil')
+            ->orderBy('updated_at', 'desc')
+            ->first();
+
+        $total    = \App\Models\Antrian::where('tanggal', $today)->count();
+        $selesai  = \App\Models\Antrian::where('tanggal', $today)->where('status', 'Selesai')->count();
+        $menunggu = \App\Models\Antrian::where('tanggal', $today)->whereIn('status', ['Menunggu', 'Dipanggil'])->count();
+
+        $daftarMenunggu = \App\Models\Antrian::with('pasien')
+            ->where('tanggal', $today)
+            ->whereIn('status', ['Menunggu', 'Dipanggil'])
+            ->orderBy('no_antrian', 'asc')
+            ->get()
+            ->map(fn($a) => [
+                'no_antrian' => str_pad($a->no_antrian, 3, '0', STR_PAD_LEFT),
+                'nama'       => $a->pasien->nama ?? '-',
+                'jenis'      => $a->jenis,
+                'status'     => $a->status,
+            ]);
+
+        // Antrian aktif milik pasien ini
+        $antrianAktif = null;
+        if ($pasien) {
+            $aktif = \App\Models\Antrian::where('pasien_id', $pasien->id)
+                ->where('tanggal', $today)
+                ->whereIn('status', ['Menunggu', 'Dipanggil'])
+                ->first();
+            if ($aktif) {
+                $antrianAktif = [
+                    'id'         => $aktif->id,
+                    'no_antrian' => str_pad($aktif->no_antrian, 3, '0', STR_PAD_LEFT),
+                    'jenis'      => $aktif->jenis,
+                    'status'     => $aktif->status,
+                ];
+            }
+        }
+
+        return response()->json([
+            'dilayani'       => $dilayani ? [
+                'no_antrian' => str_pad($dilayani->no_antrian, 3, '0', STR_PAD_LEFT),
+                'jenis'      => $dilayani->jenis,
+            ] : null,
+            'total'          => $total,
+            'selesai'        => $selesai,
+            'menunggu'       => $menunggu,
+            'daftar_menunggu'=> $daftarMenunggu,
+            'antrian_aktif'  => $antrianAktif,
+        ]);
+    })->name('pasien.antrian.status');
 
     Route::get('/pemesanan', function () {
         $user   = auth()->user();

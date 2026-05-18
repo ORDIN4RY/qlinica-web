@@ -197,8 +197,11 @@
 
           <!-- Status Antrian Real-time -->
           <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-3xl p-7 text-white shadow-xl" data-aos="fade-left">
-            <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
-              <i class="fas fa-broadcast-tower"></i> Status Antrian Hari Ini
+            <h3 class="font-bold text-lg mb-4 flex items-center gap-2 justify-between">
+              <span class="flex items-center gap-2"><i class="fas fa-broadcast-tower"></i> Status Antrian Hari Ini</span>
+              <span id="liveBadge" class="flex items-center gap-1.5 text-xs font-bold bg-green-400/20 border border-green-300/40 text-green-200 px-2.5 py-1 rounded-full">
+                <span class="w-2 h-2 bg-green-400 rounded-full inline-block animate-pulse"></span> LIVE
+              </span>
             </h3>
             <div class="text-center py-4">
               <p class="text-blue-200 text-sm mb-1">Sedang Dilayani</p>
@@ -220,34 +223,9 @@
               </div>
             </div>
 
-            <!-- Daftar Antrian Pasien Menunggu -->
-            <div class="mt-6">
-              <h4 class="font-semibold text-sm mb-3 flex items-center gap-2 text-blue-100">
-                <i class="fas fa-users"></i> Daftar Pasien Menunggu
-              </h4>
-              <div class="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-                <style>
-                  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-                  .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 4px; }
-                  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
-                </style>
-                @forelse($antrianPasienMenunggu as $antrian)
-                <div class="bg-white/10 rounded-xl p-3 flex justify-between items-center">
-                  <div>
-                    <div class="font-bold text-sm">{{ $antrian->pasien->nama }}</div>
-                    <div class="text-xs text-blue-200">{{ $antrian->jenis }}</div>
-                  </div>
-                  <div class="text-lg font-black text-white">{{ str_pad($antrian->no_antrian, 3, '0', STR_PAD_LEFT) }}</div>
-                </div>
-                @empty
-                <div class="text-center text-xs text-blue-200 py-2">Belum ada pasien yang mengantri.</div>
-                @endforelse
-              </div>
-            </div>
-
             <div class="mt-4 p-3 bg-white/10 rounded-2xl text-xs text-blue-200 flex items-center gap-2">
-              <i class="fas fa-info-circle"></i>
-              Data antrian ini adalah data riil hari ini
+              <i class="fas fa-sync-alt" id="syncIcon"></i>
+              <span id="lastUpdated">Memuat data...</span>
             </div>
           </div>
         </div>
@@ -714,16 +692,126 @@
     }
 
     // ================================================================
-    // SIMULASI UPDATE ANTRIAN 
+    // POLLING REALTIME — Status Antrian (setiap 5 detik)
     // ================================================================
-    // Update live data sebaiknya menggunakan socket atau polling ke server
-    // Untuk saat ini auto reload setelah 60 detik jika tidak ada aktivitas form
-    setTimeout(() => {
-      if(!document.getElementById('hasilAntrian').classList.contains('hidden') || document.getElementById('jenisLayanan').value === '') {
-          // Hanya auto-refresh jika user tidak sedang mengisi form
-          window.location.reload();
+    const POLL_URL  = '{{ route("pasien.antrian.status") }}';
+    const POLL_CSRF = '{{ csrf_token() }}';
+    let   pollTimer = null;
+
+    function formatTime(date) {
+      return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    function animateChange(el, newVal) {
+      if (el.textContent === String(newVal)) return;
+      el.style.transform = 'scale(1.2)';
+      el.style.transition = 'transform 0.2s ease';
+      el.textContent = newVal;
+      setTimeout(() => { el.style.transform = 'scale(1)'; }, 200);
+    }
+
+    async function pollAntrianStatus() {
+      const syncIcon = document.getElementById('syncIcon');
+      const lastUpdated = document.getElementById('lastUpdated');
+
+      try {
+        syncIcon.classList.add('fa-spin');
+
+        const res  = await fetch(POLL_URL, {
+          headers: { 'X-CSRF-TOKEN': POLL_CSRF, 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        // — Nomor sedang dilayani —
+        const displayEl = document.getElementById('antrianDisplay');
+        const skrgEl    = document.getElementById('antrianSkrg');
+        const newDisplay = data.dilayani ? data.dilayani.no_antrian : '—';
+        if (displayEl.textContent !== newDisplay) {
+          displayEl.style.transition = 'opacity 0.3s';
+          displayEl.style.opacity    = '0';
+          setTimeout(() => {
+            displayEl.textContent  = newDisplay;
+            displayEl.style.opacity = '1';
+          }, 150);
+          // Notif jika antrian aktif pasien dipanggil
+          if (data.antrian_aktif && data.antrian_aktif.status === 'Dipanggil' &&
+              antrianAktif && data.antrian_aktif.no_antrian === antrianAktif.nomor) {
+            showToast('🔔 Antrian Anda ' + antrianAktif.nomor + ' sedang dipanggil!', 'amber');
+          }
+        }
+        if (skrgEl) animateChange(skrgEl, newDisplay);
+
+        // — Statistik —
+        animateChange(document.getElementById('totalAntrianHari'), data.total);
+        animateChange(document.getElementById('sudahDilayani'), data.selesai);
+        animateChange(document.getElementById('menunggu'), data.menunggu);
+
+        // — Estimasi tunggu —
+        const estimasiEl = document.getElementById('estimasi');
+        if (estimasiEl) animateChange(estimasiEl, '~' + Math.max(0, data.menunggu * 5) + ' mnt');
+
+        // — Daftar pasien menunggu —
+        const listEl = document.querySelector('.space-y-2.max-h-40');
+        if (listEl) {
+          if (!data.daftar_menunggu.length) {
+            listEl.innerHTML = '<div class="text-center text-xs text-blue-200 py-2">Belum ada pasien yang mengantri.</div>';
+          } else {
+            listEl.innerHTML = data.daftar_menunggu.map(a => `
+              <div class="bg-white/10 rounded-xl p-3 flex justify-between items-center ${
+                antrianAktif && a.no_antrian === antrianAktif.nomor ? 'ring-2 ring-green-400/60' : ''
+              }">
+                <div>
+                  <div class="font-bold text-sm">${a.nama}</div>
+                  <div class="text-xs text-blue-200">${a.jenis}</div>
+                </div>
+                <div class="text-lg font-black text-white">${a.no_antrian}</div>
+              </div>`).join('');
+          }
+        }
+
+        // — Antrian aktif pasien (sinkron jika berubah dari luar, misal dibatalkan admin) —
+        if (!data.antrian_aktif && antrianAktif) {
+          // Antrian dihapus/dibatalkan dari sisi admin
+          antrianAktif = null;
+          document.getElementById('noAntrianKu').textContent = '—';
+          document.getElementById('formAntrian').classList.remove('hidden');
+          document.getElementById('hasilAntrian').classList.add('hidden');
+          showToast('Antrian Anda telah berakhir atau dibatalkan.', 'red');
+        } else if (data.antrian_aktif && !antrianAktif) {
+          // Antrian baru terdeteksi (misal dibuat dari tab lain)
+          antrianAktif = { id: data.antrian_aktif.id, nomor: data.antrian_aktif.no_antrian, layanan: data.antrian_aktif.jenis };
+          document.getElementById('noAntrianKu').textContent = antrianAktif.nomor;
+          document.getElementById('nomorAntrian').textContent = antrianAktif.nomor;
+          document.getElementById('formAntrian').classList.add('hidden');
+          document.getElementById('hasilAntrian').classList.remove('hidden');
+        }
+
+        lastUpdated.textContent = 'Update: ' + formatTime(new Date());
+        document.getElementById('liveBadge').style.opacity = '1';
+
+      } catch (err) {
+        console.warn('Polling error:', err);
+        lastUpdated.textContent = 'Gagal terhubung...';
+        document.getElementById('liveBadge').style.opacity = '0.4';
+      } finally {
+        syncIcon.classList.remove('fa-spin');
       }
-    }, 60000);
+    }
+
+    // Jalankan polling pertama kali langsung, lalu tiap 5 detik
+    pollAntrianStatus();
+    pollTimer = setInterval(pollAntrianStatus, 5000);
+
+    // Hentikan polling saat tab tidak aktif (hemat resource), mulai lagi saat aktif
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        clearInterval(pollTimer);
+      } else {
+        pollAntrianStatus();
+        pollTimer = setInterval(pollAntrianStatus, 5000);
+      }
+    });
   </script>
 </body>
 </html>
