@@ -11,6 +11,19 @@
       ->whereIn('status', ['Dipanggil', 'Dilayani'])
       ->orderBy('no_antrian')
       ->get();
+
+  $pegawai = auth()->user()->pegawai;
+  $topPenyakit = \App\Models\RekamMedisDiagnosa::select('icdx_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as n'))
+      ->whereHas('rekamMedis', function($q) use ($pegawai) {
+          if ($pegawai) {
+              $q->where('dokter_id', $pegawai->id);
+          }
+      })
+      ->groupBy('icdx_id')
+      ->orderByDesc('n')
+      ->limit(5)
+      ->with('icdx')
+      ->get();
 @endphp
 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
 
@@ -51,25 +64,35 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-  <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm flex flex-col justify-between">
-    <div>
-      <h2 class="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
-        <i class="fas fa-bolt text-blue-500"></i> Aksi Cepat
-      </h2>
-      <div class="space-y-3">
-        <a href="{{ route('dokter.antrian') }}"
-           class="flex items-center gap-3 px-5 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition font-semibold text-sm">
-          <i class="fas fa-users"></i> Lihat Antrian Pasien Hari Ini
-        </a>
-        <a href="{{ route('dokter.pasien') }}"
-           class="flex items-center gap-3 px-5 py-3.5 bg-slate-700 hover:bg-slate-800 text-white rounded-xl transition font-semibold text-sm">
-          <i class="fas fa-notes-medical"></i> Lihat Data Semua Pasien
-        </a>
-      </div>
-    </div>
-    <div class="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100 text-xs text-blue-700">
-      <i class="fas fa-info-circle mr-1.5"></i>
-      Pilih menu <strong>Antrian Pasien</strong> untuk mulai mendiagnosa pasien dan membuatkan resep digital secara cepat.
+  <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm flex flex-col">
+    <h2 class="font-bold text-lg text-gray-800 mb-4 flex items-center justify-between">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-chart-pie text-blue-500"></i> Penyakit Terbanyak (Kasus Anda)
+      </span>
+    </h2>
+    <div class="flex-1 overflow-y-auto pr-1">
+      @if($topPenyakit->isEmpty())
+        <div class="text-center py-10 text-gray-400">
+          <i class="fas fa-clipboard-list text-4xl mb-3 text-blue-200"></i>
+          <p class="font-semibold text-sm text-gray-700">Belum ada data diagnosa</p>
+          <p class="text-xs text-gray-400 mt-1">Anda belum mencatat riwayat diagnosa ICD-X.</p>
+        </div>
+      @else
+        <div class="space-y-3">
+          @foreach($topPenyakit as $index => $penyakit)
+            <div class="p-3 bg-blue-50/50 hover:bg-blue-50 border border-blue-100 rounded-xl transition flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-sm shrink-0">{{ $index + 1 }}</span>
+                <div>
+                  <h4 class="font-bold text-sm text-gray-800 line-clamp-1" title="{{ $penyakit->icdx->nama ?? 'Tidak diketahui' }}">{{ $penyakit->icdx->nama ?? 'Tidak diketahui' }}</h4>
+                  <p class="text-xs text-gray-500 font-mono mt-0.5">ICD-X: {{ $penyakit->icdx->kode ?? '-' }}</p>
+                </div>
+              </div>
+              <span class="text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-1.5 rounded-lg shrink-0">{{ $penyakit->n }} Kasus</span>
+            </div>
+          @endforeach
+        </div>
+      @endif
     </div>
   </div>
 
