@@ -62,6 +62,7 @@ Route::middleware(['auth', 'menu:Dashboard'])->group(function () {
 // ── Antrian ──
 Route::middleware(['auth', 'menu:Antrian'])->group(function () {
     Route::get('/admin/pemesanan', [AntrianController::class, 'index'])->name('admin.pemesanan');
+    Route::get('/admin/antrian/realtime', [AntrianController::class, 'realtimeData'])->name('admin.antrian.realtime');
     Route::post('/admin/antrian', [AntrianController::class, 'store'])->name('admin.antrian.store')->middleware('menu:Antrian,tambah');
     Route::patch('/admin/antrian/{id}/status', [AntrianController::class, 'updateStatus'])->name('admin.antrian.status')->middleware('menu:Antrian,edit');
     Route::post('/admin/antrian/{id}/panggil', [AntrianController::class, 'panggilPeriksa'])->name('admin.antrian.panggil')->middleware('menu:Antrian,edit');
@@ -92,6 +93,9 @@ Route::middleware(['auth', 'menu:Pegawai'])->group(function () {
     Route::put('/admin/pegawai/{id}', [PegawaiController::class, 'update'])->name('admin.pegawai.update')->middleware('menu:Pegawai,edit');
     Route::delete('/admin/pegawai/{id}', [PegawaiController::class, 'destroy'])->name('admin.pegawai.destroy')->middleware('menu:Pegawai,hapus');
     Route::get('/admin/presensi', [PresensiController::class, 'index'])->name('admin.presensi');
+    Route::post('/admin/presensi/shift/bulk', [PresensiController::class, 'bulkShift'])->name('admin.presensi.shift.bulk');
+    Route::post('/admin/presensi/shift/pattern', [PresensiController::class, 'patternShift'])->name('admin.presensi.shift.pattern');
+    Route::post('/admin/presensi/shift/copy', [PresensiController::class, 'copyShift'])->name('admin.presensi.shift.copy');
     Route::put('/admin/presensi/{id}', [PresensiController::class, 'update'])->name('admin.presensi.update');
     Route::put('/admin/presensi/{id}/shift', [PresensiController::class, 'updateShift'])->name('admin.presensi.shift');
     Route::delete('/admin/presensi/{id}', [PresensiController::class, 'destroy'])->name('admin.presensi.destroy');

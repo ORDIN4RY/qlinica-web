@@ -699,5 +699,41 @@
       searchPasienInput.focus();
     }
   });
+
+  // Polling Realtime Antrian (setiap 5 detik)
+  setInterval(function() {
+    fetch('{{ route("admin.antrian.realtime") }}')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        // Update statistik kartu di bagian atas
+        document.getElementById('statJumlah').innerText = data.jumlahAntrian;
+        document.getElementById('statSelesai').innerText = data.terpanggil;
+
+        // Simpan query pencarian & filter aktif saat ini
+        const activeChip = document.querySelector('.filter-chip.active');
+        const activeFilter = activeChip ? activeChip.dataset.filter : 'semua';
+        const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+
+        // Update body tabel dengan HTML baru
+        const antrianBody = document.getElementById('antrianBody');
+        antrianBody.innerHTML = data.html;
+
+        // Re-apply filter status & pencarian agar tidak ter-reset
+        document.querySelectorAll('#antrianBody tr[data-status]').forEach(function(row) {
+          const matchesFilter = (activeFilter === 'semua' || row.dataset.status === activeFilter);
+          const matchesSearch = row.textContent.toLowerCase().includes(searchQuery);
+
+          if (matchesFilter && matchesSearch) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+
+        // Update footer info baris
+        document.getElementById('tableInfo').innerHTML = 'Menampilkan <strong>' + data.jumlahAntrian + '</strong> antrian';
+      })
+      .catch(function(err) { console.error('Gagal mengambil data antrian realtime:', err); });
+  }, 5000); // 5000ms = 5 detik
 </script>
 @endpush
