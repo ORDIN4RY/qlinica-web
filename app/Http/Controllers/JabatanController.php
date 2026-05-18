@@ -50,7 +50,7 @@ class JabatanController extends Controller
             'Antrian' => [
                 'view'   => ['label' => 'Lihat Antrian',   'icon' => 'fa-eye',        'desc' => 'Melihat daftar antrian pasien'],
                 'tambah' => ['label' => 'Tambah Antrian',  'icon' => 'fa-plus',       'desc' => 'Mendaftarkan antrian baru'],
-                'edit'   => ['label' => 'Update Status',   'icon' => 'fa-pen',        'desc' => 'Mengubah status & memanggil antrian'],
+                'update'   => ['label' => 'Update Status',   'icon' => 'fa-pen',        'desc' => 'Mengubah status & memanggil antrian'],
                 'hapus'  => ['label' => 'Hapus Antrian',   'icon' => 'fa-trash',      'desc' => 'Menghapus data antrian'],
                 'panggil'=> ['label' => 'Panggil Pasien',  'icon' => 'fa-bullhorn',   'desc' => 'Memanggil pasien ke ruang periksa'],
             ],
@@ -59,7 +59,7 @@ class JabatanController extends Controller
                 'tambah' => ['label' => 'Tambah Pasien',   'icon' => 'fa-user-plus',  'desc' => 'Mendaftarkan pasien baru'],
                 'edit'   => ['label' => 'Edit Data',       'icon' => 'fa-pen',        'desc' => 'Mengubah data pasien'],
                 'hapus'  => ['label' => 'Hapus Data',      'icon' => 'fa-trash',      'desc' => 'Menghapus data pasien'],
-                'akun'   => ['label' => 'Kelola Akun',     'icon' => 'fa-key',        'desc' => 'Membuat akun login pasien'],
+                // 'akun'   => ['label' => 'Kelola Akun',     'icon' => 'fa-key',        'desc' => 'Membuat akun login pasien'],
             ],
             'Pegawai' => [
                 'view'   => ['label' => 'Lihat Data',      'icon' => 'fa-eye',        'desc' => 'Melihat daftar & detail pegawai'],

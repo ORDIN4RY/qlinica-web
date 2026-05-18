@@ -7,7 +7,7 @@
 @push('styles')
 <style>
   .table-card { background: var(--putih, #fff); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e5e7eb; overflow: hidden; }
-  .table-wrap { overflow-x: auto; }
+  .table-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   table.laporan-table { width: 100%; border-collapse: collapse; min-width: 1200px; }
   table.laporan-table thead tr { background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
   table.laporan-table th { padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 700; color: #1e293b; white-space: nowrap; }

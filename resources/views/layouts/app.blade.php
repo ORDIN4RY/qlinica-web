@@ -104,8 +104,13 @@
 
       @if($u && $u->hasMenuAccess('Laporan'))
       <a href="{{ route('admin.laporan.penanganan') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.laporan*') || request()->routeIs('apoteker.laporan*') ? 'active' : '' }}">
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.laporan*') ? 'active' : '' }}">
         <i class="fas fa-chart-line w-5 text-center"></i> Laporan
+      </a>
+      
+      <a href="{{ route('apoteker.laporan') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('apoteker.laporan*')  ? 'active' : '' }}">
+        <i class="fas fa-chart-line w-5 text-center"></i> Laporan 
       </a>
       @endif
 
@@ -120,6 +125,9 @@
         <i class="fas fa-calendar-check w-5 text-center"></i> Antrian Pasien
       </a>
       @endif
+
+
+
 
       @if($u && $u->hasMenuAccess('Pasien'))
       <a href="{{ route('admin.pasien') }}"

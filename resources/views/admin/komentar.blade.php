@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('page_title', 'Komentar Pasien')
+@section('page-title', 'Komentar Pasien')
 @section('title', 'Komentar Pasien')
 @section('breadcrumb', 'Kelola Komentar')
 @section('nav_komentar', 'aktif')
@@ -230,7 +230,9 @@
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-44">Kritik</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-44">Saran</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-36">Tanggal</th>
+          @if(auth()->user()->hasMenuAccess('Komentar', 'hapus'))
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Aksi</th>
+          @endif
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-50">
@@ -287,7 +289,7 @@
               <i class="far fa-calendar-alt mr-1"></i>
               {{ $item->created_at ? \Carbon\Carbon::parse($item->created_at)->locale('id')->translatedFormat('d F Y') : '—' }}
             </td>
-
+          @if(auth()->user()->hasMenuAccess('Komentar', 'hapus'))
             <td class="px-5 py-4">
               <button
                 onclick="openModal({{ $item->id }}, '{{ addslashes($item->pasien->nama ?? 'Pasien') }}')"
@@ -296,7 +298,7 @@
                 Hapus
               </button>
             </td>
-
+          @endif
           </tr>
         @empty
           <tr>

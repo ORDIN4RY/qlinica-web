@@ -156,6 +156,140 @@ class PresensiController extends Controller
         return redirect()->route('admin.presensi', ['tab' => 'shift'])->with('success', 'Jadwal shift ' . $pegawai->nama . ' berhasil diperbarui.');
     }
 
+    public function bulkShift(Request $request)
+    {
+        $request->validate([
+            'pegawai_ids' => 'required|array',
+            'pegawai_ids.*' => 'exists:pegawais,id',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'shift_id' => 'nullable|exists:shifts,id',
+            'skip_minggu' => 'nullable|boolean',
+        ]);
+
+        $tanggalMulai = Carbon::parse($request->tanggal_mulai);
+        $tanggalSelesai = Carbon::parse($request->tanggal_selesai);
+
+        foreach ($request->pegawai_ids as $pegawai_id) {
+            $currentDate = $tanggalMulai->copy();
+            while ($currentDate->lte($tanggalSelesai)) {
+                if ($request->skip_minggu && $currentDate->isSunday()) {
+                    $currentDate->addDay();
+                    continue;
+                }
+
+                if (!$request->shift_id) {
+                    \App\Models\JadwalShift::where('pegawai_id', $pegawai_id)
+                        ->where('tanggal', $currentDate->toDateString())
+                        ->delete();
+                } else {
+                    \App\Models\JadwalShift::updateOrCreate(
+                        ['pegawai_id' => $pegawai_id, 'tanggal' => $currentDate->toDateString()],
+                        ['shift_id' => $request->shift_id]
+                    );
+                }
+                
+                $currentDate->addDay();
+            }
+        }
+
+        return redirect()->route('admin.presensi', ['tab' => 'shift'])->with('success', 'Jadwal shift massal berhasil disimpan.');
+    }
+
+    public function patternShift(Request $request)
+    {
+        $request->validate([
+            'pegawai_ids' => 'required|array',
+            'pegawai_ids.*' => 'exists:pegawais,id',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'pola' => 'required|array',
+        ]);
+
+        $tanggalMulai = Carbon::parse($request->tanggal_mulai);
+        $tanggalSelesai = Carbon::parse($request->tanggal_selesai);
+        $pola = $request->pola;
+        $polaLength = count($pola);
+
+        if ($polaLength === 0) {
+            return back()->withErrors(['pola' => 'Pola tidak boleh kosong']);
+        }
+
+        foreach ($request->pegawai_ids as $pegawai_id) {
+            $currentDate = $tanggalMulai->copy();
+            $patternIndex = 0;
+
+            while ($currentDate->lte($tanggalSelesai)) {
+                $shiftId = $pola[$patternIndex % $polaLength];
+
+                if (!$shiftId || $shiftId == '0') {
+                    \App\Models\JadwalShift::where('pegawai_id', $pegawai_id)
+                        ->where('tanggal', $currentDate->toDateString())
+                        ->delete();
+                } else {
+                    \App\Models\JadwalShift::updateOrCreate(
+                        ['pegawai_id' => $pegawai_id, 'tanggal' => $currentDate->toDateString()],
+                        ['shift_id' => $shiftId]
+                    );
+                }
+
+                $currentDate->addDay();
+                $patternIndex++;
+            }
+        }
+
+        return redirect()->route('admin.presensi', ['tab' => 'shift'])->with('success', 'Pola shift berhasil diterapkan.');
+    }
+
+    public function copyShift(Request $request)
+    {
+        $request->validate([
+            'bulan' => 'required|numeric|between:1,12',
+            'tahun' => 'required|numeric',
+        ]);
+
+        $targetBulan = str_pad($request->bulan, 2, '0', STR_PAD_LEFT);
+        $targetTahun = $request->tahun;
+
+        // Hitung bulan sebelumnya
+        $sourceCarbon = Carbon::createFromDate($targetTahun, $targetBulan, 1)->subMonth();
+        $sourceBulan = $sourceCarbon->format('m');
+        $sourceTahun = $sourceCarbon->format('Y');
+
+        // Ambil semua jadwal dari bulan sebelumnya
+        $sourceJadwals = \App\Models\JadwalShift::whereMonth('tanggal', $sourceBulan)
+            ->whereYear('tanggal', $sourceTahun)
+            ->get();
+
+        if ($sourceJadwals->isEmpty()) {
+            return back()->with('error', 'Tidak ada data jadwal pada bulan sebelumnya untuk disalin.');
+        }
+
+        $targetDaysInMonth = cal_days_in_month(CAL_GREGORIAN, (int)$targetBulan, (int)$targetTahun);
+
+        foreach ($sourceJadwals as $sj) {
+            $day = Carbon::parse($sj->tanggal)->format('d');
+            
+            // Lewati jika hari tidak ada di bulan target (misal tanggal 31 di bulan yang hanya sampai 30 hari)
+            if ((int)$day > $targetDaysInMonth) {
+                continue;
+            }
+
+            $targetTanggal = sprintf('%04d-%02d-%02d', $targetTahun, $targetBulan, $day);
+
+            \App\Models\JadwalShift::updateOrCreate(
+                ['pegawai_id' => $sj->pegawai_id, 'tanggal' => $targetTanggal],
+                ['shift_id' => $sj->shift_id]
+            );
+        }
+
+        return redirect()->route('admin.presensi', [
+            'tab' => 'shift',
+            'bulan' => $targetBulan,
+            'tahun' => $targetTahun
+        ])->with('success', 'Jadwal shift berhasil disalin dari bulan sebelumnya.');
+    }
+
     public function destroy($id)
     {
         $presensi = Presensi::findOrFail($id);

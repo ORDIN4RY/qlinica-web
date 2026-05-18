@@ -18,7 +18,7 @@ class AntrianController extends Controller
             ->get();
 
         $dokters = Pegawai::whereHas('user', function($q) {
-            $q->where('jabatan_id', '2');
+            $q->where('jabatan_id', '1');
         })->get();
 
         return view('admin.pemesanan', [
@@ -199,6 +199,88 @@ class AntrianController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Antrian berhasil dibatalkan.',
+        ]);
+    }
+
+    public function realtimeData()
+    {
+        $antrians = Antrian::with('pasien')
+            ->where('tanggal', now()->toDateString())
+            ->orderBy('no_antrian')
+            ->get();
+
+        $html = '';
+        foreach ($antrians as $a) {
+            $jenis = strtolower($a->jenis_pemesan ?? 'offline');
+            $jenisHtml = '';
+            if ($jenis === 'online') {
+                $jenisHtml = '<span class="jenis-online text-xs font-bold px-3 py-1 rounded-full"><i class="fas fa-wifi text-xs mr-1"></i>Online</span>';
+            } elseif ($jenis === 'walk-in' || $jenis === 'walkin') {
+                $jenisHtml = '<span class="jenis-walkin text-xs font-bold px-3 py-1 rounded-full"><i class="fas fa-walking text-xs mr-1"></i>Walk-in</span>';
+            } else {
+                $jenisHtml = '<span class="jenis-offline text-xs font-bold px-3 py-1 rounded-full"><i class="fas fa-phone text-xs mr-1"></i>Offline</span>';
+            }
+
+            $st = strtolower($a->status ?? 'menunggu');
+            $statusHtml = '';
+            if ($st === 'menunggu') {
+                $statusHtml = '<span class="status-badge s-menunggu">Menunggu</span>';
+            } elseif ($st === 'dipanggil') {
+                $statusHtml = '<span class="status-badge s-dipanggil">Dipanggil</span>';
+            } elseif ($st === 'dilayani') {
+                $statusHtml = '<span class="status-badge s-dilayani">Dilayani</span>';
+            } elseif ($st === 'selesai') {
+                $statusHtml = '<span class="status-badge s-selesai">Selesai</span>';
+            } elseif ($st === 'batal') {
+                $statusHtml = '<span class="status-badge s-batal">Batal</span>';
+            }
+
+            $buttonsHtml = '<div class="flex items-center gap-2">';
+            if ($st === 'menunggu') {
+                $buttonsHtml .= '<button type="button" class="btn-panggil" onclick="openPanggil(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Panggil Pasien"><i class="fas fa-bullhorn text-xs"></i> Panggil</button>';
+            }
+            if (!in_array($st, ['selesai', 'batal'])) {
+                $buttonsHtml .= '<button class="btn-batal" onclick="openBatal(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Batalkan"><i class="fas fa-times text-xs"></i></button>';
+            }
+            $buttonsHtml .= '</div>';
+
+            $genderHtml = ($a->pasien->jenis_kelamin ?? '') === 'L' 
+                ? '<span class="text-xs font-bold px-3 py-1 rounded-full" style="background:#eff6ff;color:#2563eb">♂ Laki-laki</span>'
+                : '<span class="text-xs font-bold px-3 py-1 rounded-full" style="background:#f5f3ff;color:#7c3aed">♀ Perempuan</span>';
+
+            $waktuPesan = $a->created_at ? \Carbon\Carbon::parse($a->created_at)->isoFormat('D MMM · HH:mm') : '—';
+            $noRM = $a->pasien->no_rm ?? '—';
+            $namaPasien = $a->pasien->nama ?? '—';
+
+            $html .= '
+              <tr class="tbl-row" data-status="' . strtolower($a->status) . '">
+                <td class="px-5 py-3.5"><div class="no-antrian">' . $a->nomor_antrian . '</div></td>
+                <td class="px-5 py-3.5"><span class="text-blue-700 font-bold font-mono text-xs tracking-wide">' . $noRM . '</span></td>
+                <td class="px-5 py-3.5"><div class="font-semibold text-gray-800 text-sm">' . $namaPasien . '</div></td>
+                <td class="px-5 py-3.5">' . $genderHtml . '</td>
+                <td class="px-5 py-3.5 text-gray-500 text-xs">' . $waktuPesan . '</td>
+                <td class="px-5 py-3.5">' . $jenisHtml . '</td>
+                <td class="px-5 py-3.5">' . $statusHtml . '</td>
+                <td class="px-5 py-3.5">' . $buttonsHtml . '</td>
+              </tr>
+            ';
+        }
+
+        if ($antrians->isEmpty()) {
+            $html = '
+              <tr id="emptyRow">
+                <td colspan="8" class="text-center py-16 text-gray-400">
+                  <i class="fas fa-inbox text-4xl mb-4 block opacity-25"></i>
+                  <p class="font-semibold text-sm">Belum ada antrian hari ini</p>
+                </td>
+              </tr>
+            ';
+        }
+
+        return response()->json([
+            'html' => $html,
+            'jumlahAntrian' => $antrians->count(),
+            'terpanggil' => $antrians->where('status', 'Dipanggil')->count(),
         ]);
     }
 

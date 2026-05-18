@@ -235,9 +235,11 @@
 <div class="toolbar-card mb-5 anim" style="animation-delay:.07s">
   <div class="flex flex-wrap items-center gap-3">
     {{-- Tombol Ambil Antrian --}}
+    @if(auth()->user()->hasMenuAccess('Antrian', 'tambah'))
     <button class="btn-ambil" id="btnAmbilAntrian">
       <i class="fas fa-plus text-xs"></i> Ambil Antrian
     </button>
+    @endif
 
     {{-- Filter Status --}}
     <div class="flex items-center gap-2 flex-wrap">
@@ -279,7 +281,9 @@
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Waktu Pesan</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Jenis Pemesan</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-          <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
+          @if(auth()->user()->hasMenuAccess('Antrian', 'panggil') || auth()->user()->hasMenuAccess('Antrian', 'update'))
+            <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
+          @endif
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-50" id="antrianBody">
@@ -334,6 +338,8 @@
                 <span class="status-badge s-batal">Batal</span>
               @endif
             </td>
+
+            @if(auth()->user()->hasMenuAccess('Antrian', 'update'))
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-2">
                 @if($st === 'menunggu')
@@ -348,6 +354,7 @@
                 @endif
               </div>
             </td>
+            @endif
           </tr>
         @empty
           <tr id="emptyRow">
@@ -699,5 +706,41 @@
       searchPasienInput.focus();
     }
   });
+
+  // Polling Realtime Antrian (setiap 5 detik)
+  setInterval(function() {
+    fetch('{{ route("admin.antrian.realtime") }}')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        // Update statistik kartu di bagian atas
+        document.getElementById('statJumlah').innerText = data.jumlahAntrian;
+        document.getElementById('statSelesai').innerText = data.terpanggil;
+
+        // Simpan query pencarian & filter aktif saat ini
+        const activeChip = document.querySelector('.filter-chip.active');
+        const activeFilter = activeChip ? activeChip.dataset.filter : 'semua';
+        const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+
+        // Update body tabel dengan HTML baru
+        const antrianBody = document.getElementById('antrianBody');
+        antrianBody.innerHTML = data.html;
+
+        // Re-apply filter status & pencarian agar tidak ter-reset
+        document.querySelectorAll('#antrianBody tr[data-status]').forEach(function(row) {
+          const matchesFilter = (activeFilter === 'semua' || row.dataset.status === activeFilter);
+          const matchesSearch = row.textContent.toLowerCase().includes(searchQuery);
+
+          if (matchesFilter && matchesSearch) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+
+        // Update footer info baris
+        document.getElementById('tableInfo').innerHTML = 'Menampilkan <strong>' + data.jumlahAntrian + '</strong> antrian';
+      })
+      .catch(function(err) { console.error('Gagal mengambil data antrian realtime:', err); });
+  }, 5000); // 5000ms = 5 detik
 </script>
 @endpush
