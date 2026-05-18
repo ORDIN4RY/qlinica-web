@@ -47,12 +47,14 @@ class JabatanController extends Controller
                     'preview' => 'dashboard_apoteker',
                 ],
             ],
-            'Antrian' => [
+            'Antrian Pemesanan' => [
                 'view'   => ['label' => 'Lihat Antrian',   'icon' => 'fa-eye',        'desc' => 'Melihat daftar antrian pasien'],
                 'tambah' => ['label' => 'Tambah Antrian',  'icon' => 'fa-plus',       'desc' => 'Mendaftarkan antrian baru'],
                 'update'   => ['label' => 'Update Status',   'icon' => 'fa-pen',        'desc' => 'Mengubah status & memanggil antrian'],
-                'hapus'  => ['label' => 'Hapus Antrian',   'icon' => 'fa-trash',      'desc' => 'Menghapus data antrian'],
-                'panggil'=> ['label' => 'Panggil Pasien',  'icon' => 'fa-bullhorn',   'desc' => 'Memanggil pasien ke ruang periksa'],
+            ],
+            'Antrian Pemeriksaan' => [
+                'view'   => ['label' => 'Lihat Antrian',          'icon' => 'fa-eye',    'desc' => 'Melihat antrian pemeriksaan yang ditugaskan kepada dokter bersangkutan'],
+                'all'    => ['label' => 'Semua Antrian',         'icon' => 'fa-list',   'desc' => 'Melihat seluruh antrian pemeriksaan dari semua dokter'],
             ],
             'Pasien' => [
                 'view'   => ['label' => 'Lihat Data',      'icon' => 'fa-eye',        'desc' => 'Melihat daftar & detail data pasien'],
