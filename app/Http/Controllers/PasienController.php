@@ -127,8 +127,9 @@ class PasienController extends Controller
             ]);
         });
 
+        $defaultPassword = 'pasien' . now()->year;
         return redirect()->route('admin.pasien')
-            ->with('success', 'Pasien berhasil ditambahkan.');
+            ->with('success', "Pasien berhasil ditambahkan. Info login: No. RM = {$newPasien->no_rm} | Password = {$defaultPassword}");
     }
 
     /** Update data pasien. */
