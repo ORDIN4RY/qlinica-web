@@ -142,39 +142,28 @@ class DokterController extends Controller
 
     public function antrianIndex()
     {
-        $pegawai = auth()->user()->pegawai;
-
-        // Hanya tampilkan antrian yang ditugaskan ke dokter yang sedang login
-        // Filter melalui relasi rekam_medis karena tabel antrian tidak punya kolom dokter_id
+        // Tampilkan SEMUA antrian hari ini — dokter bisa melihat dan menangani
+        // antrian yang masuk status Dipanggil/Dilayani oleh admin
         $antrians = Antrian::with(['pasien', 'rekamMedis'])
             ->where('tanggal', now()->toDateString())
-            ->whereHas('rekamMedis', function ($q) use ($pegawai) {
-                $q->where('dokter_id', $pegawai->id);
-            })
             ->orderBy('no_antrian')
             ->get();
 
         return view('dokter.antrian', [
-            'antrians' => $antrians,
+            'antrians'      => $antrians,
             'jumlahAntrian' => $antrians->count(),
-            'Dipanggil' => $antrians->where('status', 'Dipanggil')->count(),
-            'selesai' => $antrians->where('status', 'Selesai')->count(),
+            'Dipanggil'     => $antrians->where('status', 'Dipanggil')->count(),
+            'selesai'       => $antrians->where('status', 'Selesai')->count(),
         ]);
     }
 
     public function pasienIndex(\Illuminate\Http\Request $request)
     {
-        $pegawai = auth()->user()->pegawai;
         $q = $request->query('q');
 
+        // Tampilkan SEMUA pasien terdaftar (read-only untuk dokter)
         $query = \App\Models\Pasien::with(['agama', 'pendidikan', 'pekerjaan'])
-            ->whereIn('id', function($subquery) use ($pegawai) {
-                $subquery->select('antrian.pasien_id')
-                         ->from('antrian')
-                         ->join('rekam_medis', 'rekam_medis.antrian_id', '=', 'antrian.id')
-                         ->whereDate('antrian.tanggal', now()->toDateString())
-                         ->where('rekam_medis.dokter_id', $pegawai->id);
-            })
+            ->selectRaw('pasien.*, TIMESTAMPDIFF(YEAR, tgl_lahir, CURDATE()) as umur')
             ->orderBy('nama');
 
         if ($q) {

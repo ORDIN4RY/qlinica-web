@@ -111,7 +111,7 @@
             </form>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full text-left table-auto-hover">
+            <table class="w-full min-w-[850px] text-left table-auto-hover">
                 <thead class="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500 font-bold border-b border-gray-100">
                     <tr>
                         <th class="px-6 py-3">Tanggal</th>
@@ -209,7 +209,7 @@
             <h3 class="font-bold text-gray-800">Menunggu Persetujuan (Cuti/Izin/Sakit)</h3>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full text-left">
+            <table class="w-full min-w-[900px] text-left">
                 <thead class="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500 font-bold border-b border-gray-100">
                     <tr>
                         <th class="px-6 py-3">Rentang Tanggal</th>
@@ -249,7 +249,11 @@
                             <div class="text-gray-600 text-xs italic">{{ $p->keterangan }}</div>
                             @if($p->surat_dokter)
                                 <a href="{{ asset('storage/'.$p->surat_dokter) }}" target="_blank" class="mt-2 inline-flex items-center text-blue-600 hover:underline font-bold text-[10px]">
-                                    <i class="fas fa-file-medical mr-1"></i> Lihat Surat Dokter
+                                    @if($p->status === 'Sakit')
+                                        <i class="fas fa-file-medical mr-1"></i> Lihat Surat Dokter
+                                    @else
+                                        <i class="fas fa-paperclip mr-1"></i> Lihat Lampiran Izin
+                                    @endif
                                 </a>
                             @endif
                         </td>
@@ -314,6 +318,22 @@
                     <input type="text" id="searchPegawai" onkeyup="filterRoster()" placeholder="Cari nama pegawai..." 
                         class="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-[11px] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-56 transition-all">
                 </div>
+                <div class="flex gap-2 ml-2">
+                    <button onclick="openBulkModal()" class="px-3 py-2 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-lg border border-blue-200 hover:bg-blue-100 transition shadow-sm">
+                        <i class="fas fa-users mr-1"></i> Atur Massal
+                    </button>
+                    <button onclick="openPatternModal()" class="px-3 py-2 bg-purple-50 text-purple-700 text-[10px] font-bold rounded-lg border border-purple-200 hover:bg-purple-100 transition shadow-sm">
+                        <i class="fas fa-sync-alt mr-1"></i> Pola Berulang
+                    </button>
+                    <form action="{{ route('admin.presensi.shift.copy') }}" method="POST" onsubmit="return confirm('Salin semua jadwal dari bulan lalu ke bulan ini? Jadwal hari yang sama pada bulan ini akan ditimpa.')" class="inline">
+                        @csrf
+                        <input type="hidden" name="bulan" value="{{ $bulan }}">
+                        <input type="hidden" name="tahun" value="{{ $tahun }}">
+                        <button type="submit" class="px-3 py-2 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg border border-emerald-200 hover:bg-emerald-100 transition shadow-sm">
+                            <i class="fas fa-copy mr-1"></i> Salin Bulan Lalu
+                        </button>
+                    </form>
+                </div>
                 <div class="flex gap-1.5 ml-2">
                     @foreach($shifts as $sh)
                         <span class="px-2 py-1 rounded text-[9px] font-bold border uppercase
@@ -328,7 +348,7 @@
         </div>
         
         <div class="overflow-auto max-h-[600px]">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full min-w-[1500px] text-left border-collapse">
                 <thead class="sticky top-0 z-40">
                     <tr class="bg-gray-50 border-b border-gray-100">
                         <th class="px-4 py-3 sticky left-0 bg-gray-50 z-50 border-r border-gray-100 shadow-[2px_0_5px_rgba(0,0,0,0.03)]" style="width: 180px;">
@@ -456,6 +476,126 @@
         </div>
     </div>
 
+    {{-- MODAL BULK SHIFT --}}
+    <div id="bulkModal" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden scale-95 transition-transform duration-300" id="bulkModalContent">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-900 text-white">
+                <div>
+                    <h4 class="font-black text-lg">Atur Jadwal Massal</h4>
+                    <p class="text-xs text-blue-200">Terapkan shift untuk banyak pegawai sekaligus</p>
+                </div>
+                <button onclick="closeBulkModal()" class="text-white/50 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <form action="{{ route('admin.presensi.shift.bulk') }}" method="POST" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+                @csrf
+                
+                <div>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Pilih Pegawai</label>
+                    <div class="max-h-40 overflow-y-auto border border-gray-200 rounded-xl p-3 bg-gray-50 space-y-2">
+                        @foreach($pegawais as $peg)
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="pegawai_ids[]" value="{{ $peg->id }}" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                            <div>
+                                <div class="font-bold text-gray-800 text-sm">{{ $peg->nama }}</div>
+                                <div class="text-[10px] text-gray-500">{{ $peg->jabatan->nama_jabatan ?? '-' }}</div>
+                            </div>
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Dari Tanggal</label>
+                        <input type="date" name="tanggal_mulai" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Sampai Tanggal</label>
+                        <input type="date" name="tanggal_selesai" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Pilih Shift</label>
+                    <select name="shift_id" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">-- Hari Libur / OFF --</option>
+                        @foreach($shifts as $sh)
+                            <option value="{{ $sh->id }}">{{ $sh->nama_shift }} ({{ substr($sh->jam_masuk,0,5) }}-{{ substr($sh->jam_pulang,0,5) }})</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="flex items-center gap-3 cursor-pointer p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition">
+                        <input type="checkbox" name="skip_minggu" value="1" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                        <span class="text-sm font-bold text-gray-700">Abaikan Hari Minggu (Libur)</span>
+                    </label>
+                </div>
+
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="closeBulkModal()" class="flex-1 px-4 py-2 border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50">Batal</button>
+                    <button type="submit" class="flex-2 px-6 py-2 bg-blue-900 text-white rounded-xl font-bold text-sm hover:bg-blue-800 shadow-lg shadow-blue-900/20">Terapkan Massal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- MODAL PATTERN SHIFT --}}
+    <div id="patternModal" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden scale-95 transition-transform duration-300" id="patternModalContent">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-purple-900 text-white">
+                <div>
+                    <h4 class="font-black text-lg">Pola Berulang</h4>
+                    <p class="text-xs text-purple-200">Generate jadwal berdasarkan pola shift</p>
+                </div>
+                <button onclick="closePatternModal()" class="text-white/50 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <form action="{{ route('admin.presensi.shift.pattern') }}" method="POST" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+                @csrf
+                
+                <div>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Pilih Pegawai</label>
+                    <div class="max-h-32 overflow-y-auto border border-gray-200 rounded-xl p-3 bg-gray-50 space-y-2">
+                        @foreach($pegawais as $peg)
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="pegawai_ids[]" value="{{ $peg->id }}" class="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500">
+                            <div>
+                                <div class="font-bold text-gray-800 text-sm">{{ $peg->nama }}</div>
+                            </div>
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Periode Mulai</label>
+                        <input type="date" name="tanggal_mulai" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Periode Selesai</label>
+                        <input type="date" name="tanggal_selesai" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Urutan Pola Shift</label>
+                        <button type="button" onclick="addPatternRow()" class="text-xs font-bold text-purple-600 hover:text-purple-800"><i class="fas fa-plus"></i> Tambah Hari</button>
+                    </div>
+                    <div id="patternContainer" class="space-y-2">
+                        <!-- Pattern rows will be generated by JS -->
+                    </div>
+                </div>
+
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="closePatternModal()" class="flex-1 px-4 py-2 border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50">Batal</button>
+                    <button type="submit" class="flex-2 px-6 py-2 bg-purple-900 text-white rounded-xl font-bold text-sm hover:bg-purple-800 shadow-lg shadow-purple-900/20">Generate Pola</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
 
 @endsection
@@ -517,6 +657,61 @@
                 row.style.display = 'none';
             }
         });
+    }
+
+    let patternDayCount = 0;
+    const shiftsOptions = `
+        <option value="0">Libur / OFF</option>
+        @foreach($shifts as $sh)
+            <option value="{{ $sh->id }}">{{ $sh->nama_shift }}</option>
+        @endforeach
+    `;
+
+    function addPatternRow() {
+        patternDayCount++;
+        const container = document.getElementById('patternContainer');
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-3 bg-gray-50 p-2 border border-gray-200 rounded-lg';
+        row.innerHTML = `
+            <div class="w-16 text-center text-xs font-bold text-gray-500 uppercase">Hari ${patternDayCount}</div>
+            <select name="pola[]" required class="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                ${shiftsOptions}
+            </select>
+            <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600 px-2"><i class="fas fa-times"></i></button>
+        `;
+        container.appendChild(row);
+    }
+
+    function openBulkModal() {
+        const modal = document.getElementById('bulkModal');
+        const content = document.getElementById('bulkModalContent');
+        modal.classList.remove('hidden');
+        setTimeout(() => content.classList.remove('scale-95'), 10);
+    }
+
+    function closeBulkModal() {
+        const modal = document.getElementById('bulkModal');
+        const content = document.getElementById('bulkModalContent');
+        content.classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 200);
+    }
+
+    function openPatternModal() {
+        const modal = document.getElementById('patternModal');
+        const content = document.getElementById('patternModalContent');
+        if(patternDayCount === 0) {
+            addPatternRow();
+            addPatternRow();
+        }
+        modal.classList.remove('hidden');
+        setTimeout(() => content.classList.remove('scale-95'), 10);
+    }
+
+    function closePatternModal() {
+        const modal = document.getElementById('patternModal');
+        const content = document.getElementById('patternModalContent');
+        content.classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 200);
     }
 
     // Auto switch tab based on URL param

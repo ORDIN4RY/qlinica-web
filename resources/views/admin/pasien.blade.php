@@ -536,6 +536,27 @@
           </div>
         </div>
 
+        {{-- ── Info Akun Login ── --}}
+        <div class="col-span-1 md:col-span-2">
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <i class="fas fa-key text-blue-600 text-sm"></i>
+              <span class="text-xs font-bold text-blue-700 uppercase tracking-wide">Info Akun Login Pasien</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <div class="text-[11px] text-blue-500 font-semibold uppercase mb-1">Username (No. Rekam Medik)</div>
+                <div class="font-mono font-bold text-blue-900 text-sm bg-white px-3 py-1.5 rounded-lg border border-blue-200" id="infoLoginRm">-</div>
+              </div>
+              <div>
+                <div class="text-[11px] text-blue-500 font-semibold uppercase mb-1">Password Default</div>
+                <div class="font-mono font-bold text-blue-900 text-sm bg-white px-3 py-1.5 rounded-lg border border-blue-200" id="infoLoginPass">-</div>
+              </div>
+            </div>
+            <p class="text-[11px] text-blue-400 mt-2"><i class="fas fa-info-circle mr-1"></i>Sampaikan info ini kepada pasien. Password dapat diubah oleh admin.</p>
+          </div>
+        </div>
+
         <div>
           <label class="block text-xs font-bold text-gray-400 uppercase mb-1">NIK</label>
           <div class="text-[15px] font-semibold text-gray-800" id="infoNik">-</div>
@@ -591,22 +612,23 @@
 {{-- Data JSON pasien untuk form edit --}}
 <script id="pasienData" type="application/json">
   {!! json_encode($pasiens->map(fn($p) => [
-    'id'             => $p->id,
-    'no_rm'          => $p->no_rm,
-    'nik'            => $p->nik ?? '',
-    'nama'           => $p->nama,
-    'nama_kk'        => $p->nama_kk ?? '',
-    'tgl_lahir'      => $p->tgl_lahir ? \Carbon\Carbon::parse($p->tgl_lahir)->format('Y-m-d') : '',
-    'jenis_kelamin'  => $p->jenis_kelamin,
-    'golongan_darah' => $p->golongan_darah ?? '',
-    'alamat'         => $p->alamat ?? '',
-    'desa'           => $p->desa ?? '',
-    'kota'           => $p->kota ?? '',
-    'no_hp'          => $p->user->phone ?? '',
-    'agama_id'       => $p->agama_id ?? '',
-    'pendidikan_id'  => $p->pendidikan_id ?? '',
-    'pekerjaan_id'   => $p->pekerjaan_id ?? '',
-    'riwayat_alergi' => $p->riwayat_alergi ?? '',
+    'id'              => $p->id,
+    'no_rm'           => $p->no_rm,
+    'nik'             => $p->nik ?? '',
+    'nama'            => $p->nama,
+    'nama_kk'         => $p->nama_kk ?? '',
+    'tgl_lahir'       => $p->tgl_lahir ? \Carbon\Carbon::parse($p->tgl_lahir)->format('Y-m-d') : '',
+    'jenis_kelamin'   => $p->jenis_kelamin,
+    'golongan_darah'  => $p->golongan_darah ?? '',
+    'alamat'          => $p->alamat ?? '',
+    'desa'            => $p->desa ?? '',
+    'kota'            => $p->kota ?? '',
+    'no_hp'           => $p->user->phone ?? '',
+    'agama_id'        => $p->agama_id ?? '',
+    'pendidikan_id'   => $p->pendidikan_id ?? '',
+    'pekerjaan_id'    => $p->pekerjaan_id ?? '',
+    'riwayat_alergi'  => $p->riwayat_alergi ?? '',
+    'default_password' => 'pasien' . \Carbon\Carbon::parse($p->created_at)->year,
   ])->keyBy('id')) !!}
 </script>
 
@@ -715,6 +737,9 @@
     document.getElementById('infoJenkel').textContent = p.jenis_kelamin === 'L' ? 'Laki-laki' : (p.jenis_kelamin === 'P' ? 'Perempuan' : '-');
     document.getElementById('infoDarah').textContent = p.golongan_darah || '-';
     document.getElementById('infoHp').textContent = p.no_hp || '-';
+    // Info akun login
+    document.getElementById('infoLoginRm').textContent = p.no_rm || '-';
+    document.getElementById('infoLoginPass').textContent = p.default_password || 'pasien' + new Date().getFullYear();
     
     var fullAlamat = [];
     if(p.alamat) fullAlamat.push(p.alamat);

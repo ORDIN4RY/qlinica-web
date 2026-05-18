@@ -5,21 +5,22 @@
 @section('page-subtitle', 'Kelola antrian pasien hari ini')
 
 @section('content')
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
   <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
     <p class="text-sm text-gray-500">Total Antrian</p>
     <p class="text-3xl font-bold text-slate-800">{{ $jumlahAntrian }}</p>
   </div>
   <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
     <p class="text-sm text-gray-500">Menunggu</p>
-    <p class="text-3xl font-bold text-slate-800">{{ $antrians->where('status', 'Menunggu')->count() }}</p>
+    <p class="text-3xl font-bold text-amber-600">{{ $antrians->where('status', 'Menunggu')->count() }}</p>
   </div>
   <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
     <p class="text-sm text-gray-500">Dipanggil</p>
-    <p class="text-3xl font-bold text-slate-800">{{ $Dipanggil }}</p>
+    <p class="text-3xl font-bold text-blue-700">{{ $Dipanggil }}</p>
   </div>
   <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
     <p class="text-sm text-gray-500">Selesai</p>
-    <p class="text-3xl font-bold text-slate-800">{{ $selesai }}</p>
+    <p class="text-3xl font-bold text-green-700">{{ $selesai }}</p>
   </div>
 </div>
 
