@@ -160,7 +160,7 @@ class PresensiController extends Controller
     {
         $request->validate([
             'pegawai_ids' => 'required|array',
-            'pegawai_ids.*' => 'exists:pegawais,id',
+            'pegawai_ids.*' => 'exists:pegawai,id',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'shift_id' => 'nullable|exists:shifts,id',
@@ -200,7 +200,7 @@ class PresensiController extends Controller
     {
         $request->validate([
             'pegawai_ids' => 'required|array',
-            'pegawai_ids.*' => 'exists:pegawais,id',
+            'pegawai_ids.*' => 'exists:pegawai,id',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'pola' => 'required|array',

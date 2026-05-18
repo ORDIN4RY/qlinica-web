@@ -225,7 +225,7 @@
   <div id="sidebarOverlay" class="fixed inset-0 bg-gray-900/50 z-30 hidden md:hidden transition-opacity duration-300 opacity-0"></div>
 
   <!-- ===== MAIN ===== -->
-  <div class="md:ml-64 flex-1 flex flex-col min-h-screen transition-all duration-300">
+  <div class="md:ml-64 flex-1 flex flex-col min-h-screen min-w-0 transition-all duration-300">
     <!-- Top bar -->
     <header class="bg-white border-b border-gray-200 sticky top-0 z-20 px-4 md:px-8 py-4 flex items-center justify-between shadow-sm">
       <div class="flex items-center gap-3">
@@ -243,8 +243,8 @@
     </header>
 
     <!-- Page content -->
-    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
-      <div class="max-w-6xl mx-auto">
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden">
+      <div class="w-full max-w-6xl mx-auto">
       @if(session('success'))
         <div class="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-5 py-4 rounded-2xl shadow-sm">
           <i class="fas fa-check-circle text-green-500 text-lg"></i>

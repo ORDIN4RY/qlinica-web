@@ -334,7 +334,7 @@
                         </button>
                     </form>
                 </div>
-                <div class="flex gap-1.5 ml-2">
+                <!-- <div class="flex gap-1.5 ml-2">
                     @foreach($shifts as $sh)
                         <span class="px-2 py-1 rounded text-[9px] font-bold border uppercase
                             @if($sh->nama_shift == 'Shift Pagi') bg-green-50 text-green-700 border-green-200
@@ -343,11 +343,11 @@
                             {{ substr($sh->nama_shift, 6, 1) }}
                         </span>
                     @endforeach
-                </div>
+                </div> -->
             </div>
         </div>
         
-        <div class="overflow-auto max-h-[600px]">
+        <div class="w-full overflow-auto max-h-[600px]">
             <table class="w-full min-w-[1500px] text-left border-collapse">
                 <thead class="sticky top-0 z-40">
                     <tr class="bg-gray-50 border-b border-gray-100">
