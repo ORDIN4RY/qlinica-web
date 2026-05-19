@@ -68,4 +68,21 @@ class IcdService
 
         return $response->json();
     }
+
+    // Browse linearization hierarchy (untuk sync semua)
+    // $uri = null → mulai dari root chapter ICD-11
+    public function browse(?string $uri = null): array
+    {
+        $url = $uri ?? "{$this->apiUrl}/icd/release/11/2024-01/mms";
+
+        $response = Http::withHeaders($this->headers())
+            ->timeout(15)
+            ->get($url);
+
+        if ($response->failed()) {
+            return [];
+        }
+
+        return $response->json() ?? [];
+    }
 }

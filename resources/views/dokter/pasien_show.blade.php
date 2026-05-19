@@ -157,7 +157,7 @@
             <p class="text-xs font-bold text-gray-800 mb-2 flex items-center gap-1.5">
               <i class="fas fa-pills text-purple-500"></i> Resep Diberikan
             </p>
-            @if(!$rm->resep || $rm->resep->resepDetails->isEmpty())
+            @if(!$rm->resep || $rm->resep->details->isEmpty())
               <span class="text-xs text-gray-500 italic bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">Tidak ada resep obat</span>
             @else
               <div class="bg-purple-50/30 border border-purple-100 rounded-xl overflow-hidden">
@@ -170,7 +170,7 @@
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-purple-100/50">
-                    @foreach($rm->resep->resepDetails as $detail)
+                    @foreach($rm->resep->details as $detail)
                       <tr>
                         <td class="px-4 py-2 font-semibold text-gray-800">{{ $detail->obat->nama ?? 'Obat Terhapus' }}</td>
                         <td class="px-4 py-2 text-center font-mono font-bold text-purple-600">{{ $detail->jumlah }}</td>

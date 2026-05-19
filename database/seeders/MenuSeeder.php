@@ -13,7 +13,7 @@ class MenuSeeder extends Seeder
             'Dashboard',
             'Pasien',
             'Pegawai',
-            'Antrian',
+            'Antrian Pemesanan',
             'Resep',
             'Obat',
             'ICDX',
@@ -22,6 +22,7 @@ class MenuSeeder extends Seeder
             'Rekam Medis',
             'Jabatan',
             'Presensi',
+            'Antrian Pemeriksaan',
         ];
 
         foreach ($menus as $nama) {

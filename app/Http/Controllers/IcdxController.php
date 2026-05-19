@@ -29,47 +29,84 @@ class IcdxController extends Controller
         }
     }
 
-    /** Tampilkan halaman daftar ICD-X. */
+    /** Tampilkan halaman daftar ICD-X — selalu dari database. */
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $search  = $request->input('search');
         $perPage = $request->input('per_page', 25);
-        
-        $apiResults = null;
-        $error = null;
+
+        $query = Icdx::orderBy('kode');
 
         if ($search) {
-            // Jika ada pencarian, ambil dari API WHO
-            try {
-                $data = $this->icd->search($search);
-                if (isset($data['DestinationEntities'])) {
-                    $apiResults = collect($data['DestinationEntities'])
-                        ->filter(fn($item) => !empty($item['theCode']))
-                        ->map(function($item) {
-                            return (object) [
-                                'kode' => trim($item['theCode'] ?? ''),
-                                'nama' => trim(strip_tags($item['Title'] ?? '')),
-                                'is_api' => true
-                            ];
-                        })->values();
-                } else {
-                    $apiResults = collect([]);
-                }
-            } catch (\Exception $e) {
-                $error = "Gagal menghubungi API WHO: " . $e->getMessage();
-                $apiResults = collect([]);
-            }
-            $icdxs = $apiResults;
-            $total = count($apiResults);
-        } else {
-            // Jika tidak ada pencarian, ambil dari database lokal
-            $icdxs = Icdx::orderBy('kode')
-                ->paginate($perPage)
-                ->withQueryString();
-            $total = Icdx::count();
+            $query->where(function ($q) use ($search) {
+                $q->where('kode', 'like', "%{$search}%")
+                  ->orWhere('nama', 'like', "%{$search}%");
+            });
         }
 
-        return view('icdx', compact('icdxs', 'search', 'total', 'perPage', 'error'));
+        $icdxs = $query->paginate($perPage)->withQueryString();
+        $total  = Icdx::count();
+
+        return view('icdx', compact('icdxs', 'search', 'total', 'perPage'));
+    }
+
+    /** Sync dari WHO API — dua mode:
+     *  mode=all   → jalankan Artisan command (traversal hierarki penuh, lebih lama)
+     *  mode=quick → search A-Z untuk coverage luas (cepat, via web request)
+     */
+    public function sync(Request $request)
+    {
+        $mode = $request->input('mode', 'quick');
+
+        if ($mode === 'all') {
+            // Jalankan Artisan command secara sinkron
+            // (untuk produksi sebaiknya pakai Queue, tapi ini cukup untuk skala kecil)
+            try {
+                \Artisan::call('icdx:sync', ['--depth' => 5, '--delay' => 100]);
+                $output = \Artisan::output();
+                return redirect()->route('admin.icdx')
+                    ->with('success', 'Sync penuh selesai! ' . Icdx::count() . ' total data ICD-X di database.');
+            } catch (\Exception $e) {
+                return redirect()->route('admin.icdx')
+                    ->with('error', 'Sync gagal: ' . $e->getMessage());
+            }
+        }
+
+        // Mode quick: search A-Z + a-z untuk coverage luas
+        $letters = array_merge(
+            range('A', 'Z'),
+            ['fever', 'pain', 'disorder', 'disease', 'syndrome', 'infection', 'failure', 'injury', 'cancer', 'tumor']
+        );
+
+        $synced  = 0;
+        $skipped = 0;
+        $errors  = [];
+
+        foreach ($letters as $keyword) {
+            try {
+                $data     = $this->icd->search((string) $keyword);
+                $entities = $data['DestinationEntities'] ?? [];
+
+                foreach ($entities as $entity) {
+                    $kode = trim($entity['theCode'] ?? '');
+                    $nama = trim(strip_tags($entity['Title'] ?? ''));
+
+                    if (!$kode || !$nama) { $skipped++; continue; }
+
+                    Icdx::updateOrCreate(['kode' => $kode], ['nama' => $nama]);
+                    $synced++;
+                }
+            } catch (\Exception $e) {
+                $errors[] = "'{$keyword}': " . $e->getMessage();
+            }
+        }
+
+        $msg = "Sync cepat selesai: {$synced} data disimpan/diperbarui, {$skipped} dilewati. Total DB: " . Icdx::count();
+        if (!empty($errors)) {
+            $msg .= ' | Error: ' . implode('; ', array_slice($errors, 0, 3));
+        }
+
+        return redirect()->route('admin.icdx')->with('success', $msg);
     }
 
     /** Simpan data ICD-X baru. */

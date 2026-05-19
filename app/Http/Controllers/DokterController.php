@@ -140,29 +140,75 @@ class DokterController extends Controller
         return redirect()->route('dokter.resep.index')->with('success', 'Resep berhasil dikirim ke apoteker.');
     }
 
-    public function antrianIndex()
+    public function antrianIndex(\Illuminate\Http\Request $request)
     {
-        // Tampilkan SEMUA antrian hari ini — dokter bisa melihat dan menangani
-        // antrian yang masuk status Dipanggil/Dilayani oleh admin
-        $antrians = Antrian::with(['pasien', 'rekamMedis'])
-            ->where('tanggal', now()->toDateString())
-            ->orderByRaw("
-                CASE 
-                    WHEN status = 'Dipanggil' THEN 1
-                    WHEN status = 'Menunggu' THEN 2
-                    WHEN status = 'Selesai' THEN 3
-                    WHEN status = 'Batal' THEN 4
-                    ELSE 5
-                END ASC
-            ")
-            ->orderBy('no_antrian', 'asc')
-            ->get();
+        $user    = auth()->user();
+        $pegawai = $user->pegawai;
+        $hasAll  = $user->hasMenuAccess('Antrian Pemeriksaan', 'all');
+
+        // Urutan sort: default = terbaru di atas, batal di bawah
+        $sortBy = $request->query('sort', 'default');
+
+        $query = Antrian::with(['pasien', 'rekamMedis'])
+            ->where('tanggal', now()->toDateString());
+
+        // Filter: hanya antrian yang ditugaskan ke dokter ini,
+        // kecuali dokter memiliki akses 'Antrian Pemeriksaan > all'
+        if (!$hasAll && $pegawai) {
+            $query->whereHas('rekamMedis', function ($q) use ($pegawai) {
+                $q->where('dokter_id', $pegawai->id);
+            });
+        }
+
+        // Urutkan berdasarkan pilihan sort
+        match ($sortBy) {
+            // Paling baru di atas (by ID desc), batal di bawah
+            'default' => $query
+                ->orderByRaw("
+                    CASE status
+                        WHEN 'Dipanggil' THEN 1
+                        WHEN 'Menunggu'  THEN 2
+                        WHEN 'Selesai'   THEN 3
+                        WHEN 'Batal'     THEN 4
+                        ELSE 5
+                    END ASC
+                ")
+                ->orderByDesc('id'),
+
+            // Nomor antrian terkecil duluan
+            'nomor_asc'  => $query->orderBy('no_antrian', 'asc'),
+            'nomor_desc' => $query->orderBy('no_antrian', 'desc'),
+
+            // Berdasarkan status alfabet
+            'status_asc'  => $query->orderBy('status', 'asc')->orderByDesc('id'),
+            'status_desc' => $query->orderBy('status', 'desc')->orderByDesc('id'),
+
+            // Nama pasien
+            'nama_asc'  => $query->join('pasien', 'antrian.pasien_id', '=', 'pasien.id')
+                ->orderBy('pasien.nama', 'asc')->select('antrian.*'),
+            'nama_desc' => $query->join('pasien', 'antrian.pasien_id', '=', 'pasien.id')
+                ->orderBy('pasien.nama', 'desc')->select('antrian.*'),
+
+            default => $query->orderByRaw("
+                    CASE status
+                        WHEN 'Dipanggil' THEN 1
+                        WHEN 'Menunggu'  THEN 2
+                        WHEN 'Selesai'   THEN 3
+                        WHEN 'Batal'     THEN 4
+                        ELSE 5
+                    END ASC
+                ")->orderByDesc('id'),
+        };
+
+        $antrians = $query->get();
 
         return view('dokter.antrian', [
             'antrians'      => $antrians,
             'jumlahAntrian' => $antrians->count(),
             'Dipanggil'     => $antrians->where('status', 'Dipanggil')->count(),
             'selesai'       => $antrians->where('status', 'Selesai')->count(),
+            'sortBy'        => $sortBy,
+            'hasAll'        => $hasAll,
         ]);
     }
 
@@ -361,7 +407,7 @@ class DokterController extends Controller
         $pasien = Pasien::with(['agama', 'pendidikan', 'pekerjaan'])->findOrFail($id);
         
         // Ambil riwayat kunjungan (Rekam Medis) pasien ini
-        $riwayatMedis = RekamMedis::with(['dokter', 'antrian', 'diagnosa.icdx', 'resep.resepDetails.obat'])
+        $riwayatMedis = RekamMedis::with(['dokter', 'antrian', 'diagnosa.icdx', 'resep.details.obat'])
             ->where('pasien_id', $pasien->id)
             ->orderByDesc('tanggal_periksa')
             ->get();

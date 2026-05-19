@@ -36,10 +36,10 @@ return [
     ],
 
     'icd' => [
-    'client_id'     => env('ICD_CLIENT_ID'),
-    'client_secret' => env('ICD_CLIENT_SECRET'),
-    'token_url'     => env('ICD_TOKEN_URL'),
-    'api_url'       => env('ICD_API_URL'),
-],
+        'client_id'     => env('ICD_CLIENT_ID'),
+        'client_secret' => env('ICD_CLIENT_SECRET'),
+        'token_url'     => env('ICD_TOKEN_URL', 'https://icdaccessmanagement.who.int/connect/token'),
+        'api_url'       => env('ICD_API_URL',   'https://id.who.int'),
+    ],
 
 ];

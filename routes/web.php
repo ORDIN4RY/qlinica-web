@@ -59,18 +59,28 @@ Route::middleware(['auth', 'menu:Dashboard'])->group(function () {
     Route::get('/dokter/dashboard', [DokterController::class, 'dashboard'])->name('dokter.dashboard');
 });
 
-// ── Antrian ──
-Route::middleware(['auth', 'menu:Antrian'])->group(function () {
+// ── Antrian Pemesanan ──
+Route::middleware(['auth', 'menu:Antrian Pemesanan'])->group(function () {
     Route::get('/admin/pemesanan', [AntrianController::class, 'index'])->name('admin.pemesanan');
     Route::get('/admin/antrian/realtime', [AntrianController::class, 'realtimeData'])->name('admin.antrian.realtime');
-    Route::post('/admin/antrian', [AntrianController::class, 'store'])->name('admin.antrian.store')->middleware('menu:Antrian,tambah');
-    Route::patch('/admin/antrian/{id}/status', [AntrianController::class, 'updateStatus'])->name('admin.antrian.status')->middleware('menu:Antrian,edit');
-    Route::post('/admin/antrian/{id}/panggil', [AntrianController::class, 'panggilPeriksa'])->name('admin.antrian.panggil')->middleware('menu:Antrian,edit');
-    Route::patch('/admin/antrian/{id}/dilayani', [AntrianController::class, 'updateStatus'])->name('admin.antrian.dilayani')->middleware('menu:Antrian,edit');
-    Route::patch('/admin/antrian/{id}/selesai', [AntrianController::class, 'updateStatus'])->name('admin.antrian.selesai')->middleware('menu:Antrian,edit');
+    Route::post('/admin/antrian', [AntrianController::class, 'store'])->name('admin.antrian.store')->middleware('menu:Antrian Pemesanan,tambah');
+    Route::patch('/admin/antrian/{id}/status', [AntrianController::class, 'updateStatus'])->name('admin.antrian.status')->middleware('menu:Antrian Pemesanan,edit');
+    Route::post('/admin/antrian/{id}/panggil', [AntrianController::class, 'panggilPeriksa'])->name('admin.antrian.panggil')->middleware('menu:Antrian Pemesanan,edit');
+    Route::patch('/admin/antrian/{id}/dilayani', [AntrianController::class, 'updateStatus'])->name('admin.antrian.dilayani')->middleware('menu:Antrian Pemesanan,edit');
+    Route::patch('/admin/antrian/{id}/selesai', [AntrianController::class, 'updateStatus'])->name('admin.antrian.selesai')->middleware('menu:Antrian Pemesanan,edit');
+});
 
-    // Route::get('/dokter/antrian', [DokterController::class, 'antrianIndex'])->name('dokter.antrian');
-    // Route::patch('/dokter/antrian/{id}/panggil', [DokterController::class, 'panggilAntrian'])->name('dokter.antrian.panggil')->middleware('menu:Antrian,edit');
+// ── Antrian Pemeriksaan ──
+Route::middleware(['auth', 'menu:Antrian Pemeriksaan'])->group(function () {
+    Route::get('/dokter/antrian', [DokterController::class, 'antrianIndex'])->name('dokter.antrian');
+    Route::get('/dokter/antrian/{id}/periksa', [DokterController::class, 'periksa'])->name('dokter.antrian.periksa');
+    Route::post('/dokter/antrian/{antrianId}/diagnosa', [DokterController::class, 'simpanDiagnosa'])->name('dokter.antrian.diagnosa');
+});
+
+// ── Rekam Medis ──
+Route::middleware(['auth', 'menu:Rekam Medis'])->group(function () {
+    Route::get('/dokter/pasien', [DokterController::class, 'pasienIndex'])->name('dokter.pasien');
+    Route::get('/dokter/pasien/{id}', [DokterController::class, 'showPasien'])->name('dokter.pasien.show');
 });
 
 // ── Pasien ──
@@ -99,8 +109,7 @@ Route::middleware(['auth', 'menu:Pegawai'])->group(function () {
     Route::put('/admin/presensi/{id}', [PresensiController::class, 'update'])->name('admin.presensi.update');
     Route::put('/admin/presensi/{id}/shift', [PresensiController::class, 'updateShift'])->name('admin.presensi.shift');
     Route::delete('/admin/presensi/{id}', [PresensiController::class, 'destroy'])->name('admin.presensi.destroy');
-
-    });
+});
 
 // ── Resep ──
 Route::middleware(['auth', 'menu:Resep'])->group(function () {
@@ -120,6 +129,7 @@ Route::middleware(['auth', 'menu:Obat'])->group(function () {
 Route::middleware(['auth', 'menu:ICDX'])->group(function () {
     Route::get('/admin/icdx', [IcdxController::class, 'index'])->name('admin.icdx');
     Route::post('/admin/icdx', [IcdxController::class, 'store'])->name('admin.icdx.store')->middleware('menu:ICDX,tambah');
+    Route::post('/admin/icdx/sync', [IcdxController::class, 'sync'])->name('admin.icdx.sync')->middleware('menu:ICDX,tambah');
     Route::put('/admin/icdx/{id}', [IcdxController::class, 'update'])->name('admin.icdx.update')->middleware('menu:ICDX,edit');
     Route::delete('/admin/icdx/{id}', [IcdxController::class, 'destroy'])->name('admin.icdx.destroy')->middleware('menu:ICDX,hapus');
 });
@@ -145,14 +155,6 @@ Route::middleware(['auth', 'menu:Jabatan'])->group(function () {
     Route::put('/admin/jabatan/{id}/akses', [JabatanController::class, 'updateAkses'])->name('admin.jabatan.akses')->middleware('menu:Jabatan,edit');
 });
 
-// ── Rekam Medis ──
-Route::middleware(['auth', 'menu:Rekam Medis'])->group(function () {
-    Route::get('/dokter/antrian', [DokterController::class, 'antrianIndex'])->name('dokter.antrian');
-    Route::get('/dokter/antrian/{id}/periksa', [DokterController::class, 'periksa'])->name('dokter.antrian.periksa');
-    Route::get('/dokter/pasien', [DokterController::class, 'pasienIndex'])->name('dokter.pasien');
-    Route::get('/dokter/pasien/{id}', [DokterController::class, 'showPasien'])->name('dokter.pasien.show');
-    Route::post('/dokter/antrian/{antrianId}/diagnosa', [DokterController::class, 'simpanDiagnosa'])->name('dokter.antrian.diagnosa')->middleware('menu:Rekam Medis,tambah');
-});
 
 // ── Protected Routes Khusus Pasien ──
 Route::middleware(['auth', 'role:pasien'])->group(function () {

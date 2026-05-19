@@ -55,11 +55,33 @@
 
 <!-- List Queue Container -->
 <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-  <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+  <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
     <div>
-      <h2 class="font-extrabold text-slate-800 text-lg">Daftar Antrian Hari Ini</h2>
-      <p class="text-xs text-slate-400 font-medium mt-0.5">Kelola antrian pasien klinis Anda secara real-time</p>
+      <h2 class="font-extrabold text-slate-800 text-lg flex items-center gap-2">
+        Daftar Antrian Hari Ini
+        @if($hasAll)
+          <span class="text-[10px] font-bold px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full border border-purple-200">Semua Dokter</span>
+        @else
+          <span class="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full border border-blue-200">Antrian Saya</span>
+        @endif
+      </h2>
+      <p class="text-xs text-slate-400 font-medium mt-0.5">Urutan default: aktif di atas, batal di bawah</p>
     </div>
+
+    {{-- Sort By --}}
+    <form method="GET" action="{{ route('dokter.antrian') }}" class="flex items-center gap-2">
+      <label class="text-xs font-bold text-slate-500 whitespace-nowrap">Urutkan:</label>
+      <select name="sort" onchange="this.form.submit()"
+        class="text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition cursor-pointer">
+        <option value="default"     {{ $sortBy === 'default'     ? 'selected' : '' }}>Default (Status + Terbaru)</option>
+        <option value="nomor_asc"   {{ $sortBy === 'nomor_asc'   ? 'selected' : '' }}>No. Antrian ↑</option>
+        <option value="nomor_desc"  {{ $sortBy === 'nomor_desc'  ? 'selected' : '' }}>No. Antrian ↓</option>
+        <option value="nama_asc"    {{ $sortBy === 'nama_asc'    ? 'selected' : '' }}>Nama A–Z</option>
+        <option value="nama_desc"   {{ $sortBy === 'nama_desc'   ? 'selected' : '' }}>Nama Z–A</option>
+        <option value="status_asc"  {{ $sortBy === 'status_asc'  ? 'selected' : '' }}>Status A–Z</option>
+        <option value="status_desc" {{ $sortBy === 'status_desc' ? 'selected' : '' }}>Status Z–A</option>
+      </select>
+    </form>
   </div>
 
   @if($antrians->isEmpty())
@@ -171,7 +193,7 @@
                 </a>
               @else
                 <span class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-rose-50 text-rose-600 text-xs font-bold rounded-xl border border-rose-200/50">
-                  <i class="fas fa-ban"></i> Batal / Tidak Datang
+                  <i class="fas fa-ban"></i> Dibatalkan
                 </span>
               @endif
             </div>

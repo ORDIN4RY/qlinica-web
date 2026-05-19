@@ -69,10 +69,14 @@
 
 {{-- ─── TOOLBAR ─────────────────────────────────────────────────────── --}}
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
-  <button id="btnTambah"
-    class="flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-md">
-    <i class="fas fa-plus text-xs"></i> Tambah ICD-X
-  </button>
+  <div class="flex items-center gap-2">
+    @if(auth()->user()->hasMenuAccess('ICDX', 'tambah'))
+    <button id="btnSync"
+      class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-md">
+      <i class="fas fa-sync-alt text-xs"></i> Sync dari API
+    </button>
+    @endif
+  </div>
 
   <div class="flex items-center gap-3 flex-wrap">
     {{-- Per page --}}
@@ -126,58 +130,41 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-50">
-        @if(isset($error))
-          <tr>
-            <td colspan="4" class="text-center py-8 text-red-500 font-semibold">
-              <i class="fas fa-exclamation-triangle mr-2"></i> {{ $error }}
-            </td>
-          </tr>
-        @endif
-        
         @forelse($icdxs as $i => $icdx)
           <tr class="table-row">
             {{-- No --}}
             <td class="px-5 py-3.5 text-gray-400 font-semibold text-xs">
-              {{ $icdxs instanceof \Illuminate\Pagination\LengthAwarePaginator ? $icdxs->firstItem() + $i : $i + 1 }}
+              {{ $icdxs->firstItem() + $i }}
             </td>
             {{-- Kode --}}
             <td class="px-5 py-3.5">
               <span class="kode-badge">{{ $icdx->kode }}</span>
-              @if(isset($icdx->is_api))
-                <span class="ml-2 text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">API WHO</span>
-              @endif
             </td>
             {{-- Nama --}}
             <td class="px-5 py-3.5 text-gray-500 text-xs hide-sm">{{ $icdx->nama ?: '—' }}</td>
             {{-- Aksi --}}
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-2">
-                @if(isset($icdx->is_api))
-                  <form method="POST" action="{{ route('admin.icdx.store') }}" class="m-0 p-0">
-                    @csrf
-                    <input type="hidden" name="kode" value="{{ $icdx->kode }}">
-                    <input type="hidden" name="nama" value="{{ $icdx->nama }}">
-                    <button type="submit" class="text-[11px] bg-blue-900 text-white hover:bg-blue-800 px-3 py-1.5 rounded-lg transition shadow-sm font-semibold flex items-center gap-1.5">
-                      <i class="fas fa-download text-[10px]"></i> Simpan
-                    </button>
-                  </form>
-                @else
-                  <button
-                    onclick="openEdit({{ $icdx->id }}, '{{ addslashes($icdx->kode) }}', '{{ addslashes($icdx->nama) }}')"
-                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition"
-                    title="Edit">
-                    <i class="fas fa-pen text-xs"></i>
-                  </button>
-                  <button
-                    onclick="openDel({{ $icdx->id }}, '{{ addslashes($icdx->kode) }}', '{{ addslashes($icdx->nama) }}')"
-                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition"
-                    title="Hapus">
-                    <i class="fas fa-trash text-xs"></i>
-                  </button>
+                @if(auth()->user()->hasMenuAccess('ICDX', 'edit'))
+                <button
+                  onclick="openEdit({{ $icdx->id }}, '{{ addslashes($icdx->kode) }}', '{{ addslashes($icdx->nama) }}')"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition"
+                  title="Edit">
+                  <i class="fas fa-pen text-xs"></i>
+                </button>
+                @endif
+                @if(auth()->user()->hasMenuAccess('ICDX', 'hapus'))
+                <button
+                  onclick="openDel({{ $icdx->id }}, '{{ addslashes($icdx->kode) }}', '{{ addslashes($icdx->nama) }}')"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition"
+                  title="Hapus">
+                  <i class="fas fa-trash text-xs"></i>
+                </button>
                 @endif
               </div>
             </td>
           </tr>
+
         @empty
           <tr>
             <td colspan="4" class="text-center py-16 text-gray-400">
@@ -336,6 +323,74 @@
   </div>
 </div>
 
+{{-- ═══════════════════════════════════════════════════════════
+     MODAL SYNC API
+══════════════════════════════════════════════════════════════ --}}
+<div class="modal-overlay" id="syncOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+        <i class="fas fa-sync-alt text-emerald-600"></i> Sync dari WHO API
+      </h2>
+      <button onclick="closeSync()" class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition text-gray-500">
+        <i class="fas fa-times text-sm"></i>
+      </button>
+    </div>
+    <form id="syncForm" method="POST" action="{{ route('admin.icdx.sync') }}" onsubmit="startSync()">
+      @csrf
+      <input type="hidden" name="mode" id="syncMode" value="quick">
+      <div class="modal-body space-y-4">
+
+        {{-- Opsi Quick --}}
+        <div id="optQuick"
+          onclick="selectMode('quick')"
+          class="sync-option cursor-pointer border-2 border-emerald-500 bg-emerald-50/40 rounded-xl p-4 transition hover:shadow-sm">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 flex-shrink-0 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
+              <i class="fas fa-bolt text-sm"></i>
+            </div>
+            <div>
+              <p class="font-bold text-sm text-gray-800">Sync Cepat (A–Z)</p>
+              <p class="text-xs text-gray-500 mt-0.5">Mencari penyakit berdasarkan huruf A–Z + kata kunci umum. Cepat (~30 detik), coverage sekitar ratusan kode.</p>
+            </div>
+            <i class="fas fa-check-circle text-emerald-500 ml-auto flex-shrink-0" id="checkQuick"></i>
+          </div>
+        </div>
+
+        {{-- Opsi Full --}}
+        <div id="optAll"
+          onclick="selectMode('all')"
+          class="sync-option cursor-pointer border-2 border-gray-200 bg-gray-50/40 rounded-xl p-4 transition hover:shadow-sm hover:border-blue-300">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 flex-shrink-0 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+              <i class="fas fa-database text-sm"></i>
+            </div>
+            <div>
+              <p class="font-bold text-sm text-gray-800">Sync Penuh (Traversal Hierarki)</p>
+              <p class="text-xs text-gray-500 mt-0.5">Traversal seluruh hierarki ICD-11 WHO. Lebih lambat (~beberapa menit), mendapatkan semua kode secara lengkap.</p>
+              <p class="text-[11px] text-amber-600 font-semibold mt-1"><i class="fas fa-exclamation-triangle text-[10px]"></i> Jangan tutup browser saat proses berjalan.</p>
+            </div>
+            <i class="fas fa-check-circle text-blue-500 ml-auto flex-shrink-0 hidden" id="checkAll"></i>
+          </div>
+        </div>
+
+        {{-- Progress --}}
+        <div id="syncProgress" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center gap-3">
+          <i class="fas fa-spinner fa-spin text-emerald-600"></i>
+          <span class="text-sm text-emerald-700 font-semibold" id="syncProgressText">Sedang sync dari WHO API, mohon tunggu...</span>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" onclick="closeSync()" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">Batal</button>
+        <button type="submit" id="btnSyncSubmit" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition shadow-md flex items-center gap-2">
+          <i class="fas fa-sync-alt"></i> <span id="btnSyncText">Mulai Sync Cepat</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
 @endsection
 
 @push('scripts')
@@ -414,7 +469,44 @@
   }
 
   /* ── EVENTS ── */
-  document.getElementById('btnTambah').addEventListener('click', openAdd);
+  document.getElementById('btnSync')?.addEventListener('click', openSync);
+
+  function openSync() {
+    selectMode('quick'); // reset ke default
+    document.getElementById('syncProgress').classList.add('hidden');
+    document.getElementById('syncOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSync() {
+    document.getElementById('syncOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function selectMode(mode) {
+    document.getElementById('syncMode').value = mode;
+
+    const isQuick = mode === 'quick';
+    // Border active
+    document.getElementById('optQuick').className = 'sync-option cursor-pointer border-2 ' + (isQuick ? 'border-emerald-500 bg-emerald-50/40' : 'border-gray-200 bg-gray-50/40') + ' rounded-xl p-4 transition hover:shadow-sm';
+    document.getElementById('optAll').className   = 'sync-option cursor-pointer border-2 ' + (!isQuick ? 'border-blue-500 bg-blue-50/40' : 'border-gray-200 bg-gray-50/40') + ' rounded-xl p-4 transition hover:shadow-sm';
+    // Checkmarks
+    document.getElementById('checkQuick').classList.toggle('hidden', !isQuick);
+    document.getElementById('checkAll').classList.toggle('hidden', isQuick);
+    // Button text
+    document.getElementById('btnSyncText').textContent = isQuick ? 'Mulai Sync Cepat' : 'Mulai Sync Penuh';
+    document.getElementById('btnSyncSubmit').className = 'px-6 py-2.5 rounded-xl ' + (isQuick ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-700 hover:bg-blue-800') + ' text-white text-sm font-bold transition shadow-md flex items-center gap-2';
+  }
+  function startSync() {
+    const mode = document.getElementById('syncMode').value;
+    const text = mode === 'all' ? 'Sync penuh berjalan, ini bisa memakan beberapa menit...' : 'Sync cepat berjalan, mohon tunggu...';
+    document.getElementById('syncProgressText').textContent = text;
+    document.getElementById('syncProgress').classList.remove('hidden');
+    document.getElementById('btnSyncSubmit').disabled = true;
+    document.getElementById('btnSyncSubmit').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+  }
+
+  document.getElementById('syncOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeSync();
+  });
 
   document.getElementById('modalOverlay').addEventListener('click', function(e) {
     if (e.target === this) closeModal();
@@ -424,7 +516,7 @@
   });
 
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') { closeModal(); closeDel(); }
+    if (e.key === 'Escape') { closeModal(); closeDel(); closeSync(); }
   });
 
   /* ── WHO API SEARCH ── */

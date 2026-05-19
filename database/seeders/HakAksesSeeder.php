@@ -32,7 +32,7 @@ class HakAksesSeeder extends Seeder
             ],
             [
                 'jabatan_id' => 1,
-                'menu_id' => $menus['Antrian'],
+                'menu_id' => $menus['Antrian Pemeriksaan'],
                 'sub_akses' => ['view' => true, 'panggil' => true],
             ],
             [
@@ -59,11 +59,6 @@ class HakAksesSeeder extends Seeder
             ],
             [
                 'jabatan_id' => 2,
-                'menu_id' => $menus['Antrian'],
-                'sub_akses' => ['view' => true],
-            ],
-            [
-                'jabatan_id' => 2,
                 'menu_id' => $menus['Rekam Medis'],
                 'sub_akses' => ['view' => true],
             ],
@@ -81,7 +76,7 @@ class HakAksesSeeder extends Seeder
             ],
             [
                 'jabatan_id' => 3,
-                'menu_id' => $menus['Antrian'],
+                'menu_id' => $menus['Antrian Pemesanan'],
                 'sub_akses' => ['view' => true, 'tambah' => true, 'edit' => true, 'hapus' => true],
             ],
             
