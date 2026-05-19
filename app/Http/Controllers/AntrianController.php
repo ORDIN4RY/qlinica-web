@@ -15,6 +15,14 @@ class AntrianController extends Controller
     {
         $antrians = Antrian::with('pasien')
             ->where('tanggal', now()->toDateString())
+            ->orderByRaw("
+                CASE
+                  WHEN LOWER(status) = 'dipanggil' THEN 0
+                  WHEN LOWER(status) = 'menunggu'  THEN 1
+                  WHEN LOWER(status) IN ('selesai','batal') THEN 3
+                  ELSE 2
+                END ASC
+            ")
             ->orderBy('no_antrian')
             ->get();
 
@@ -247,6 +255,14 @@ class AntrianController extends Controller
     {
         $antrians = Antrian::with('pasien')
             ->where('tanggal', now()->toDateString())
+            ->orderByRaw("
+                CASE
+                  WHEN LOWER(status) = 'dipanggil' THEN 0
+                  WHEN LOWER(status) = 'menunggu'  THEN 1
+                  WHEN LOWER(status) IN ('selesai','batal') THEN 3
+                  ELSE 2
+                END ASC
+            ")
             ->orderBy('no_antrian')
             ->get();
 

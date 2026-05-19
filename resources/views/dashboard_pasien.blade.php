@@ -189,8 +189,22 @@
               <div class="mt-3 inline-flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 px-3 py-1.5 rounded-full text-xs font-semibold">
                 <i class="fas fa-wifi"></i> Antrian Online
               </div>
-              <button onclick="batalAntrian()" class="mt-4 w-full border border-red-300 text-red-600 hover:bg-red-50 py-2.5 rounded-xl text-sm font-semibold transition">
-                <i class="fas fa-times"></i> Batalkan Antrian
+              <button
+                id="btnBatalAntrian"
+                onclick="batalAntrian()"
+                class="mt-4 w-full border border-red-300 text-red-600 hover:bg-red-50 py-2.5 rounded-xl text-sm font-semibold transition"
+                @if($antrianAktif && strtolower($antrianAktif->status) === 'dipanggil')
+                  disabled
+                  title="Antrian Anda sedang dipanggil, tidak dapat dibatalkan"
+                  style="opacity:0.45; cursor:not-allowed; pointer-events:none;"
+                @endif
+              >
+                <i class="fas fa-times"></i>
+                @if($antrianAktif && strtolower($antrianAktif->status) === 'dipanggil')
+                  Sedang Dipanggil...
+                @else
+                  Batalkan Antrian
+                @endif
               </button>
             </div>
           </div>
@@ -1087,6 +1101,28 @@
               antrianAktif && data.antrian_aktif.no_antrian === antrianAktif.nomor) {
             showToast('🔔 Antrian Anda ' + antrianAktif.nomor + ' sedang dipanggil!', 'amber');
           }
+        }
+
+        // — Disable/enable tombol Batalkan Antrian berdasarkan status —
+        const btnBatal = document.getElementById('btnBatalAntrian');
+        if (btnBatal) {
+          const statusAktif = data.antrian_aktif ? data.antrian_aktif.status : null;
+          const isDipanggil = statusAktif && statusAktif.toLowerCase() === 'dipanggil';
+          if (isDipanggil) {
+            btnBatal.disabled = true;
+            btnBatal.style.opacity = '0.45';
+            btnBatal.style.cursor  = 'not-allowed';
+            btnBatal.style.pointerEvents = 'none';
+            btnBatal.title = 'Antrian Anda sedang dipanggil, tidak dapat dibatalkan';
+            btnBatal.innerHTML = '<i class="fas fa-bell fa-shake"></i> Sedang Dipanggil...';
+          } else {
+            btnBatal.disabled = false;
+            btnBatal.style.opacity = '';
+            btnBatal.style.cursor  = '';
+            btnBatal.style.pointerEvents = '';
+            btnBatal.title = '';
+            btnBatal.innerHTML = '<i class="fas fa-times"></i> Batalkan Antrian';
+            }
         }
         if (skrgEl) animateChange(skrgEl, newDisplay);
 
