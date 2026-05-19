@@ -20,6 +20,7 @@ class Obat extends Model
         'kategori',
         'stok',
         'stok_minimum',
+        'harga_beli',
         'harga',
         'keterangan',
     ];
@@ -27,5 +28,10 @@ class Obat extends Model
     public function resepDetails()
     {
         return $this->hasMany(ResepDetail::class, 'obat_id');
+    }
+
+    public function stokOpnames()
+    {
+        return $this->hasMany(StokOpname::class, 'obat_id');
     }
 }

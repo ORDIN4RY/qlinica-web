@@ -47,4 +47,31 @@ class Billing extends Model
     {
         return $this->hasMany(BillingDetail::class, 'billing_id');
     }
+
+    /**
+     * Menghitung ulang potongan BPJS (jika aktif) dan grand total billing.
+     * SOP: BPJS menanggung 100% registrasi, 100% tindakan, dan 80% biaya obat.
+     */
+    public function recalculateTotals()
+    {
+        $totalBiayaAwal = $this->biaya_registrasi + $this->biaya_tindakan + $this->biaya_obat;
+
+        if ($this->no_bpjs) {
+            $potonganRegistrasi = $this->biaya_registrasi;
+            $potonganTindakan = $this->biaya_tindakan;
+            $potonganObat = $this->biaya_obat * 0.8;
+
+            $totalPotongan = $potonganRegistrasi + $potonganTindakan + $potonganObat;
+            if ($totalPotongan > $totalBiayaAwal) {
+                $totalPotongan = $totalBiayaAwal;
+            }
+
+            $this->potongan_bpjs = $totalPotongan;
+            $this->grand_total = $totalBiayaAwal - $totalPotongan;
+        } else {
+            $this->potongan_bpjs = 0.00;
+            $this->grand_total = $totalBiayaAwal;
+        }
+    }
 }
+

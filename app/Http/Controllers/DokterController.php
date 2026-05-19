@@ -302,7 +302,6 @@ class DokterController extends Controller
             'riwayat_alergi' => 'nullable|string|max:1000',
             'pakai_resep' => 'required|in:Ya,Tidak',
             // Gunakan exclude_unless agar seluruh validasi resep diabaikan saat pakai_resep = Tidak
-            // (required_if tidak cukup — field yg kosong tetap divalidasi oleh rules lain seperti exists)
             'obat_id' => 'exclude_unless:pakai_resep,Ya|array|min:1',
             'obat_id.*' => 'exclude_unless:pakai_resep,Ya|required|exists:obat,id',
             'jumlah' => 'exclude_unless:pakai_resep,Ya|array|min:1',
@@ -347,7 +346,6 @@ class DokterController extends Controller
                 }
 
                 // Hapus diagnosa lama terlebih dahulu untuk menghindari UNIQUE constraint error
-                // (karena rekam_medis_diagnosa punya unique(rekam_medis_id, icdx_id))
                 RekamMedisDiagnosa::where('rekam_medis_id', $rekamMedis->id)->delete();
 
                 // Simpan diagnosa baru
@@ -369,8 +367,24 @@ class DokterController extends Controller
 
                     // Hapus resep lama jika sudah ada
                     if ($rekamMedis->resep) {
-                        $rekamMedis->resep->details()->delete();
-                        $rekamMedis->resep->delete();
+                        if (in_array($rekamMedis->resep->status, ['Menunggu', 'Menunggu Pembayaran'])) {
+                            $rekamMedis->resep->details()->delete();
+                            $rekamMedis->resep->delete();
+
+                            // Bersihkan tagihan obat lama yang sudah ada di billing
+                            $billing = \App\Models\Billing::where('rekam_medis_id', $rekamMedis->id)->first();
+                            if ($billing && $billing->status === 'Belum Bayar') {
+                                \App\Models\BillingDetail::where('billing_id', $billing->id)
+                                    ->where('kategori', 'Obat')
+                                    ->delete();
+
+                                $billing->update([
+                                    'biaya_obat' => 0.00,
+                                ]);
+                            }
+                        } else {
+                            throw new \Exception("Resep sudah diproses/dibayar oleh apotek dan tidak dapat diubah.");
+                        }
                     }
 
                     $resep = Resep::create([
@@ -390,6 +404,27 @@ class DokterController extends Controller
                             'keterangan' => $keterangan[$index] ?? null,
                         ]);
                     }
+                } else {
+                    // JIKA DOKTER MEMILIH "Tidak" pakai resep, hapus resep lama (jika ada) dan biaya obat di billing
+                    if ($rekamMedis->resep) {
+                        if (in_array($rekamMedis->resep->status, ['Menunggu', 'Menunggu Pembayaran'])) {
+                            $rekamMedis->resep->details()->delete();
+                            $rekamMedis->resep->delete();
+
+                            $billing = \App\Models\Billing::where('rekam_medis_id', $rekamMedis->id)->first();
+                            if ($billing && $billing->status === 'Belum Bayar') {
+                                \App\Models\BillingDetail::where('billing_id', $billing->id)
+                                    ->where('kategori', 'Obat')
+                                    ->delete();
+
+                                $billing->update([
+                                    'biaya_obat' => 0.00,
+                                ]);
+                            }
+                        } else {
+                            throw new \Exception("Resep sudah diproses/dibayar oleh apotek dan tidak dapat diubah.");
+                        }
+                    }
                 }
 
                 // Buat tagihan billing otomatis untuk kunjungan pasien ini
@@ -402,9 +437,9 @@ class DokterController extends Controller
                         'rekam_medis_id' => $rekamMedis->id,
                         'pasien_id' => $rekamMedis->pasien_id,
                         'no_invoice' => $noInvoice,
-                        'biaya_registrasi' => 50000.00, // Biaya registrasi default
+                        'biaya_registrasi' => 50000.00,
                         'biaya_tindakan' => $request->tindakan ? 75000.00 : 0.00,
-                        'biaya_obat' => 0.00, // Akan di-update setelah apoteker memproses resep
+                        'biaya_obat' => 0.00,
                         'grand_total' => 50000.00 + ($request->tindakan ? 75000.00 : 0.00),
                         'status' => 'Belum Bayar',
                     ]);
@@ -429,6 +464,9 @@ class DokterController extends Controller
                             'subtotal' => 75000.00,
                         ]);
                     }
+
+                    $billing->recalculateTotals();
+                    $billing->save();
                 } else {
                     // Jika billing sudah ada tapi belum lunas, kita update biaya tindakan jika ada perubahan tindakan
                     if ($billing->status === 'Belum Bayar') {
@@ -452,8 +490,9 @@ class DokterController extends Controller
 
                         $billing->update([
                             'biaya_tindakan' => $biayaTindakan,
-                            'grand_total' => $billing->biaya_registrasi + $biayaTindakan + $billing->biaya_obat,
                         ]);
+                        $billing->recalculateTotals();
+                        $billing->save();
                     }
                 }
 

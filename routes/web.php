@@ -56,7 +56,7 @@ Route::middleware(['auth'])->group(function () {
 // ── Dashboard ──
 Route::middleware(['auth', 'menu:Dashboard'])->group(function () {
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('beranda_admin');
-    Route::get('/apoteker/dashboard', fn() => view('apoteker.dashboard'))->name('apoteker.dashboard');
+    Route::get('/apoteker/dashboard', [ObatController::class, 'dashboard'])->name('apoteker.dashboard');
     Route::get('/dokter/dashboard', [DokterController::class, 'dashboard'])->name('dokter.dashboard');
 });
 
@@ -132,6 +132,9 @@ Route::middleware(['auth', 'menu:Obat'])->group(function () {
     Route::post('/apoteker/obat',           [ObatController::class, 'store'])->name('apoteker.obat.store');
     Route::put('/apoteker/obat/{id}',       [ObatController::class, 'update'])->name('apoteker.obat.update');
     Route::delete('/apoteker/obat/{id}',    [ObatController::class, 'destroy'])->name('apoteker.obat.destroy');
+    Route::post('/apoteker/obat/{id}/stok-opname', [ObatController::class, 'stokOpname'])->name('apoteker.obat.stok-opname');
+    Route::post('/apoteker/obat/{id}/restok', [ObatController::class, 'restok'])->name('apoteker.obat.restok');
+    Route::get('/apoteker/obat/{id}/riwayat-stok-opname', [ObatController::class, 'riwayatStokOpname'])->name('apoteker.obat.riwayat-stok-opname');
 });
 
 // ── ICDX ──
@@ -148,7 +151,7 @@ Route::middleware(['auth', 'menu:Laporan'])->group(function () {
     Route::get('/admin/laporan',   function () { return view('laporan'); })->name('admin.laporan');
     Route::get('/admin/laporan/penanganan', [LaporanController::class, 'penanganan'])->name('admin.laporan.penanganan');
     Route::get('/admin/laporan/keuangan', [LaporanController::class, 'keuangan'])->name('admin.laporan.keuangan');
-    Route::get('/apoteker/laporan', function () { return view('apoteker.laporan'); })->name('apoteker.laporan');
+    Route::get('/apoteker/laporan', [ObatController::class, 'laporan'])->name('apoteker.laporan');
 });
 
 // ── Komentar ──

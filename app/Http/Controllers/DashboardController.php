@@ -29,7 +29,7 @@ class DashboardController extends Controller
                 return app(\App\Http\Controllers\DokterController::class)->dashboard();
             }
             if ($viewType === 'apoteker') {
-                return view('apoteker.dashboard');
+                return app(\App\Http\Controllers\ObatController::class)->dashboard();
             }
             // Fallthrough ke blok admin jika viewType = admin
         } else {
@@ -39,7 +39,7 @@ class DashboardController extends Controller
                     return app(\App\Http\Controllers\DokterController::class)->dashboard();
                 }
                 if ($user->hasMenuAccess('Dashboard', 'apoteker_dashboard')) {
-                    return view('apoteker.dashboard');
+                    return app(\App\Http\Controllers\ObatController::class)->dashboard();
                 }
                 // Fallback
                 return redirect()->route('admin.pasien');
