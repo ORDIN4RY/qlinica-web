@@ -101,7 +101,7 @@ class PasienController extends Controller
             $defaultPassword = 'pasien' . now()->year;
             $newUser = User::create([
                 'name'      => $request->nama,
-                'email'     => 'pasien_' . $request->no_rm . '@sahaduta.local',
+                'email'     => 'pasien_' . $request->no_rm . '@qlinica.local',
                 'password'  => Hash::make($defaultPassword),
                 'role'      => 'pasien',
                 'phone'     => $request->no_hp,

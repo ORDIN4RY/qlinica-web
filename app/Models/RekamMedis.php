@@ -27,6 +27,7 @@ class RekamMedis extends Model
         'tindakan',
         'prognosa',
         'keadaan_keluar',
+        'is_rekomendasi_rawat_inap',
         'rujukan_ke',
         'catatan',
         'kasus_penyakit',

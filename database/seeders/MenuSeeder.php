@@ -24,6 +24,8 @@ class MenuSeeder extends Seeder
             'Presensi',
             'Antrian Pemeriksaan',
             'Billing',
+            'Kamar',
+            'Rawat Inap',
         ];
 
         foreach ($menus as $nama) {

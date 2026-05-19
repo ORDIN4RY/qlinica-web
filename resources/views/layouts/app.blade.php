@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>@yield('title', 'Dashboard') | Sahaduta</title>
+  <title>@yield('title', 'Dashboard') | QLINICA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -46,7 +46,7 @@
       <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
         <i class="fas fa-clinic-medical text-white text-lg"></i>
       </div>
-      <span class="font-bold text-xl tracking-tight">Sahaduta</span>
+      <span class="font-bold text-xl tracking-tight">QLINICA</span>
     </div>
 
     <!-- Nav (Scrollable Middle) -->
@@ -120,7 +120,7 @@
       @endif
 
       <!-- ================= PELAYANAN MEDIS ================= -->
-      @if(($u && $u->hasMenuAccess('Antrian Pemesanan')) || ($u && $u->hasMenuAccess('Antrian Pemeriksaan')) || ($u && $u->hasMenuAccess('Pasien')) || ($u && $u->hasMenuAccess('Resep')) || ($u && $u->hasMenuAccess('Obat')) || ($u && $u->hasMenuAccess('Rekam Medis')) || ($u && $u->hasMenuAccess('Billing')))
+      @if(($u && $u->hasMenuAccess('Antrian Pemesanan')) || ($u && $u->hasMenuAccess('Antrian Pemeriksaan')) || ($u && $u->hasMenuAccess('Pasien')) || ($u && $u->hasMenuAccess('Resep')) || ($u && $u->hasMenuAccess('Obat')) || ($u && $u->hasMenuAccess('Rekam Medis')) || ($u && $u->hasMenuAccess('Billing')) || ($u && $u->hasMenuAccess('Rawat Inap')))
       <div class="px-2 mt-6 mb-2 text-[10px] font-bold text-white/40 uppercase tracking-wider">Pelayanan Medis</div>
       @endif
 
@@ -160,6 +160,13 @@
       </a>
       @endif
 
+      @if($u && $u->hasMenuAccess('Rawat Inap'))
+      <a href="{{ route('admin.rawat_inap') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.rawat_inap*') ? 'active' : '' }}">
+        <i class="fas fa-procedures w-5 text-center"></i> Rawat Inap
+      </a>
+      @endif
+
       @if($u && $u->hasMenuAccess('Resep'))
       <a href="{{ route('apoteker.resep') }}"
          class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('apoteker.resep*') ? 'active' : '' }}">
@@ -175,8 +182,15 @@
       @endif
 
       <!-- ================= MASTER DATA & SDM ================= -->
-      @if(($u && $u->hasMenuAccess('ICDX')) || ($u && $u->hasMenuAccess('Pegawai')) || ($u && $u->hasMenuAccess('Presensi')) || ($u && $u->hasMenuAccess('Jabatan')))
+      @if(($u && $u->hasMenuAccess('ICDX')) || ($u && $u->hasMenuAccess('Pegawai')) || ($u && $u->hasMenuAccess('Presensi')) || ($u && $u->hasMenuAccess('Jabatan')) || ($u && $u->hasMenuAccess('Kamar')))
       <div class="px-2 mt-6 mb-2 text-[10px] font-bold text-white/40 uppercase tracking-wider">Master Data & SDM</div>
+      @endif
+
+      @if($u && $u->hasMenuAccess('Kamar'))
+      <a href="{{ route('admin.kamar') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.kamar*') ? 'active' : '' }}">
+        <i class="fas fa-bed w-5 text-center"></i> Data Kamar
+      </a>
       @endif
 
       @if($u && $u->hasMenuAccess('ICDX'))
@@ -230,7 +244,7 @@
         </div>
         <div class="flex-1 min-w-0">
           <p class="font-semibold text-sm truncate">{{ Auth::user()?->name ?? 'Administrator' }}</p>
-          <p class="text-white/60 text-xs truncate">{{ Auth::user()?->email ?? 'admin@sahaduta.com' }}</p>
+          <p class="text-white/60 text-xs truncate">{{ Auth::user()?->email ?? 'admin@qlinica.com' }}</p>
         </div>
         <i class="fas fa-chevron-right text-white/40 text-xs"></i>
       </a>

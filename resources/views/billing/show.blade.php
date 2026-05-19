@@ -61,9 +61,9 @@
             <i class="fas fa-clinic-medical text-white text-2xl"></i>
           </div>
           <div>
-            <h3 class="font-bold text-xl text-blue-900">Klinik Sahaduta</h3>
-            <p class="text-xs text-gray-500">Jl. Raya Sahaduta No. 45, Denpasar, Bali</p>
-            <p class="text-[10px] text-gray-400">Telp: (0361) 123-4567 | www.sahaduta.com</p>
+            <h3 class="font-bold text-xl text-blue-900">QLINICA</h3>
+            <p class="text-xs text-gray-500">Jl. Ahmad Yani No. 23</p>
+            <p class="text-[10px] text-gray-400">Telp: (0361) 123-4567 | www.qlinica.com</p>
           </div>
         </div>
         <div class="text-right sm:text-right">
@@ -114,7 +114,14 @@
                     {{ $d->nama_item }}
                   </td>
                   <td class="py-3 text-center text-xs">
-                    <span class="px-2 py-0.5 rounded-full font-semibold {{ $d->kategori === 'Registrasi' ? 'bg-indigo-50 text-indigo-700' : ($d->kategori === 'Tindakan' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700') }}">
+                    @php
+                      $badgeClass = 'bg-gray-50 text-gray-700';
+                      if ($d->kategori === 'Registrasi') $badgeClass = 'bg-indigo-50 text-indigo-700';
+                      elseif ($d->kategori === 'Tindakan') $badgeClass = 'bg-amber-50 text-amber-700';
+                      elseif ($d->kategori === 'Obat') $badgeClass = 'bg-emerald-50 text-emerald-700';
+                      elseif ($d->kategori === 'Kamar') $badgeClass = 'bg-blue-50 text-blue-700';
+                    @endphp
+                    <span class="px-2 py-0.5 rounded-full font-semibold {{ $badgeClass }}">
                       {{ $d->kategori }}
                     </span>
                   </td>
@@ -139,7 +146,7 @@
         <div class="flex flex-col sm:flex-row justify-between items-end sm:items-center gap-4">
           <div class="text-xs text-gray-500 max-w-sm text-left">
             <p class="font-semibold text-gray-800">Catatan:</p>
-            <p>Bukti pembayaran ini sah dan diterbitkan secara elektronik oleh Klinik Sahaduta setelah lunas pembayaran.</p>
+            <p>Bukti pembayaran ini sah dan diterbitkan secara elektronik oleh Klinik QLINICA setelah lunas pembayaran.</p>
           </div>
           
           <div class="w-full sm:w-80 space-y-2 text-sm">
@@ -154,6 +161,10 @@
             <div class="flex justify-between text-gray-600">
               <span>Sub Biaya Obat-obatan:</span>
               <span class="font-mono">Rp {{ number_format($billing->biaya_obat, 2, ',', '.') }}</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+              <span>Sub Biaya Kamar Inap:</span>
+              <span class="font-mono">Rp {{ number_format($billing->biaya_kamar, 2, ',', '.') }}</span>
             </div>
             @if($billing->potongan_bpjs > 0)
               <div class="flex justify-between text-emerald-600 font-semibold">
@@ -193,7 +204,14 @@
         <i class="fas fa-wallet text-blue-900 mr-2"></i>Pembayaran Kasir
       </h3>
 
-      @if($billing->status === 'Belum Bayar')
+      @if($billing->rawatInap && $billing->rawatInap->status === 'Aktif')
+        <div class="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl text-center shadow-sm mt-4">
+            <i class="fas fa-procedures text-3xl mb-3 text-blue-500 block"></i>
+            <h4 class="font-bold text-sm">Pasien Masih Dirawat</h4>
+            <p class="text-xs mt-1">Sistem pembayaran terkunci sementara. Pembayaran baru dapat diproses ke Kasir setelah pasien di-Check-Out dari Rawat Inap.</p>
+            <a href="{{ route('admin.rawat_inap') }}" class="inline-block mt-4 text-xs font-semibold bg-white border border-blue-300 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-100 transition">Kembali ke Rawat Inap</a>
+        </div>
+      @elseif($billing->status === 'Belum Bayar')
         <form action="{{ route('admin.billing.bayar', $billing) }}" method="POST" class="space-y-6">
           @csrf
           <div class="space-y-2">

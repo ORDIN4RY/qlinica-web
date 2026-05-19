@@ -45,6 +45,16 @@ class HakAksesSeeder extends Seeder
                 'menu_id' => $menus['ICDX'],
                 'sub_akses' => ['view' => true],
             ],
+            [
+                'jabatan_id' => 1,
+                'menu_id' => $menus['Rawat Inap'],
+                'sub_akses' => ['view' => true],
+            ],
+            [
+                'jabatan_id' => 1,
+                'menu_id' => $menus['Kamar'],
+                'sub_akses' => ['view' => true],
+            ],
 
             // Hak Akses Perawat
             [
@@ -82,6 +92,16 @@ class HakAksesSeeder extends Seeder
             [
                 'jabatan_id' => 3,
                 'menu_id' => $menus['Billing'],
+                'sub_akses' => ['view' => true, 'tambah' => true, 'edit' => true, 'hapus' => true],
+            ],
+            [
+                'jabatan_id' => 3,
+                'menu_id' => $menus['Kamar'],
+                'sub_akses' => ['view' => true, 'tambah' => true, 'edit' => true, 'hapus' => true],
+            ],
+            [
+                'jabatan_id' => 3,
+                'menu_id' => $menus['Rawat Inap'],
                 'sub_akses' => ['view' => true, 'tambah' => true, 'edit' => true, 'hapus' => true],
             ],
             

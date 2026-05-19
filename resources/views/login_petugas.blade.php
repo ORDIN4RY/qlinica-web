@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login Petugas | Sahaduta</title>
+  <title>Login Petugas | QLINICA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
@@ -53,7 +53,7 @@
           <div class="w-8 h-8 bg-blue-900 rounded-xl flex items-center justify-center transition-transform duration-500 group-hover:rotate-3">
             <i class="fas fa-clinic-medical text-white text-lg"></i>
           </div>
-          <span class="font-semibold text-xl text-gray-800">Sahaduta</span>
+          <span class="font-semibold text-xl text-gray-800">QLINICA</span>
         </a>
         <a href="{{ route('home') }}" class="text-sm text-blue-900 hover:text-blue-700 font-medium transition flex items-center gap-2">
           <i class="fas fa-arrow-left text-xs"></i> Kembali ke Beranda
@@ -141,14 +141,14 @@
 
       <!-- Info note -->
       <p class="text-center text-xs text-gray-400 mt-6">
-        Halaman ini hanya untuk petugas dan admin Klinik Sahaduta yang terdaftar.
+        Halaman ini hanya untuk petugas dan admin Klinik QLINICA yang terdaftar.
       </p>
     </div>
   </main>
 
   <!-- Footer -->
   <footer class="py-4 text-center text-xs text-gray-400 border-t border-gray-100">
-    &copy; 2025 Sahaduta. All rights reserved.
+    &copy; 2025 QLINICA. All rights reserved.
   </footer>
 
   <script>

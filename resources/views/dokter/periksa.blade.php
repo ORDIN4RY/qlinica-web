@@ -364,6 +364,16 @@
           </select>
         </div>
 
+        <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-200">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" name="is_rekomendasi_rawat_inap" value="1" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300" {{ old('is_rekomendasi_rawat_inap', $antrian->rekamMedis?->is_rekomendasi_rawat_inap) ? 'checked' : '' }}>
+            <div>
+              <span class="block font-bold text-blue-900 text-sm">Rekomendasikan Rawat Inap</span>
+              <span class="block text-xs text-blue-600">Centang jika pasien ini membutuhkan layanan mondok/rawat inap.</span>
+            </div>
+          </label>
+        </div>
+
         <div>
           <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Rujukan Ke</label>
           <input type="text" name="rujukan_ke" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Nama faskes tujuan rujukan...">

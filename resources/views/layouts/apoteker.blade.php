@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>@yield('title', 'Dashboard') | Sahaduta Apoteker</title>
+  <title>@yield('title', 'Dashboard') | QLINICA Apoteker</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -84,7 +84,7 @@
         </div>
         <div class="flex-1 min-w-0">
           <p class="font-semibold text-sm truncate">{{ Auth::user()?->name ?? 'Apoteker' }}</p>
-          <p class="text-white/60 text-xs truncate">{{ Auth::user()?->email ?? 'apoteker@sahaduta.com' }}</p>
+          <p class="text-white/60 text-xs truncate">{{ Auth::user()?->email ?? 'apoteker@qlinica.com' }}</p>
         </div>
       </div>
       <form method="POST" action="{{ route('logout') }}">

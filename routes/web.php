@@ -16,6 +16,8 @@ use App\Http\Controllers\KomentarController;
 use App\Http\Controllers\AdminProfilController;
 use App\Http\Controllers\ObatController;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\KamarController;
+use App\Http\Controllers\RawatInapController;
 
 // Public
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
@@ -152,6 +154,21 @@ Route::middleware(['auth', 'menu:Laporan'])->group(function () {
     Route::get('/admin/laporan/penanganan', [LaporanController::class, 'penanganan'])->name('admin.laporan.penanganan');
     Route::get('/admin/laporan/keuangan', [LaporanController::class, 'keuangan'])->name('admin.laporan.keuangan');
     Route::get('/apoteker/laporan', [ObatController::class, 'laporan'])->name('apoteker.laporan');
+});
+
+// ── Manajemen Kamar ──
+Route::middleware(['auth', 'menu:Kamar'])->group(function () {
+    Route::get('/admin/kamar', [KamarController::class, 'index'])->name('admin.kamar');
+    Route::post('/admin/kamar', [KamarController::class, 'store'])->name('admin.kamar.store')->middleware('menu:Kamar,tambah');
+    Route::put('/admin/kamar/{id}', [KamarController::class, 'update'])->name('admin.kamar.update')->middleware('menu:Kamar,edit');
+    Route::delete('/admin/kamar/{id}', [KamarController::class, 'destroy'])->name('admin.kamar.destroy')->middleware('menu:Kamar,hapus');
+});
+
+// ── Rawat Inap ──
+Route::middleware(['auth', 'menu:Rawat Inap'])->group(function () {
+    Route::get('/admin/rawat_inap', [RawatInapController::class, 'index'])->name('admin.rawat_inap');
+    Route::post('/admin/rawat_inap', [RawatInapController::class, 'store'])->name('admin.rawat_inap.store')->middleware('menu:Rawat Inap,tambah');
+    Route::post('/admin/rawat_inap/{id}/checkout', [RawatInapController::class, 'checkout'])->name('admin.rawat_inap.checkout')->middleware('menu:Rawat Inap,edit');
 });
 
 // ── Komentar ──

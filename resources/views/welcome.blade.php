@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sahaduta | Klinik Sehat</title>
+  <title>QLINICA | Klinik Sehat</title>
   <!-- Tailwind via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome -->
@@ -129,7 +129,7 @@
           <div class="w-8 h-8 bg-blue-900 rounded-xl flex items-center justify-center transition-transform duration-500 group-hover:rotate-3">
             <i class="fas fa-clinic-medical text-white text-lg"></i>
           </div>
-          <span class="font-semibold text-xl text-gray-800">Sahaduta</span>
+          <span class="font-semibold text-xl text-gray-800">QLINICA</span>
         </div>
         
         <!-- nav links - hidden on mobile, visible on md -->
@@ -197,7 +197,7 @@
           <!-- right image - hidden on mobile, visible on md -->
           <div class="relative hidden md:block" data-aos="fade-left" data-aos-duration="1200">
             <div class="relative w-full h-96 bg-blue-50 rounded-3xl shadow-xl overflow-hidden border-8 border-white/80 transition-all duration-700 hover:shadow-2xl hover-scale-subtle">
-              <img src="{{ asset('bg-right.jpg') }}" alt="Klinik Sahaduta" class="absolute inset-0 w-full h-full object-cover">
+              <img src="{{ asset('bg-right.jpg') }}" alt="Klinik Qlinica" class="absolute inset-0 w-full h-full object-cover">
             </div>
           </div>
         </div>
@@ -209,7 +209,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-2xl mx-auto mb-16" data-aos="fade-up">
           <span class="text-blue-900 font-semibold tracking-wider uppercase text-sm">Layanan</span>
-          <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mt-2">Fasilitas & Layanan <span class="text-blue-900">Sahaduta</span></h2>
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mt-2">Fasilitas & Layanan <span class="text-blue-900">QLINICA</span></h2>
           <p class="text-gray-500 mt-4">Suasana putih bersih dengan sentuhan biru tua yang profesional dan menenangkan.</p>
         </div>
 
@@ -294,7 +294,7 @@
             <span class="text-blue-900 font-semibold tracking-wider uppercase text-sm">Tentang Kami</span>
             <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mt-2">Lebih dari sekadar <span class="text-blue-900">klinik</span></h2>
             <p class="text-gray-600 mt-6 text-lg leading-relaxed">
-              Sahaduta hadir dengan konsep ruangan didominasi warna putih yang memberikan kesan bersih, luas, dan terang. 
+              QLINICA hadir dengan konsep ruangan didominasi warna putih yang memberikan kesan bersih, luas, dan terang. 
               Sentuhan <span class="text-blue-900 font-medium">biru tua</span> dipilih untuk menciptakan rasa tenang, profesional, dan terpercaya.
             </p>
             <div class="flex gap-5 mt-8 justify-center md:justify-start">
@@ -355,9 +355,9 @@
           
           <!-- kontak info - wrap di mobile -->
           <div class="flex flex-wrap justify-center gap-4 sm:gap-8 mt-12 text-gray-600">
-            <div class="flex items-center gap-2"><i class="fas fa-map-pin text-blue-900"></i> Jl. Sehat No.10, Jakarta</div>
-            <div class="flex items-center gap-2"><i class="fas fa-phone-alt text-blue-900"></i> (021) 1234-5678</div>
-            <div class="flex items-center gap-2"><i class="fas fa-envelope text-blue-900"></i> info@sahaduta.co</div>
+            <div class="flex items-center gap-2"><i class="fas fa-map-pin text-blue-900"></i> Jl. Ahmad Yani No. 23</div>
+            <div class="flex items-center gap-2"><i class="fas fa-phone-alt text-blue-900"></i> (0361) 123-4567</div>
+            <div class="flex items-center gap-2"><i class="fas fa-envelope text-blue-900"></i> info@qlinica.co</div>
           </div>
         </div>
       </div>
@@ -372,7 +372,7 @@
         <a href="#" class="text-blue-900 hover:text-blue-700 transition-all duration-300 hover:scale-110"><i class="fab fa-instagram"></i></a>
         <a href="#" class="text-blue-900 hover:text-blue-700 transition-all duration-300 hover:scale-110"><i class="fab fa-twitter"></i></a>
       </div>
-      <p>&copy; 2026 Sahaduta.</p>
+      <p>&copy; 2026 QLINICA.</p>
     </div>
   </footer>
 
@@ -415,7 +415,7 @@
         </div>
 
         <p class="text-sm text-gray-500 text-center">
-          Belum punya No. Rekam Medik? Silahkan datang langsung ke Klinik Sahaduta.
+          Belum punya No. Rekam Medik? Silahkan datang langsung ke Klinik Qlinica.
         </p>
 
         <button type="submit" class="w-full btn-subtle bg-blue-900 hover:bg-blue-800 text-white py-3 rounded-xl font-semibold text-lg mt-2">

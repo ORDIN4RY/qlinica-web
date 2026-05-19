@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sahaduta | Pemesanan Antrian</title>
+  <title>QLINICA | Pemesanan Antrian</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -48,7 +48,7 @@
           <div class="w-8 h-8 bg-blue-900 rounded-xl flex items-center justify-center transition-transform duration-500 group-hover:rotate-3">
             <i class="fas fa-clinic-medical text-white"></i>
           </div>
-          <span class="font-semibold text-xl text-gray-800">Sahaduta</span>
+          <span class="font-semibold text-xl text-gray-800">QLINICA</span>
         </a>
 
         <!-- Nav Links -->
@@ -93,7 +93,7 @@
           <!-- kiri -->
           <div class="space-y-6" data-aos="fade-right">
             <span class="inline-flex items-center gap-2 bg-blue-100 text-blue-900 px-4 py-1.5 rounded-full text-sm font-semibold">
-              <i class="fas fa-ticket-alt"></i> Antrian Online Klinik Sahaduta
+              <i class="fas fa-ticket-alt"></i> Antrian Online Klinik QLINICA
             </span>
             <h1 class="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
               Pesan Antrian <br><span class="text-blue-900">Tanpa Antre</span> Panjang
@@ -215,7 +215,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
           @php
             $steps = [
-              ['no'=>'01','icon'=>'fa-id-card','title'=>'Siapkan No. RM','desc'=>'Pastikan Anda memiliki No. Rekam Medik yang terdaftar di Klinik Sahaduta.'],
+              ['no'=>'01','icon'=>'fa-id-card','title'=>'Siapkan No. RM','desc'=>'Pastikan Anda memiliki No. Rekam Medik yang terdaftar di Klinik QLINICA.'],
               ['no'=>'02','icon'=>'fa-ticket-alt','title'=>'Ambil Nomor','desc'=>'Klik tombol "Ambil Antrian", isi form singkat, dan nomor antrian akan diberikan.'],
               ['no'=>'03','icon'=>'fa-bell','title'=>'Pantau & Datang','desc'=>'Pantau nomor yang sedang dipanggil di halaman ini, lalu datang tepat waktu.'],
             ];
@@ -333,7 +333,7 @@
         <a href="/" class="text-blue-900 hover:text-blue-700 transition"><i class="fas fa-home mr-1"></i> Beranda</a>
         <a href="#antrian" class="text-blue-900 hover:text-blue-700 transition"><i class="fas fa-ticket-alt mr-1"></i> Antrian</a>
       </div>
-      <p>&copy; 2025 Sahaduta — Pemesanan Antrian Online</p>
+      <p>&copy; 2025 QLINICA — Pemesanan Antrian Online</p>
     </div>
   </footer>
 

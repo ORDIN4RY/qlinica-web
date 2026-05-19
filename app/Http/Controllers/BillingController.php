@@ -18,8 +18,22 @@ class BillingController extends Controller
         $status = $request->query('status', 'Belum Bayar');
         $search = $request->query('search');
 
-        $query = Billing::with(['pasien', 'rekamMedis.dokter.user'])
+        $query = Billing::with(['pasien', 'rekamMedis.dokter.user', 'rawatInap'])
             ->orderBy('created_at', 'desc');
+
+        // Sembunyikan tagihan jika pasien sedang dalam proses/direkomendasikan Rawat Inap,
+        // KECUALI jika pasien tersebut sudah 'Selesai' (Check-Out) dari Rawat Inap.
+        $query->where(function($q) {
+            $q->whereDoesntHave('rekamMedis', function($q2) {
+                $q2->where('is_rekomendasi_rawat_inap', true);
+            })->orWhereHas('rawatInap', function($q3) {
+                $q3->where('status', 'Selesai');
+            })->orWhere(function($q4) {
+                $q4->whereHas('rekamMedis', function($q5) {
+                    $q5->where('is_rekomendasi_rawat_inap', false);
+                })->orWhereNull('rekam_medis_id');
+            });
+        });
 
         if ($status && $status !== 'Semua') {
             $query->where('status', $status);
@@ -37,7 +51,11 @@ class BillingController extends Controller
 
         $billings = $query->paginate(15)->withQueryString();
 
-        return view('billing.index', compact('billings', 'status', 'search'));
+        return response()
+            ->view('billing.index', compact('billings', 'status', 'search'))
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
     }
 
     /**
@@ -45,8 +63,18 @@ class BillingController extends Controller
      */
     public function show(Billing $billing)
     {
+        // Panggil recalculateTotals agar jika pasien sedang rawat inap (Aktif), 
+        // kalkulasi hari dan biaya kamar ter-update secara real-time sampai hari ini.
+        $billing->recalculateTotals();
+        $billing->save();
+
         $billing->load(['pasien', 'rekamMedis.dokter.user', 'details', 'kasir.user']);
-        return view('billing.show', compact('billing'));
+        
+        return response()
+            ->view('billing.show', compact('billing'))
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
     }
 
     /**
