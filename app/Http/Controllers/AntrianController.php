@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Antrian;
 use App\Models\Pegawai;
 use App\Models\RekamMedis;
+use App\Models\Feedback;
 
 class AntrianController extends Controller
 {
@@ -14,6 +15,14 @@ class AntrianController extends Controller
     {
         $antrians = Antrian::with('pasien')
             ->where('tanggal', now()->toDateString())
+            ->orderByRaw("
+                CASE
+                  WHEN LOWER(status) = 'dipanggil' THEN 0
+                  WHEN LOWER(status) = 'menunggu'  THEN 1
+                  WHEN LOWER(status) IN ('selesai','batal') THEN 3
+                  ELSE 2
+                END ASC
+            ")
             ->orderBy('no_antrian')
             ->get();
 
@@ -202,10 +211,58 @@ class AntrianController extends Controller
         ]);
     }
 
+    /**
+     * Store feedback dari pasien.
+     */
+    public function storeFeedback(Request $request)
+    {
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'kritik' => 'nullable|string',
+            'saran' => 'nullable|string',
+            'antrian_id' => 'required|exists:antrian,id',
+        ]);
+
+        $user = auth()->user();
+        if (!$user || !$user->pasien) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $antrian = Antrian::find($request->antrian_id);
+        
+        // Cek jika antrian milik pasien ini
+        if ($antrian->pasien_id !== $user->pasien->id) {
+            return response()->json(['success' => false, 'message' => 'Invalid queue'], 403);
+        }
+
+        $rekamMedisId = null;
+        if ($antrian->rekamMedis) {
+            $rekamMedisId = $antrian->rekamMedis->id;
+        }
+
+        Feedback::create([
+            'pasien_id' => $user->pasien->id,
+            'rekam_medis_id' => $rekamMedisId,
+            'kritik' => $request->kritik,
+            'saran' => $request->saran,
+            'penilaian' => $request->rating,
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Feedback berhasil disimpan']);
+    }
+
     public function realtimeData()
     {
         $antrians = Antrian::with('pasien')
             ->where('tanggal', now()->toDateString())
+            ->orderByRaw("
+                CASE
+                  WHEN LOWER(status) = 'dipanggil' THEN 0
+                  WHEN LOWER(status) = 'menunggu'  THEN 1
+                  WHEN LOWER(status) IN ('selesai','batal') THEN 3
+                  ELSE 2
+                END ASC
+            ")
             ->orderBy('no_antrian')
             ->get();
 

@@ -60,8 +60,8 @@ class ResepController extends Controller
             return redirect()->route('apoteker.resep')->with('error', 'Resep hanya bisa diproses dari status Menunggu.');
         }
 
-        if ($action === 'selesai' && $resep->status !== 'Diproses') {
-            return redirect()->route('apoteker.resep')->with('error', 'Resep hanya bisa diselesaikan jika sedang diproses.');
+        if ($action === 'selesai' && !in_array($resep->status, ['Diproses', 'Sudah Dibayar', 'Menunggu Pembayaran'])) {
+            return redirect()->route('apoteker.resep')->with('error', 'Resep hanya bisa diselesaikan jika sedang diproses atau sudah dibayar.');
         }
 
         if ($action === 'kembalikan' && $resep->status === 'Selesai') {
@@ -69,6 +69,12 @@ class ResepController extends Controller
         }
 
         if ($action === 'selesai') {
+            // Validasi apakah tagihan pasien sudah dibayar
+            $billing = \App\Models\Billing::where('rekam_medis_id', $resep->rekam_medis_id)->first();
+            if ($billing && $billing->status !== 'Lunas') {
+                return redirect()->route('apoteker.resep')->with('error', 'Obat tidak dapat diserahkan karena tagihan billing pasien belum dibayar di Kasir.');
+            }
+
             foreach ($resep->details as $detail) {
                 $obat = Obat::find($detail->obat_id);
 
@@ -84,8 +90,54 @@ class ResepController extends Controller
 
         DB::transaction(function () use ($resep, $action, $apoteker, $request) {
             if ($action === 'proses') {
+                $totalHargaObat = 0;
+
+                // Cari atau buat billing untuk rekam medis ini
+                $noInvoice = 'INV-' . now()->format('Ymd') . '-' . str_pad($resep->rekam_medis_id, 4, '0', STR_PAD_LEFT);
+                $billing = \App\Models\Billing::firstOrCreate(
+                    ['rekam_medis_id' => $resep->rekam_medis_id],
+                    [
+                        'pasien_id' => $resep->rekamMedis->pasien_id,
+                        'no_invoice' => $noInvoice,
+                        'biaya_registrasi' => 50000.00,
+                        'biaya_tindakan' => $resep->rekamMedis->tindakan ? 75000.00 : 0.00,
+                        'biaya_obat' => 0.00,
+                        'grand_total' => 50000.00 + ($resep->rekamMedis->tindakan ? 75000.00 : 0.00),
+                        'status' => 'Belum Bayar',
+                    ]
+                );
+
+                // Hapus detail obat lama di billing_detail jika ada (untuk menghindari duplikasi jika re-proses)
+                \App\Models\BillingDetail::where('billing_id', $billing->id)
+                    ->where('kategori', 'Obat')
+                    ->delete();
+
+                foreach ($resep->details as $detail) {
+                    $obat = $detail->obat;
+                    if ($obat) {
+                        $subtotal = $detail->jumlah * $obat->harga;
+                        $totalHargaObat += $subtotal;
+
+                        // Tambahkan detail obat ke billing_detail
+                        \App\Models\BillingDetail::create([
+                            'billing_id' => $billing->id,
+                            'nama_item' => 'Obat: ' . $obat->nama . ' (' . ($detail->dosis ?: 'Sesuai Aturan') . ')',
+                            'kategori' => 'Obat',
+                            'jumlah' => $detail->jumlah,
+                            'harga_satuan' => $obat->harga,
+                            'subtotal' => $subtotal,
+                        ]);
+                    }
+                }
+
+                // Update total biaya obat & grand_total pada billing
+                $billing->update([
+                    'biaya_obat' => $totalHargaObat,
+                    'grand_total' => $billing->biaya_registrasi + $billing->biaya_tindakan + $totalHargaObat,
+                ]);
+
                 $resep->update([
-                    'status' => 'Diproses',
+                    'status' => 'Menunggu Pembayaran',
                     'apoteker_id' => $apoteker->id,
                     'diproses_at' => now(),
                     'catatan_apoteker' => $request->input('catatan_apoteker'),
@@ -116,7 +168,7 @@ class ResepController extends Controller
         });
 
         $message = match ($action) {
-            'proses' => 'Resep berhasil diproses.',
+            'proses' => 'Resep berhasil dikalkulasi harganya dan dikirim ke Kasir untuk pembayaran.',
             'selesai' => 'Resep selesai dan stok obat diperbarui.',
             'kembalikan' => 'Resep berhasil dikembalikan.',
         };

@@ -98,7 +98,7 @@ class User extends Authenticatable
 
         if ($this->role === 'admin') {
             $allMenuNames = ['Dashboard', 'Antrian', 'Pasien', 'Pegawai', 'Resep', 'Obat',
-                             'ICDX', 'Laporan', 'Komentar', 'Jabatan', 'Rekam Medis', 'Presensi'];
+                             'ICDX', 'Laporan', 'Komentar', 'Jabatan', 'Rekam Medis', 'Presensi', 'Billing'];
             return collect($allMenuNames)->mapWithKeys(fn($menu) => [
                 $menu => ['view' => true, 'tambah' => true, 'edit' => true, 'hapus' => true]
             ]);

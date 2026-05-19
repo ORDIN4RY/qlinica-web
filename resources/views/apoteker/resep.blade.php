@@ -31,10 +31,12 @@
       @foreach($resepList as $resep)
         @php
           $statusClasses = [
-            'Menunggu' => 'bg-yellow-200 text-yellow-800',
-            'Diproses' => 'bg-blue-200 text-blue-800',
-            'Selesai' => 'bg-green-200 text-green-800',
-            'Dibatalkan' => 'bg-red-200 text-red-800',
+            'Menunggu' => 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+            'Diproses' => 'bg-blue-100 text-blue-800 border border-blue-200',
+            'Menunggu Pembayaran' => 'bg-amber-100 text-amber-800 border border-amber-200',
+            'Sudah Dibayar' => 'bg-emerald-100 text-emerald-800 border border-emerald-200',
+            'Selesai' => 'bg-green-100 text-green-800 border border-green-200',
+            'Dibatalkan' => 'bg-red-100 text-red-800 border border-red-200',
           ];
         @endphp
 
@@ -87,31 +89,39 @@
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="action" value="proses">
-                <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition">Proses Resep</button>
+                <button type="submit" class="px-4 py-2 bg-blue-900 text-white text-sm rounded-lg hover:bg-blue-800 transition font-semibold shadow-sm">Kalkulasi Harga & Tagih</button>
               </form>
               <form action="{{ route('apoteker.resep.update', $resep) }}" method="POST" class="inline-block">
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="action" value="kembalikan">
-                <button type="submit" class="px-4 py-2 bg-red-100 text-red-700 text-sm rounded-lg hover:bg-red-200 transition">Kembalikan</button>
+                <button type="submit" class="px-4 py-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg hover:bg-red-100 transition">Kembalikan</button>
               </form>
-            @elseif($resep->status === 'Diproses')
+            @elseif($resep->status === 'Menunggu Pembayaran')
+              <span class="inline-flex items-center gap-1 px-4 py-2 bg-amber-50 border border-amber-200 text-amber-700 text-sm rounded-lg font-semibold">
+                <i class="fas fa-clock animate-pulse"></i> Menunggu Pembayaran di Kasir
+              </span>
+              <form action="{{ route('apoteker.resep.update', $resep) }}" method="POST" class="inline-block">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="action" value="kembalikan">
+                <button type="submit" class="px-4 py-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg hover:bg-red-100 transition">Batalkan</button>
+              </form>
+            @elseif($resep->status === 'Sudah Dibayar' || $resep->status === 'Diproses')
               <form action="{{ route('apoteker.resep.update', $resep) }}" method="POST" class="inline-block">
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="action" value="selesai">
-                <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition">Tandai Selesai</button>
-              </form>
-              <form action="{{ route('apoteker.resep.update', $resep) }}" method="POST" class="inline-block">
-                @csrf
-                @method('PATCH')
-                <input type="hidden" name="action" value="kembalikan">
-                <button type="submit" class="px-4 py-2 bg-red-100 text-red-700 text-sm rounded-lg hover:bg-red-200 transition">Kembalikan</button>
+                <button type="submit" class="px-4 py-2 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-700 transition font-semibold shadow-sm">
+                  <i class="fas fa-check-double mr-1"></i> Serahkan Obat (Selesai)
+                </button>
               </form>
             @elseif($resep->status === 'Selesai')
-              <button type="button" class="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg" disabled>Cetak Bukti</button>
+              <button type="button" class="px-4 py-2 bg-gray-100 text-gray-400 text-sm rounded-lg border border-gray-200" disabled>
+                <i class="fas fa-handshake mr-1"></i> Obat Telah Diserahkan
+              </button>
             @else
-              <span class="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg">Resep {{ $resep->status }}</span>
+              <span class="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg border">Resep {{ $resep->status }}</span>
             @endif
           </div>
         </div>
