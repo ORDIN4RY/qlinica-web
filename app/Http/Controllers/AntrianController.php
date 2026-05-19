@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Antrian;
 use App\Models\Pegawai;
 use App\Models\RekamMedis;
+use App\Models\Feedback;
 
 class AntrianController extends Controller
 {
@@ -200,6 +201,46 @@ class AntrianController extends Controller
             'success' => true,
             'message' => 'Antrian berhasil dibatalkan.',
         ]);
+    }
+
+    /**
+     * Store feedback dari pasien.
+     */
+    public function storeFeedback(Request $request)
+    {
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'kritik' => 'nullable|string',
+            'saran' => 'nullable|string',
+            'antrian_id' => 'required|exists:antrian,id',
+        ]);
+
+        $user = auth()->user();
+        if (!$user || !$user->pasien) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $antrian = Antrian::find($request->antrian_id);
+        
+        // Cek jika antrian milik pasien ini
+        if ($antrian->pasien_id !== $user->pasien->id) {
+            return response()->json(['success' => false, 'message' => 'Invalid queue'], 403);
+        }
+
+        $rekamMedisId = null;
+        if ($antrian->rekamMedis) {
+            $rekamMedisId = $antrian->rekamMedis->id;
+        }
+
+        Feedback::create([
+            'pasien_id' => $user->pasien->id,
+            'rekam_medis_id' => $rekamMedisId,
+            'kritik' => $request->kritik,
+            'saran' => $request->saran,
+            'penilaian' => $request->rating,
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Feedback berhasil disimpan']);
     }
 
     public function realtimeData()
