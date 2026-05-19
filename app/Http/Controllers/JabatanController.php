@@ -84,9 +84,6 @@ class JabatanController extends Controller
             ],
             'ICDX' => [
                 'view'   => ['label' => 'Lihat ICD-X',     'icon' => 'fa-eye',        'desc' => 'Melihat daftar kode ICD-X'],
-                'tambah' => ['label' => 'Tambah Kode',     'icon' => 'fa-plus',       'desc' => 'Menambah kode ICD-X baru'],
-                'edit'   => ['label' => 'Edit Kode',       'icon' => 'fa-pen',        'desc' => 'Mengubah kode ICD-X'],
-                'hapus'  => ['label' => 'Hapus Kode',      'icon' => 'fa-trash',      'desc' => 'Menghapus kode ICD-X'],
             ],
             'Laporan' => [
                 'view'      => ['label' => 'Lihat Laporan',     'icon' => 'fa-eye',        'desc' => 'Akses halaman laporan'],
