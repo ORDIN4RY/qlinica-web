@@ -32,6 +32,19 @@
     .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
     .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
     .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+    .sidebar-group-btn {
+      transition: all 0.2s ease;
+    }
+    .sidebar-group-btn:hover {
+      background: rgba(255,255,255,0.08);
+    }
+    .sidebar-group-chevron {
+      transition: transform 0.2s ease;
+    }
+    .rotate-180 {
+      transform: rotate(180deg);
+    }
   </style>
   @stack('styles')
 </head>
@@ -51,13 +64,39 @@
 
     <!-- Nav (Scrollable Middle) -->
     <nav id="sidebar-nav" class="flex-1 px-4 py-6 space-y-1 overflow-y-auto sidebar-scroll">
-      @php $u = auth()->user(); @endphp
+      @php
+        $u = auth()->user();
+
+        // 1. Check Route Active States
+        $isDashboardActive = request()->routeIs('beranda_admin*') || request()->routeIs('apoteker.dashboard*') || request()->routeIs('dokter.dashboard*');
+        
+        $isMedisActive = request()->routeIs('admin.pemesanan*') || request()->routeIs('dokter.antrian*') || request()->routeIs('dokter.pasien*') || request()->routeIs('admin.pasien*') || request()->routeIs('admin.rawat_inap*') || request()->routeIs('admin.billing*');
+        
+        $isApotekActive = request()->routeIs('apoteker.resep*') || request()->routeIs('apoteker.obat*');
+        
+        $isMasterActive = request()->routeIs('admin.kamar*') || request()->routeIs('admin.icdx*');
+        
+        $isSdmActive = request()->routeIs('admin.pegawai*') || request()->routeIs('admin.presensi*') || request()->routeIs('admin.jabatan*');
+        
+        $isLaporanActive = request()->routeIs('admin.laporan.penanganan*') || request()->routeIs('admin.laporan.keuangan*') || request()->routeIs('apoteker.laporan*');
+
+        // 2. Check Access Permissions
+        $hasMedisAccess = $u && ($u->hasMenuAccess('Antrian Pemesanan') || $u->hasMenuAccess('Antrian Pemeriksaan') || $u->hasMenuAccess('Rekam Medis') || $u->hasMenuAccess('Pasien') || $u->hasMenuAccess('Rawat Inap') || $u->hasMenuAccess('Billing'));
+        
+        $hasApotekAccess = $u && ($u->hasMenuAccess('Resep') || $u->hasMenuAccess('Obat'));
+        
+        $hasMasterAccess = $u && ($u->hasMenuAccess('Kamar') || $u->hasMenuAccess('ICDX'));
+        
+        $hasSdmAccess = $u && ($u->hasMenuAccess('Pegawai') || $u->hasMenuAccess('Presensi') || $u->hasMenuAccess('Jabatan'));
+        
+        $hasLaporanAccess = $u && $u->hasMenuAccess('Laporan') && (
+            $u->hasMenuAccess('Laporan', 'penanganan') ||
+            $u->hasMenuAccess('Laporan', 'keuangan') ||
+            $u->hasMenuAccess('Laporan', 'apotek')
+        );
+      @endphp
 
       <!-- ================= UTAMA ================= -->
-      @if(($u && $u->hasMenuAccess('Dashboard')) || ($u && $u->hasMenuAccess('Laporan')))
-      <div class="px-2 mt-2 mb-2 text-[10px] font-bold text-white/40 uppercase tracking-wider">Utama</div>
-      @endif
-
       @if($u && $u->hasMenuAccess('Dashboard'))
         @if($u->role === 'admin')
           @php
@@ -95,139 +134,223 @@
           </div>
           @endif
         @else
-          <a href="{{ route('beranda_admin') }}"
-             class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('beranda_admin') ? 'active' : '' }}">
+          @php
+             $dashboardRoute = $u->hasMenuAccess('Dashboard', 'admin_dashboard') 
+                 ? route('beranda_admin') 
+                 : ($u->hasMenuAccess('Dashboard', 'dokter_dashboard') 
+                     ? route('dokter.dashboard') 
+                     : ($u->hasMenuAccess('Dashboard', 'apoteker_dashboard') 
+                         ? route('apoteker.dashboard') 
+                         : route('beranda_admin')));
+             $isDashboardActive = request()->routeIs('beranda_admin') || request()->routeIs('dokter.dashboard') || request()->routeIs('apoteker.dashboard');
+          @endphp
+          <a href="{{ $dashboardRoute }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ $isDashboardActive ? 'active' : '' }}">
             <i class="fas fa-chart-pie w-5 text-center"></i> Dashboard
           </a>
         @endif
       @endif
 
-      @if($u && $u->hasMenuAccess('Laporan'))
-      <a href="{{ route('admin.laporan.penanganan') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.laporan.penanganan') ? 'active' : '' }}">
-        <i class="fas fa-notes-medical w-5 text-center"></i> Laporan Penanganan
-      </a>
-      
-      <a href="{{ route('admin.laporan.keuangan') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.laporan.keuangan') ? 'active' : '' }}">
-        <i class="fas fa-sack-dollar w-5 text-center"></i> Laporan Keuangan
-      </a>
-      
-      <a href="{{ route('apoteker.laporan') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('apoteker.laporan*')  ? 'active' : '' }}">
-        <i class="fas fa-prescription-bottle-alt w-5 text-center"></i> Laporan Apotek
-      </a>
+      <!-- ================= LAYANAN MEDIS ================= -->
+      @if($hasMedisAccess)
+      <div class="space-y-1 pt-2">
+        <button type="button" 
+                onclick="toggleSidebarGroup('medis-group')" 
+                class="w-full sidebar-group-btn flex items-center justify-between px-4 py-3 rounded-xl text-white/90 transition font-medium">
+          <div class="flex items-center gap-3">
+            <i class="fas fa-briefcase-medical w-5 text-center text-white/60"></i>
+            <span class="text-sm">Layanan Medis</span>
+          </div>
+          <i class="fas fa-chevron-down sidebar-group-chevron text-[10px] text-white/40 {{ $isMedisActive ? 'rotate-180' : '' }}" id="medis-group-chevron"></i>
+        </button>
+        <div id="medis-group" class="{{ $isMedisActive ? '' : 'hidden' }} pl-4 space-y-1 border-l border-white/10 ml-6 mt-1 transition-all duration-300">
+          @if($u->hasMenuAccess('Antrian Pemesanan'))
+          <a href="{{ route('admin.pemesanan') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('admin.pemesanan*') ? 'active' : '' }}">
+            <i class="fas fa-calendar-check w-4 text-center text-white/50"></i> Antrian Pendaftaran
+          </a>
+          @endif
+
+          @if($u->hasMenuAccess('Antrian Pemeriksaan'))
+          <a href="{{ route('dokter.antrian') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('dokter.antrian*') ? 'active' : '' }}">
+            <i class="fas fa-stethoscope w-4 text-center text-white/50"></i> Antrian Pemeriksaan
+          </a>
+          @endif
+
+          @if($u->hasMenuAccess('Rekam Medis'))
+          <a href="{{ route('dokter.pasien') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('dokter.pasien*') ? 'active' : '' }}">
+            <i class="fas fa-file-prescription w-4 text-center text-white/50"></i> Riwayat Medis Pasien
+          </a>
+          @endif
+
+          @if($u->hasMenuAccess('Pasien'))
+          <a href="{{ route('admin.pasien') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('admin.pasien*') ? 'active' : '' }}">
+            <i class="fas fa-user-injured w-4 text-center text-white/50"></i> Data Pasien
+          </a>
+          @endif
+
+          @if($u->hasMenuAccess('Rawat Inap'))
+          <a href="{{ route('admin.rawat_inap') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('admin.rawat_inap*') ? 'active' : '' }}">
+            <i class="fas fa-procedures w-4 text-center text-white/50"></i> Rawat Inap
+          </a>
+          @endif
+
+          @if($u->hasMenuAccess('Billing'))
+          <a href="{{ route('admin.billing') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('admin.billing*') ? 'active' : '' }}">
+            <i class="fas fa-wallet w-4 text-center text-white/50"></i> Billing & Kasir
+          </a>
+          @endif
+        </div>
+      </div>
       @endif
 
-      <!-- ================= PELAYANAN MEDIS ================= -->
-      @if(($u && $u->hasMenuAccess('Antrian Pemesanan')) || ($u && $u->hasMenuAccess('Antrian Pemeriksaan')) || ($u && $u->hasMenuAccess('Pasien')) || ($u && $u->hasMenuAccess('Resep')) || ($u && $u->hasMenuAccess('Obat')) || ($u && $u->hasMenuAccess('Rekam Medis')) || ($u && $u->hasMenuAccess('Billing')) || ($u && $u->hasMenuAccess('Rawat Inap')))
-      <div class="px-2 mt-6 mb-2 text-[10px] font-bold text-white/40 uppercase tracking-wider">Pelayanan Medis</div>
+      <!-- ================= FARMASI & OBAT ================= -->
+      @if($hasApotekAccess)
+      <div class="space-y-1 pt-1">
+        <button type="button" 
+                onclick="toggleSidebarGroup('apotek-group')" 
+                class="w-full sidebar-group-btn flex items-center justify-between px-4 py-3 rounded-xl text-white/90 transition font-medium">
+          <div class="flex items-center gap-3">
+            <i class="fas fa-prescription-bottle-alt w-5 text-center text-white/60"></i>
+            <span class="text-sm">Farmasi & Obat</span>
+          </div>
+          <i class="fas fa-chevron-down sidebar-group-chevron text-[10px] text-white/40 {{ $isApotekActive ? 'rotate-180' : '' }}" id="apotek-group-chevron"></i>
+        </button>
+        <div id="apotek-group" class="{{ $isApotekActive ? '' : 'hidden' }} pl-4 space-y-1 border-l border-white/10 ml-6 mt-1 transition-all duration-300">
+          @if($u->hasMenuAccess('Resep'))
+          <a href="{{ route('apoteker.resep') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('apoteker.resep*') ? 'active' : '' }}">
+            <i class="fas fa-file-medical w-4 text-center text-white/50"></i> Resep Medis
+          </a>
+          @endif
+
+          @if($u->hasMenuAccess('Obat'))
+          <a href="{{ route('apoteker.obat') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('apoteker.obat*') ? 'active' : '' }}">
+            <i class="fas fa-pills w-4 text-center text-white/50"></i> Stok Obat
+          </a>
+          @endif
+        </div>
+      </div>
       @endif
 
-      @if($u && $u->hasMenuAccess('Antrian Pemesanan'))
-      <a href="{{ route('admin.pemesanan') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pemesanan*') ? 'active' : '' }}">
-        <i class="fas fa-calendar-check w-5 text-center"></i> Antrian Pendaftaran
-      </a>
+      <!-- ================= MASTER DATA ================= -->
+      @if($hasMasterAccess)
+      <div class="space-y-1 pt-1">
+        <button type="button" 
+                onclick="toggleSidebarGroup('master-group')" 
+                class="w-full sidebar-group-btn flex items-center justify-between px-4 py-3 rounded-xl text-white/90 transition font-medium">
+          <div class="flex items-center gap-3">
+            <i class="fas fa-database w-5 text-center text-white/60"></i>
+            <span class="text-sm">Master Data</span>
+          </div>
+          <i class="fas fa-chevron-down sidebar-group-chevron text-[10px] text-white/40 {{ $isMasterActive ? 'rotate-180' : '' }}" id="master-group-chevron"></i>
+        </button>
+        <div id="master-group" class="{{ $isMasterActive ? '' : 'hidden' }} pl-4 space-y-1 border-l border-white/10 ml-6 mt-1 transition-all duration-300">
+          @if($u->hasMenuAccess('Kamar'))
+          <a href="{{ route('admin.kamar') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('admin.kamar*') ? 'active' : '' }}">
+            <i class="fas fa-bed w-4 text-center text-white/50"></i> Data Kamar
+          </a>
+          @endif
+
+          @if($u->hasMenuAccess('ICDX'))
+          <a href="{{ route('admin.icdx') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('admin.icdx*') ? 'active' : '' }}">
+            <i class="fas fa-file-medical-alt w-4 text-center text-white/50"></i> ICD-X
+          </a>
+          @endif
+        </div>
+      </div>
       @endif
 
-      @if($u && $u->hasMenuAccess('Billing'))
-      <a href="{{ route('admin.billing') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.billing*') ? 'active' : '' }}">
-        <i class="fas fa-wallet w-5 text-center"></i> Billing & Kasir
-      </a>
+      <!-- ================= KEPEGAWAIAN & SDM ================= -->
+      @if($hasSdmAccess)
+      <div class="space-y-1 pt-1">
+        <button type="button" 
+                onclick="toggleSidebarGroup('sdm-group')" 
+                class="w-full sidebar-group-btn flex items-center justify-between px-4 py-3 rounded-xl text-white/90 transition font-medium">
+          <div class="flex items-center gap-3">
+            <i class="fas fa-users w-5 text-center text-white/60"></i>
+            <span class="text-sm">Kepegawaian & SDM</span>
+          </div>
+          <i class="fas fa-chevron-down sidebar-group-chevron text-[10px] text-white/40 {{ $isSdmActive ? 'rotate-180' : '' }}" id="sdm-group-chevron"></i>
+        </button>
+        <div id="sdm-group" class="{{ $isSdmActive ? '' : 'hidden' }} pl-4 space-y-1 border-l border-white/10 ml-6 mt-1 transition-all duration-300">
+          @if($u->hasMenuAccess('Pegawai'))
+          <a href="{{ route('admin.pegawai') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('admin.pegawai*') ? 'active' : '' }}">
+            <i class="fas fa-user-doctor w-4 text-center text-white/50"></i> Pegawai
+          </a>
+          @endif
+
+          @if($u->hasMenuAccess('Presensi'))
+          <a href="{{ route('admin.presensi') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('admin.presensi*') ? 'active' : '' }}">
+            <i class="fas fa-user-clock w-4 text-center text-white/50"></i> Presensi
+          </a>
+          @endif
+
+          @if($u->hasMenuAccess('Jabatan'))
+          <a href="{{ route('admin.jabatan') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('admin.jabatan*') ? 'active' : '' }}">
+            <i class="fas fa-shield-alt w-4 text-center text-white/50"></i> Jabatan & Akses
+          </a>
+          @endif
+        </div>
+      </div>
       @endif
 
-      
-      @if($u && $u->hasMenuAccess('Antrian Pemeriksaan'))
-      <a href="{{ route('dokter.antrian') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('dokter.antrian*') ? 'active' : '' }}">
-        <i class="fas fa-stethoscope w-5 text-center"></i> Antrian Pemeriksaan
-      </a>
-      @endif
-      
-      @if($u && $u->hasMenuAccess('Rekam Medis'))
-      <a href="{{ route('dokter.pasien') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('dokter.pasien*') ? 'active' : '' }}">
-        <i class="fas fa-notes-medical w-5 text-center"></i> Riwayat Medis Pasien
-      </a>
-      @endif
-
-      @if($u && $u->hasMenuAccess('Pasien'))
-      <a href="{{ route('admin.pasien') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pasien*') ? 'active' : '' }}">
-        <i class="fas fa-user-injured w-5 text-center"></i> Data Pasien
-      </a>
-      @endif
-
-      @if($u && $u->hasMenuAccess('Rawat Inap'))
-      <a href="{{ route('admin.rawat_inap') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.rawat_inap*') ? 'active' : '' }}">
-        <i class="fas fa-procedures w-5 text-center"></i> Rawat Inap
-      </a>
-      @endif
-
-      @if($u && $u->hasMenuAccess('Resep'))
-      <a href="{{ route('apoteker.resep') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('apoteker.resep*') ? 'active' : '' }}">
-        <i class="fas fa-prescription-bottle-alt w-5 text-center"></i> Resep Medis
-      </a>
-      @endif
-
-      @if($u && $u->hasMenuAccess('Obat'))
-      <a href="{{ route('apoteker.obat') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('apoteker.obat*') ? 'active' : '' }}">
-        <i class="fas fa-pills w-5 text-center"></i> Stok Obat
-      </a>
-      @endif
-
-      <!-- ================= MASTER DATA & SDM ================= -->
-      @if(($u && $u->hasMenuAccess('ICDX')) || ($u && $u->hasMenuAccess('Pegawai')) || ($u && $u->hasMenuAccess('Presensi')) || ($u && $u->hasMenuAccess('Jabatan')) || ($u && $u->hasMenuAccess('Kamar')))
-      <div class="px-2 mt-6 mb-2 text-[10px] font-bold text-white/40 uppercase tracking-wider">Master Data & SDM</div>
-      @endif
-
-      @if($u && $u->hasMenuAccess('Kamar'))
-      <a href="{{ route('admin.kamar') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.kamar*') ? 'active' : '' }}">
-        <i class="fas fa-bed w-5 text-center"></i> Data Kamar
-      </a>
-      @endif
-
-      @if($u && $u->hasMenuAccess('ICDX'))
-      <a href="{{ route('admin.icdx') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.icdx*') ? 'active' : '' }}">
-        <i class="fas fa-file-medical-alt w-5 text-center"></i> ICD-X
-      </a>
-      @endif
-
-      @if($u && $u->hasMenuAccess('Pegawai'))
-      <a href="{{ route('admin.pegawai') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.pegawai*') ? 'active' : '' }}">
-        <i class="fas fa-user-doctor w-5 text-center"></i> Pegawai
-      </a>
-      @endif
-
-      @if(auth()->user()->hasMenuAccess('Presensi'))
-      <a href="{{ route('admin.presensi') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.presensi*') ? 'active' : '' }}">
-        <i class="fas fa-user-clock w-5 text-center"></i> Presensi
-      </a>
-      @endif
-
-      @if($u && $u->hasMenuAccess('Jabatan'))
-      <a href="{{ route('admin.jabatan') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.jabatan*') ? 'active' : '' }}">
-        <i class="fas fa-shield-alt w-5 text-center"></i> Jabatan & Akses
-      </a>
+      <!-- ================= LAPORAN & ANALISIS ================= -->
+      @if($hasLaporanAccess)
+      <div class="space-y-1 pt-1">
+        <button type="button" 
+                onclick="toggleSidebarGroup('laporan-group')" 
+                class="w-full sidebar-group-btn flex items-center justify-between px-4 py-3 rounded-xl text-white/90 transition font-medium">
+          <div class="flex items-center gap-3">
+            <i class="fas fa-chart-bar w-5 text-center text-white/60"></i>
+            <span class="text-sm">Laporan & Analisis</span>
+          </div>
+          <i class="fas fa-chevron-down sidebar-group-chevron text-[10px] text-white/40 {{ $isLaporanActive ? 'rotate-180' : '' }}" id="laporan-group-chevron"></i>
+        </button>
+        <div id="laporan-group" class="{{ $isLaporanActive ? '' : 'hidden' }} pl-4 space-y-1 border-l border-white/10 ml-6 mt-1 transition-all duration-300">
+          @if($u->hasMenuAccess('Laporan', 'penanganan'))
+          <a href="{{ route('admin.laporan.penanganan') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('admin.laporan.penanganan') ? 'active' : '' }}">
+            <i class="fas fa-notes-medical w-4 text-center text-white/50"></i> Laporan Penanganan
+          </a>
+          @endif
+          
+          @if($u->hasMenuAccess('Laporan', 'keuangan'))
+          <a href="{{ route('admin.laporan.keuangan') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('admin.laporan.keuangan') ? 'active' : '' }}">
+            <i class="fas fa-sack-dollar w-4 text-center text-white/50"></i> Laporan Keuangan
+          </a>
+          @endif
+          
+          @if($u->hasMenuAccess('Laporan', 'apotek'))
+          <a href="{{ route('apoteker.laporan') }}"
+             class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('apoteker.laporan*') ? 'active' : '' }}">
+            <i class="fas fa-prescription-bottle-alt w-4 text-center text-white/50"></i> Laporan Apotek
+          </a>
+          @endif
+        </div>
+      </div>
       @endif
 
       <!-- ================= LAINNYA ================= -->
       @if($u && $u->hasMenuAccess('Komentar'))
-      <div class="px-2 mt-6 mb-2 text-[10px] font-bold text-white/40 uppercase tracking-wider">Lainnya</div>
-      <a href="{{ route('admin.komentar') }}"
-         class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.komentar*') ? 'active' : '' }}">
-        <i class="fas fa-comment w-5 text-center"></i> Komentar
-      </a>
+      <div class="pt-2">
+        <a href="{{ route('admin.komentar') }}"
+           class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium {{ request()->routeIs('admin.komentar*') ? 'active' : '' }}">
+          <i class="fas fa-comment w-5 text-center text-white/60"></i> Komentar
+        </a>
+      </div>
       @endif
     </nav>
 
@@ -275,8 +398,12 @@
           <p class="text-sm text-gray-500 hidden sm:block">@yield('page-subtitle', 'Selamat datang kembali, ' . (Auth::user()?->name ?? 'Admin') . '!')</p>
         </div>
       </div>
-      <div class="flex items-center gap-3">
-        <span class="text-sm text-gray-500"><i class="fas fa-calendar-alt text-blue-900 mr-1"></i>{{ now()->isoFormat('dddd, D MMMM YYYY') }}</span>
+      <div class="flex items-center gap-3 shrink-0">
+        <span class="text-xs sm:text-sm text-gray-500">
+          <i class="fas fa-calendar-alt text-blue-900 mr-1"></i>
+          <span class="hidden sm:inline">{{ now()->isoFormat('dddd, D MMMM YYYY') }}</span>
+          <span class="inline sm:hidden">{{ now()->translatedFormat('d M Y') }}</span>
+        </span>
       </div>
     </header>
 
@@ -342,6 +469,22 @@
 
   if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);
   if (overlay) overlay.addEventListener('click', closeSidebar);
+
+  // Toggle Sidebar Dropdowns
+  function toggleSidebarGroup(groupId) {
+    const groupEl = document.getElementById(groupId);
+    const chevronEl = document.getElementById(groupId + '-chevron');
+    if (groupEl && chevronEl) {
+      const isHidden = groupEl.classList.contains('hidden');
+      if (isHidden) {
+        groupEl.classList.remove('hidden');
+        chevronEl.classList.add('rotate-180');
+      } else {
+        groupEl.classList.add('hidden');
+        chevronEl.classList.remove('rotate-180');
+      }
+    }
+  }
 
   // Persist Sidebar Scroll Position
   document.addEventListener("DOMContentLoaded", function() {

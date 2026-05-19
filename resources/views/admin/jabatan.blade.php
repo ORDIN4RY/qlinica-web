@@ -45,7 +45,7 @@
     background: #bfdbfe;
     color: #1d4ed8;
   }
-  
+
   /* ── Panels ── */
   .akses-panel { display: none; animation: fadeIn 0.2s ease; }
   .akses-panel.active { display: block; }
@@ -170,8 +170,7 @@
   <div>
     <h4 class="font-bold text-blue-900 mb-1">Pengaturan Role & Hak Akses</h4>
     <p class="text-sm text-blue-700 leading-relaxed max-w-4xl">
-      Pilih jabatan di sebelah kiri. Aktifkan menu menggunakan toggle. Jika aktif, klik kotak menu untuk melihat sub-akses spesifik (seperti jenis dashboard atau izin operasi). 
-      <br><span class="font-bold mt-1 inline-block">Catatan:</span> Role Admin akan mem-bypass semua hak akses di bawah ini.
+      Pilih jabatan di sebelah kiri. Aktifkan menu menggunakan toggle. Jika aktif, klik kotak menu untuk melihat sub-akses spesifik (seperti jenis dashboard atau izin operasi).
     </p>
   </div>
 </div>
@@ -187,7 +186,7 @@
         <i class="fas fa-plus text-sm"></i>
       </button>
     </div>
-    
+
     <div class="space-y-1" id="jabatanTabs">
       @forelse($jabatans as $i => $jabatan)
         <button
@@ -218,7 +217,7 @@
       @endphp
 
       <div class="akses-panel {{ $i === 0 ? 'active' : '' }}" id="panel-{{ $jabatan->id }}">
-        
+
         {{-- Header Panel --}}
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -244,8 +243,8 @@
         {{-- Pencarian --}}
         <div class="mb-5 relative">
           <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-          <input type="text" placeholder="Cari modul atau sub-akses..." 
-            class="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:border-blue-400 shadow-sm transition" 
+          <input type="text" placeholder="Cari modul atau sub-akses..."
+            class="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:border-blue-400 shadow-sm transition"
             onkeyup="searchMenu(this, {{ $jabatan->id }})">
         </div>
 
@@ -253,26 +252,26 @@
         <form id="{{ $formId }}" action="{{ route('admin.jabatan.akses', $jabatan->id) }}" method="POST" onsubmit="event.preventDefault(); saveAkses({{ $jabatan->id }})">
           @csrf
           @method('PUT')
-          
+
           <div class="flex flex-col gap-4" id="menu-list-{{ $jabatan->id }}">
             @foreach($menus as $menu)
               @php
                 $subs = $menuSubAkses[$menu->nama_menu] ?? [];
                 $viewConf = $subs['view'] ?? ['label' => 'Akses ' . $menu->nama_menu, 'icon' => 'fa-cube', 'desc' => 'Izinkan akses'];
-                
+
                 // Cek akses saat ini via sub_akses JSON (atau object stdClass dari DB)
                 $ha = $jabatanAkses[$menu->id] ?? null;
                 $currentSub = [];
                 if ($ha) {
                    $currentSub = is_array($ha->sub_akses) ? $ha->sub_akses : json_decode(json_encode($ha->sub_akses), true) ?? [];
                 }
-                
+
                 $isView = !empty($currentSub['view']);
                 $hasSubs = count($subs) > 1;
               @endphp
 
               <div class="menu-block {{ $isView ? 'active expanded' : '' }}" id="menu-block-{{$jabatan->id}}-{{$menu->id}}">
-                
+
                 {{-- Menu Header (Toggle) --}}
                 <div class="menu-header" onclick="toggleMenuPanel(this, {{$hasSubs ? 'true' : 'false'}})">
                   <div class="flex items-center gap-4">
@@ -286,7 +285,7 @@
                   </div>
                   <div class="flex items-center gap-5">
                     <label class="switch" onclick="event.stopPropagation()">
-                      <input type="checkbox" name="akses[{{$menu->id}}][view]" value="1" class="view-cb" 
+                      <input type="checkbox" name="akses[{{$menu->id}}][view]" value="1" class="view-cb"
                         {{ $isView ? 'checked' : '' }} onchange="handleViewToggle(this, {{$jabatan->id}}, {{$menu->id}}, {{$hasSubs ? 'true' : 'false'}})">
                       <span class="slider"></span>
                     </label>
@@ -309,7 +308,7 @@
                             $isSubChecked = !empty($currentSub[$key]);
                           @endphp
                           <label class="sub-card {{ $isSubChecked ? 'checked' : '' }}" onclick="toggleSubCard(this)">
-                            <input type="checkbox" name="akses[{{$menu->id}}][{{$key}}]" value="1" 
+                            <input type="checkbox" name="akses[{{$menu->id}}][{{$key}}]" value="1"
                               class="sub-cb" {{ $isSubChecked ? 'checked' : '' }} onclick="event.stopPropagation()">
                             <div class="flex-1">
                               <div class="font-bold text-sm text-gray-800 flex items-center gap-2 mb-1">
@@ -317,7 +316,7 @@
                                 {{ $subConf['label'] }}
                               </div>
                               <p class="text-xs text-gray-500 leading-snug">{{ $subConf['desc'] }}</p>
-                              
+
                               @if(isset($subConf['preview']))
                                 <div class="mt-2 text-[10px] font-bold uppercase tracking-wide text-blue-600 bg-blue-50 px-2 py-1 rounded inline-flex items-center gap-1 border border-blue-100">
                                   <i class="fas fa-eye"></i> Layout: {{ $subConf['preview'] }}
@@ -409,7 +408,7 @@
   function switchTab(jabatanId) {
     document.querySelectorAll('.akses-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-    
+
     document.getElementById('panel-' + jabatanId).classList.add('active');
     document.getElementById('tab-btn-' + jabatanId).classList.add('active');
   }
@@ -421,7 +420,7 @@
     // Hanya bisa expand jika toggle utama nyala
     const viewCb = block.querySelector('.view-cb');
     if (!viewCb.checked) return;
-    
+
     block.classList.toggle('expanded');
   }
 
@@ -429,7 +428,7 @@
   function handleViewToggle(cb, jabatanId, menuId, hasSubs) {
     const block = cb.closest('.menu-block');
     const iconContainer = block.querySelector('.icon-container');
-    
+
     if (cb.checked) {
       block.classList.add('active');
       iconContainer.classList.remove('bg-gray-50', 'text-gray-600', 'border-gray-100');
@@ -439,7 +438,7 @@
       block.classList.remove('active', 'expanded');
       iconContainer.classList.add('bg-gray-50', 'text-gray-600', 'border-gray-100');
       iconContainer.classList.remove('bg-blue-50', 'text-blue-600', 'border-blue-100');
-      
+
       // Uncheck all subs
       const subCbs = block.querySelectorAll('.sub-cb');
       subCbs.forEach(sub => {
@@ -454,7 +453,7 @@
     const cb = cardEl.querySelector('.sub-cb');
     const menuBlock = cardEl.closest('.menu-block');
     const isDashboard = menuBlock.querySelector('h4').textContent.trim() === 'Dashboard';
-    
+
     // checkbox is already toggled by the browser because of label wrapping,
     // so we just read its state and style the card.
     setTimeout(() => {
@@ -505,7 +504,7 @@
 
     const btn = document.getElementById('btnSave-' + jabatanId);
     const originalText = btn.innerHTML;
-    
+
     // UI Loading state
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Menyimpan...';
     btn.disabled = true;
@@ -521,7 +520,7 @@
         }
       });
       const data = await res.json();
-      
+
       if (data.success) {
         showToast('Berhasil disimpan', 'success');
       } else {
@@ -541,16 +540,16 @@
     const toast = document.getElementById('toast');
     const msgEl = document.getElementById('toast-msg');
     const icon = toast.querySelector('i');
-    
+
     toast.className = 'show ' + type;
     msgEl.textContent = msg;
-    
+
     if(type === 'success') {
       icon.className = 'fas fa-check-circle text-green-400 text-xl';
     } else {
       icon.className = 'fas fa-exclamation-triangle text-red-400 text-xl';
     }
-    
+
     setTimeout(() => { toast.classList.remove('show'); }, 3000);
   }
 
@@ -581,7 +580,7 @@
     const filter = input.value.toLowerCase();
     const menuList = document.getElementById('menu-list-' + jabatanId);
     if (!menuList) return;
-    
+
     const blocks = menuList.querySelectorAll('.menu-block');
     blocks.forEach(block => {
       // Dapatkan semua teks di dalam block tersebut untuk dicocokkan

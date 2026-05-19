@@ -266,6 +266,8 @@ class AntrianController extends Controller
             ->orderBy('no_antrian')
             ->get();
 
+        $hasUpdate = auth()->user() && auth()->user()->hasMenuAccess('Antrian Pemesanan', 'update');
+
         $html = '';
         foreach ($antrians as $a) {
             $jenis = strtolower($a->jenis_pemesan ?? 'offline');
@@ -292,14 +294,17 @@ class AntrianController extends Controller
                 $statusHtml = '<span class="status-badge s-batal">Batal</span>';
             }
 
-            $buttonsHtml = '<div class="flex items-center gap-2">';
-            if ($st === 'menunggu') {
-                $buttonsHtml .= '<button type="button" class="btn-panggil" onclick="openPanggil(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Panggil Pasien"><i class="fas fa-bullhorn text-xs"></i> Panggil</button>';
+            $buttonsHtml = '';
+            if ($hasUpdate) {
+                $buttonsHtml = '<td class="px-5 py-3.5"><div class="flex items-center gap-2">';
+                if ($st === 'menunggu') {
+                    $buttonsHtml .= '<button type="button" class="btn-panggil" onclick="openPanggil(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Panggil Pasien"><i class="fas fa-bullhorn text-xs"></i> Panggil</button>';
+                }
+                if (!in_array($st, ['selesai', 'batal'])) {
+                    $buttonsHtml .= '<button class="btn-batal" onclick="openBatal(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Batalkan"><i class="fas fa-times text-xs"></i></button>';
+                }
+                $buttonsHtml .= '</div></td>';
             }
-            if (!in_array($st, ['selesai', 'batal'])) {
-                $buttonsHtml .= '<button class="btn-batal" onclick="openBatal(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Batalkan"><i class="fas fa-times text-xs"></i></button>';
-            }
-            $buttonsHtml .= '</div>';
 
             $genderHtml = ($a->pasien->jenis_kelamin ?? '') === 'L' 
                 ? '<span class="text-xs font-bold px-3 py-1 rounded-full" style="background:#eff6ff;color:#2563eb">♂ Laki-laki</span>'
@@ -318,15 +323,16 @@ class AntrianController extends Controller
                 <td class="px-5 py-3.5 text-gray-500 text-xs">' . $waktuPesan . '</td>
                 <td class="px-5 py-3.5">' . $jenisHtml . '</td>
                 <td class="px-5 py-3.5">' . $statusHtml . '</td>
-                <td class="px-5 py-3.5">' . $buttonsHtml . '</td>
+                ' . $buttonsHtml . '
               </tr>
             ';
         }
 
         if ($antrians->isEmpty()) {
+            $colspan = $hasUpdate ? 8 : 7;
             $html = '
               <tr id="emptyRow">
-                <td colspan="8" class="text-center py-16 text-gray-400">
+                <td colspan="' . $colspan . '" class="text-center py-16 text-gray-400">
                   <i class="fas fa-inbox text-4xl mb-4 block opacity-25"></i>
                   <p class="font-semibold text-sm">Belum ada antrian hari ini</p>
                 </td>

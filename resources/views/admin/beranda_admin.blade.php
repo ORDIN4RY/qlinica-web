@@ -10,11 +10,29 @@
 @push('styles')
 <style>
     /* ============================================================
+       GLOBAL STYLING & VARIABLES DEFINITION
+    ============================================================ */
+    :root {
+      --putih: #ffffff;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --teks: #1e293b;
+      --terang: #64748b;
+      --abu: #94a3b8;
+      --navy: #1e3a8a;
+      --biru: #2563eb;
+      --ungu: #7c3aed;
+      --hijau: #10b981;
+      --bg: #f8fafc;
+    }
+
+    /* ============================================================
        KPI CARDS
     ============================================================ */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 14px;
       margin-bottom: 16px;
       position: relative;
@@ -22,11 +40,11 @@
     }
 
     .kpi-card {
-      background: var(--putih);
-      border-radius: var(--radius);
+      background: var(--putih, #ffffff);
+      border-radius: var(--radius, 12px);
       padding: 20px 22px;
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
+      border: 1px solid var(--border, #e2e8f0);
+      box-shadow: var(--shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.05));
       position: relative;
       z-index: 1;
       overflow: hidden;
@@ -56,17 +74,17 @@
     .kpi-icon.bg-kuning { background: #fffbeb; }
 
     .badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; }
-    .badge.naik { background: #ecfdf5; color: var(--hijau); }
-    .badge.diam { background: #f1f5f9; color: var(--terang); border: 1px solid var(--border); }
+    .badge.naik { background: #ecfdf5; color: var(--hijau, #10b981); }
+    .badge.diam { background: #f1f5f9; color: var(--terang, #64748b); border: 1px solid var(--border, #e2e8f0); }
 
-    .kpi-label { font-size: 10px; font-weight: 700; color: var(--terang); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .kpi-label { font-size: 10px; font-weight: 700; color: var(--terang, #64748b); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
 
-    .kpi-angka { font-family: 'Sora', sans-serif; font-size: 34px; font-weight: 800; color: var(--teks); letter-spacing: -1.5px; line-height: 1; margin-bottom: 14px; }
+    .kpi-angka { font-family: 'Sora', sans-serif; font-size: clamp(26px, 3.5vw, 34px); font-weight: 800; color: var(--teks, #1e293b); letter-spacing: -1.5px; line-height: 1; margin-bottom: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .kpi-pills { display: flex; gap: 7px; flex-wrap: wrap; }
 
-    .pill { font-size: 11.5px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--border); color: var(--abu); background: #f8faff; }
-    .pill strong { font-weight: 700; color: var(--teks); }
+    .pill { font-size: 11.5px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--border, #e2e8f0); color: var(--abu, #94a3b8); background: #f8faff; }
+    .pill strong { font-weight: 700; color: var(--teks, #1e293b); }
 
     @keyframes riseUp {
       from { opacity: 0; transform: translateY(18px); }
@@ -77,21 +95,22 @@
        GRID 2 KOLOM
     ============================================================ */
     .dua-kolom { display: grid; grid-template-columns: 1.2fr .8fr; gap: 14px; margin-bottom: 14px; align-items: stretch; }
+    .dua-kolom > * { min-width: 0; }
     .card-penuh { display: flex; flex-direction: column; }
     .card-penuh .card-body { flex: 1; display: flex; flex-direction: column; }
-    .card-penuh .penyakit-list { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .card-penuh .penyakit-list { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; gap: 4px; }
 
     /* ============================================================
        KARTU GENERIK
     ============================================================ */
-    .card { background: var(--putih); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; animation: riseUp .4s ease both; transition: box-shadow .2s; }
+    .card { background: var(--putih, #ffffff); border-radius: var(--radius, 12px); border: 1px solid var(--border, #e2e8f0); box-shadow: var(--shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.05)); overflow: hidden; animation: riseUp .4s ease both; transition: box-shadow .2s; }
     .card:hover { box-shadow: 0 12px 32px rgba(15,33,68,.1); }
     .card-header { padding: 18px 20px 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-    .card-judul { font-size: 13.5px; font-weight: 700; color: var(--teks); margin-bottom: 2px; }
-    .card-sub   { font-size: 11px; color: var(--terang); }
+    .card-judul { font-size: 13.5px; font-weight: 700; color: var(--teks, #1e293b); margin-bottom: 2px; }
+    .card-sub   { font-size: 11px; color: var(--terang, #64748b); }
     .card-body  { padding: 14px 20px 20px; }
 
-    .btn-lihat { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 99px; background: #eff6ff; border: 1px solid #dbeafe; color: var(--biru); cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: background .15s; }
+    .btn-lihat { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 99px; background: #eff6ff; border: 1px solid #dbeafe; color: var(--biru, #2563eb); cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: background .15s; }
     .btn-lihat:hover { background: #dbeafe; }
 
     /* ============================================================
@@ -101,75 +120,87 @@
     .penyakit-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f0f4fb; }
     .penyakit-item:last-child { border: none; }
     .urut { width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
-    .urut.top { background: var(--navy); color: #fff; }
-    .urut.biasa { background: #f1f5f9; color: var(--abu); border: 1px solid var(--border); }
-    .penyakit-nama { flex: 1; font-size: 12.5px; font-weight: 500; color: var(--teks); line-height: 1.3; }
+    .urut.top { background: var(--navy, #1e3a8a); color: #fff; }
+    .urut.biasa { background: #f1f5f9; color: var(--abu, #94a3b8); border: 1px solid var(--border, #e2e8f0); }
+    .penyakit-nama { flex: 1; font-size: 12.5px; font-weight: 500; color: var(--teks, #1e293b); line-height: 1.3; min-width: 0; word-break: break-word; }
     .bar-wrap { width: 52px; height: 5px; background: #f1f5f9; border-radius: 99px; flex-shrink: 0; }
-    .bar-fill { height: 5px; border-radius: 99px; background: linear-gradient(90deg,var(--biru),#6366f1); }
-    .penyakit-angka { font-size: 12.5px; font-weight: 700; color: var(--teks); min-width: 46px; text-align: right; }
+    .bar-fill { height: 5px; border-radius: 99px; background: linear-gradient(90deg,var(--biru,#2563eb),#6366f1); }
+    .penyakit-angka { font-size: 12.5px; font-weight: 700; color: var(--teks, #1e293b); min-width: 46px; text-align: right; }
 
     /* ============================================================
        GRAFIK
     ============================================================ */
-    .grafik-kecil { position: relative; height: 150px; }
-    .grafik-besar { position: relative; height: 220px; }
+    .grafik-kecil { position: relative; height: 150px; width: 100%; }
+    .grafik-besar { position: relative; height: 220px; width: 100%; }
 
     /* ============================================================
        KEPUASAN — legenda
     ============================================================ */
     .kepuasan-legenda { display: flex; flex-wrap: wrap; gap: 5px 10px; margin-bottom: 10px; }
-    .leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--abu); }
+    .leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--abu, #94a3b8); }
     .leg-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
     /* ============================================================
        GENDER
     ============================================================ */
-    .gender-row { display: flex; gap: 9px; margin-bottom: 11px; }
-    .gender-box { flex: 1; padding: 11px 13px; border-radius: 11px; border: 1px solid var(--border); display: flex; align-items: center; gap: 9px; }
+    .gender-row { display: flex; gap: 9px; margin-bottom: 11px; flex-wrap: wrap; }
+    .gender-box { flex: 1 1 130px; min-width: 0; padding: 11px 13px; border-radius: 11px; border: 1px solid var(--border, #e2e8f0); display: flex; align-items: center; gap: 9px; }
     .gender-icon { width: 33px; height: 33px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-    .gender-label { font-size: 10px; color: var(--terang); font-weight: 500; }
-    .gender-angka { font-family: 'Sora',sans-serif; font-size: 18px; font-weight: 800; color: var(--teks); }
+    .gender-label { font-size: 10px; color: var(--terang, #64748b); font-weight: 500; }
+    .gender-angka { font-family: 'Sora',sans-serif; font-size: 18px; font-weight: 800; color: var(--teks, #1e293b); }
     .gender-pct   { font-size: 10px; font-weight: 700; }
     .gender-bar-wrap { height: 5px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin-bottom: 12px; }
-    .gender-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--biru) 41.3%, var(--ungu) 41.3%); }
+    .gender-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--biru, #2563eb) 41.3%, var(--ungu, #7c3aed) 41.3%); }
 
     /* ============================================================
        DATE PICKER
     ============================================================ */
-    .date-btn { display: flex; align-items: center; gap: 7px; background: #eff6ff; border: 1px solid #dbeafe; padding: 7px 14px; border-radius: 99px; font-size: 12.5px; font-weight: 700; color: var(--biru); cursor: pointer; white-space: nowrap; transition: background .15s; user-select: none; }
+    .date-btn { display: flex; align-items: center; gap: 7px; background: #eff6ff; border: 1px solid #dbeafe; padding: 7px 14px; border-radius: 99px; font-size: 12.5px; font-weight: 700; color: var(--biru, #2563eb); cursor: pointer; white-space: nowrap; transition: background .15s; user-select: none; }
     .date-btn:hover { background: #dbeafe; }
     .date-btn svg { width: 13px; height: 13px; flex-shrink: 0; transition: transform .2s; }
     .date-btn.open svg.chevron { transform: rotate(180deg); }
     #dateWrapper { position: relative; z-index: 99999 !important; }
     .date-picker { position: relative; z-index: 99999; }
-    .date-drop { position: absolute; top: calc(100% + 8px); right: 0; width: 260px; background: var(--putih); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 16px 48px rgba(15,33,68,.14); padding: 16px; z-index: 999999 !important; display: none; }
+    .date-drop { position: absolute; top: calc(100% + 8px); right: 0; width: 260px; background: #ffffff !important; border: 1px solid var(--border, #e2e8f0); border-radius: var(--radius, 12px); box-shadow: 0 16px 48px rgba(15,33,68,.14); padding: 16px; z-index: 9999999 !important; display: none; }
     .date-drop.open { display: block; animation: fadeDown .18s ease; }
     @keyframes fadeDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
     .dd-tahun-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .dd-tahun-angka { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 16px; color: var(--teks); }
-    .dd-tahun-btn { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg); color: var(--abu); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .14s; }
-    .dd-tahun-btn:hover { background: #eff6ff; color: var(--biru); border-color: #bfdbfe; }
+    .dd-tahun-angka { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 16px; color: var(--teks, #1e293b); }
+    .dd-tahun-btn { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border, #e2e8f0); background: var(--bg, #f8fafc); color: var(--abu, #94a3b8); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .14s; }
+    .dd-tahun-btn:hover { background: #eff6ff; color: var(--biru, #2563eb); border-color: #bfdbfe; }
     .dd-bulan-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; }
-    .dd-bulan-item { padding: 7px 2px; border-radius: 8px; font-size: 12px; font-weight: 500; color: var(--abu); text-align: center; cursor: pointer; transition: all .14s; border: 1px solid transparent; position: relative; }
-    .dd-bulan-item:hover { background: #eff6ff; color: var(--biru); }
-    .dd-bulan-item.aktif { background: var(--biru); color: #fff; font-weight: 700; }
-    .dd-bulan-item.ada-data::after { content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--hijau); }
+    .dd-bulan-item { padding: 7px 2px; border-radius: 8px; font-size: 12px; font-weight: 500; color: var(--abu, #94a3b8); text-align: center; cursor: pointer; transition: all .14s; border: 1px solid transparent; position: relative; }
+    .dd-bulan-item:hover { background: #eff6ff; color: var(--biru, #2563eb); }
+    .dd-bulan-item.aktif { background: var(--biru, #2563eb); color: #fff; font-weight: 700; }
+    .dd-bulan-item.ada-data::after { content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--hijau, #10b981); }
     .dd-bulan-item.aktif::after { background: rgba(255,255,255,.7); }
 
     /* ============================================================
        RESPONSIVE
     ============================================================ */
     @media (max-width: 1100px) { .dua-kolom { grid-template-columns: 1fr; } }
-    @media (max-width: 900px) { .kpi-grid { grid-template-columns: 1fr 1fr; } .kpi-grid .kpi-card:nth-child(3) { grid-column: 1/-1; } }
-    @media (max-width: 700px) { .kpi-grid { grid-template-columns: 1fr; } .kpi-grid .kpi-card:nth-child(3) { grid-column: auto; } .date-drop { right: -10px; width: 240px; } }
-    @media (max-width: 480px) { .gender-row { flex-direction: column; } }
-    @media (max-width: 480px) { .gender-row { flex-direction: column; } }
+    @media (max-width: 480px) {
+      .date-drop {
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100vw - 32px);
+        max-width: 280px;
+      }
+      .date-drop.open {
+        animation: fadeDownMobile .18s ease forwards;
+      }
+    }
+    @keyframes fadeDownMobile {
+      from { opacity: 0; transform: translate(-50%, -6px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
 </style>
 @endpush
 
 @section('content')
 
-  <div id="dateWrapper" style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+  <div id="dateWrapper" style="display:flex; justify-content:flex-end; margin-bottom:16px; position:relative; z-index:99999;">
     <div class="date-picker" id="datePicker">
       <div class="date-btn" id="dateBtn">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
@@ -232,10 +263,10 @@
         <span class="badge naik" id="badgeBulan">↑ 4.1%</span>
       </div>
       <div class="kpi-label" id="labelBulanKPI">Februari</div>
-      <div class="kpi-angka" id="kpiBulan">404</div>
+      <div class="kpi-angka" id="kpiBulan">0</div>
       <div class="kpi-pills">
-        <div class="pill">♂ <strong id="kpiLakiBulan">153</strong></div>
-        <div class="pill">♀ <strong id="kpiPerempuanBulan">251</strong></div>
+        <div class="pill">♂ <strong id="kpiLakiBulan">0</strong></div>
+        <div class="pill">♀ <strong id="kpiPerempuanBulan">0</strong></div>
       </div>
     </div>
 
@@ -283,14 +314,20 @@
       <div class="card" style="animation-delay:.16s">
         <div class="card-header">
           <div>
-            
             <div class="card-judul">Kepuasan Pasien</div>
             <div class="card-sub">Rating dari pasien</div>
           </div>
         </div>
         <div class="card-body">
-          <div class="kepuasan-legenda" id="kepuasanLeg"></div>
-          <div class="grafik-kecil"><canvas id="grafikKepuasan"></canvas></div>
+          @if($totalFeedback > 0)
+            <div class="kepuasan-legenda" id="kepuasanLeg"></div>
+            <div class="grafik-kecil"><canvas id="grafikKepuasan"></canvas></div>
+          @else
+            <div class="flex flex-col items-center justify-center py-8 text-gray-400 text-sm">
+              <i class="far fa-smile text-3xl mb-2 text-gray-300"></i>
+              <span>Belum ada feedback di bulan ini</span>
+            </div>
+          @endif
         </div>
       </div>
 
@@ -386,12 +423,16 @@
         if (bulanAdaData.includes(i)) el.classList.add('ada-data');
         el.textContent = nama;
         el.addEventListener('click', function () {
-          bulanTerpilih = i;
-          tahunTerpilih = tahunDropdown;
-          labelBulan.textContent = BULAN_PANJANG[i] + ' ' + tahunDropdown;
-          tutupDrop();
-          renderBulanGrid();
-          updateDashboard();
+          if (tahunDropdown !== tahunTerpilih) {
+            window.location.href = "?year=" + tahunDropdown + "&month=" + i;
+          } else {
+            bulanTerpilih = i;
+            tahunTerpilih = tahunDropdown;
+            labelBulan.textContent = BULAN_PANJANG[i] + ' ' + tahunDropdown;
+            tutupDrop();
+            renderBulanGrid();
+            updateDashboard();
+          }
         });
         bulanGrid.appendChild(el);
       });
@@ -439,27 +480,30 @@
     // ==============================================================
     // 4. GRAFIK KEPUASAN (Donut)
     // ==============================================================
-    var kepuasan = {
-      labels: ['Sangat Puas', 'Puas', 'Cukup', 'Buruk', 'Sangat Buruk'],
-      data:   [78, 14, 5, 2, 1],
-      warna:  ['#0f2144', '#2563eb', '#60a5fa', '#f59e0b', '#ef4444']
-    };
     var legEl = document.getElementById('kepuasanLeg');
-    kepuasan.labels.forEach(function (teks, i) {
-      var d = document.createElement('div');
-      d.className = 'leg-item';
-      d.innerHTML = '<span class="leg-dot" style="background:' + kepuasan.warna[i] + '"></span>' + teks + ' (' + kepuasan.data[i] + '%)';
-      legEl.appendChild(d);
-    });
+    var canvasEl = document.getElementById('grafikKepuasan');
+    if (legEl && canvasEl) {
+      var kepuasan = {
+        labels: ['Sangat Puas', 'Puas', 'Cukup', 'Buruk', 'Sangat Buruk'],
+        data:   @json($kepuasanData),
+        warna:  ['#0f2144', '#2563eb', '#60a5fa', '#f59e0b', '#ef4444']
+      };
+      kepuasan.labels.forEach(function (teks, i) {
+        var d = document.createElement('div');
+        d.className = 'leg-item';
+        d.innerHTML = '<span class="leg-dot" style="background:' + kepuasan.warna[i] + '"></span>' + teks + ' (' + kepuasan.data[i] + '%)';
+        legEl.appendChild(d);
+      });
 
-    Chart.defaults.font.family = 'Inter';
-    Chart.defaults.color = '#94a3b8';
+      Chart.defaults.font.family = 'Inter';
+      Chart.defaults.color = '#94a3b8';
 
-    new Chart(document.getElementById('grafikKepuasan'), {
-      type: 'doughnut',
-      data: { labels: kepuasan.labels, datasets: [{ data: kepuasan.data, backgroundColor: kepuasan.warna, borderWidth: 3, borderColor: '#fff' }] },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '72%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return ' ' + c.label + ': ' + c.parsed + '%'; } } } } }
-    });
+      new Chart(canvasEl, {
+        type: 'doughnut',
+        data: { labels: kepuasan.labels, datasets: [{ data: kepuasan.data, backgroundColor: kepuasan.warna, borderWidth: 3, borderColor: '#fff' }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '72%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return ' ' + c.label + ': ' + c.parsed + '%'; } } } } }
+      });
+    }
 
     // ==============================================================
     // 5. GRAFIK GENDER (Donut)

@@ -121,9 +121,41 @@ class DashboardController extends Controller
         $lakiPct        = round($lakiTotal / $totalPasien * 100, 1);
         $perempuanPct   = round(100 - $lakiPct, 1);
 
-        // ── Kepuasan Pasien (tabel feedback jika ada) ─────────────
-        // Sementara dummy karena belum ada model Feedback aktif
-        $kepuasanData = [78, 14, 5, 2, 1];
+        // ── Kepuasan Pasien (tabel feedback) ─────────────────────────
+        $feedbackRatings = \App\Models\Feedback::whereYear('created_at', $year)
+            ->whereMonth('created_at', $month + 1)
+            ->select('penilaian', DB::raw('count(*) as total'))
+            ->groupBy('penilaian')
+            ->pluck('total', 'penilaian')
+            ->toArray();
+
+        $r5 = $feedbackRatings[5] ?? 0;
+        $r4 = $feedbackRatings[4] ?? 0;
+        $r3 = $feedbackRatings[3] ?? 0;
+        $r2 = $feedbackRatings[2] ?? 0;
+        $r1 = $feedbackRatings[1] ?? 0;
+
+        $totalFeedback = $r5 + $r4 + $r3 + $r2 + $r1;
+
+        if ($totalFeedback > 0) {
+            $p5 = round(($r5 / $totalFeedback) * 100);
+            $p4 = round(($r4 / $totalFeedback) * 100);
+            $p3 = round(($r3 / $totalFeedback) * 100);
+            $p2 = round(($r2 / $totalFeedback) * 100);
+            $p1 = 100 - ($p5 + $p4 + $p3 + $p2); // adjust to sum to 100
+            if ($p1 < 0) {
+                $p1 = round(($r1 / $totalFeedback) * 100);
+            }
+        } else {
+            $p5 = 0;
+            $p4 = 0;
+            $p3 = 0;
+            $p2 = 0;
+            $p1 = 0;
+        }
+
+        $kepuasanData = [$p5, $p4, $p3, $p2, $p1];
+
 
         // ── Tahun tersedia (untuk date-picker) ───────────────────────
         $tahunList = Antrian::selectRaw('YEAR(tanggal) as tahun')
@@ -152,7 +184,8 @@ class DashboardController extends Controller
             'lakiPct',
             'perempuanPct',
             'kepuasanData',
-            'tahunList'
+            'tahunList',
+            'totalFeedback'
         ));
     }
 }

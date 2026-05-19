@@ -57,9 +57,9 @@ Route::middleware(['auth'])->group(function () {
 
 // ── Dashboard ──
 Route::middleware(['auth', 'menu:Dashboard'])->group(function () {
-    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('beranda_admin');
-    Route::get('/apoteker/dashboard', [ObatController::class, 'dashboard'])->name('apoteker.dashboard');
-    Route::get('/dokter/dashboard', [DokterController::class, 'dashboard'])->name('dokter.dashboard');
+    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('beranda_admin')->middleware('menu:Dashboard,admin_dashboard');
+    Route::get('/apoteker/dashboard', [ObatController::class, 'dashboard'])->name('apoteker.dashboard')->middleware('menu:Dashboard,apoteker_dashboard');
+    Route::get('/dokter/dashboard', [DokterController::class, 'dashboard'])->name('dokter.dashboard')->middleware('menu:Dashboard,dokter_dashboard');
 });
 
 // ── Antrian Pemesanan ──
@@ -67,10 +67,10 @@ Route::middleware(['auth', 'menu:Antrian Pemesanan'])->group(function () {
     Route::get('/admin/pemesanan', [AntrianController::class, 'index'])->name('admin.pemesanan');
     Route::get('/admin/antrian/realtime', [AntrianController::class, 'realtimeData'])->name('admin.antrian.realtime');
     Route::post('/admin/antrian', [AntrianController::class, 'store'])->name('admin.antrian.store')->middleware('menu:Antrian Pemesanan,tambah');
-    Route::patch('/admin/antrian/{id}/status', [AntrianController::class, 'updateStatus'])->name('admin.antrian.status')->middleware('menu:Antrian Pemesanan,edit');
-    Route::post('/admin/antrian/{id}/panggil', [AntrianController::class, 'panggilPeriksa'])->name('admin.antrian.panggil')->middleware('menu:Antrian Pemesanan,edit');
-    Route::patch('/admin/antrian/{id}/dilayani', [AntrianController::class, 'updateStatus'])->name('admin.antrian.dilayani')->middleware('menu:Antrian Pemesanan,edit');
-    Route::patch('/admin/antrian/{id}/selesai', [AntrianController::class, 'updateStatus'])->name('admin.antrian.selesai')->middleware('menu:Antrian Pemesanan,edit');
+    Route::patch('/admin/antrian/{id}/status', [AntrianController::class, 'updateStatus'])->name('admin.antrian.status')->middleware('menu:Antrian Pemesanan,update');
+    Route::post('/admin/antrian/{id}/panggil', [AntrianController::class, 'panggilPeriksa'])->name('admin.antrian.panggil')->middleware('menu:Antrian Pemesanan,update');
+    Route::patch('/admin/antrian/{id}/dilayani', [AntrianController::class, 'updateStatus'])->name('admin.antrian.dilayani')->middleware('menu:Antrian Pemesanan,update');
+    Route::patch('/admin/antrian/{id}/selesai', [AntrianController::class, 'updateStatus'])->name('admin.antrian.selesai')->middleware('menu:Antrian Pemesanan,update');
 });
 
 // ── Antrian Pemeriksaan ──
@@ -105,13 +105,17 @@ Route::middleware(['auth', 'menu:Pegawai'])->group(function () {
     Route::post('/admin/pegawai', [PegawaiController::class, 'store'])->name('admin.pegawai.store')->middleware('menu:Pegawai,tambah');
     Route::put('/admin/pegawai/{id}', [PegawaiController::class, 'update'])->name('admin.pegawai.update')->middleware('menu:Pegawai,edit');
     Route::delete('/admin/pegawai/{id}', [PegawaiController::class, 'destroy'])->name('admin.pegawai.destroy')->middleware('menu:Pegawai,hapus');
+});
+
+// ── Presensi ──
+Route::middleware(['auth', 'menu:Presensi'])->group(function () {
     Route::get('/admin/presensi', [PresensiController::class, 'index'])->name('admin.presensi');
-    Route::post('/admin/presensi/shift/bulk', [PresensiController::class, 'bulkShift'])->name('admin.presensi.shift.bulk');
-    Route::post('/admin/presensi/shift/pattern', [PresensiController::class, 'patternShift'])->name('admin.presensi.shift.pattern');
-    Route::post('/admin/presensi/shift/copy', [PresensiController::class, 'copyShift'])->name('admin.presensi.shift.copy');
-    Route::put('/admin/presensi/{id}', [PresensiController::class, 'update'])->name('admin.presensi.update');
-    Route::put('/admin/presensi/{id}/shift', [PresensiController::class, 'updateShift'])->name('admin.presensi.shift');
-    Route::delete('/admin/presensi/{id}', [PresensiController::class, 'destroy'])->name('admin.presensi.destroy');
+    Route::post('/admin/presensi/shift/bulk', [PresensiController::class, 'bulkShift'])->name('admin.presensi.shift.bulk')->middleware('menu:Presensi,edit');
+    Route::post('/admin/presensi/shift/pattern', [PresensiController::class, 'patternShift'])->name('admin.presensi.shift.pattern')->middleware('menu:Presensi,edit');
+    Route::post('/admin/presensi/shift/copy', [PresensiController::class, 'copyShift'])->name('admin.presensi.shift.copy')->middleware('menu:Presensi,edit');
+    Route::put('/admin/presensi/{id}', [PresensiController::class, 'update'])->name('admin.presensi.update')->middleware('menu:Presensi,edit');
+    Route::put('/admin/presensi/{id}/shift', [PresensiController::class, 'updateShift'])->name('admin.presensi.shift')->middleware('menu:Presensi,edit');
+    Route::delete('/admin/presensi/{id}', [PresensiController::class, 'destroy'])->name('admin.presensi.destroy')->middleware('menu:Presensi,hapus');
 });
 
 // ── Resep ──
@@ -124,18 +128,18 @@ Route::middleware(['auth', 'menu:Resep'])->group(function () {
 Route::middleware(['auth', 'menu:Billing'])->group(function () {
     Route::get('/admin/billing', [BillingController::class, 'index'])->name('admin.billing');
     Route::get('/admin/billing/{billing}', [BillingController::class, 'show'])->name('admin.billing.show');
-    Route::post('/admin/billing/{billing}/bayar', [BillingController::class, 'bayar'])->name('admin.billing.bayar');
-    Route::post('/admin/billing/{billing}/cek-bpjs', [BillingController::class, 'cekBpjs'])->name('admin.billing.cek-bpjs');
+    Route::post('/admin/billing/{billing}/bayar', [BillingController::class, 'bayar'])->name('admin.billing.bayar')->middleware('menu:Billing,bayar');
+    Route::post('/admin/billing/{billing}/cek-bpjs', [BillingController::class, 'cekBpjs'])->name('admin.billing.cek-bpjs')->middleware('menu:Billing,bpjs');
 });
 
 // ── Obat ──
 Route::middleware(['auth', 'menu:Obat'])->group(function () {
     Route::get('/apoteker/obat',            [ObatController::class, 'index'])->name('apoteker.obat');
-    Route::post('/apoteker/obat',           [ObatController::class, 'store'])->name('apoteker.obat.store');
-    Route::put('/apoteker/obat/{id}',       [ObatController::class, 'update'])->name('apoteker.obat.update');
-    Route::delete('/apoteker/obat/{id}',    [ObatController::class, 'destroy'])->name('apoteker.obat.destroy');
-    Route::post('/apoteker/obat/{id}/stok-opname', [ObatController::class, 'stokOpname'])->name('apoteker.obat.stok-opname');
-    Route::post('/apoteker/obat/{id}/restok', [ObatController::class, 'restok'])->name('apoteker.obat.restok');
+    Route::post('/apoteker/obat',           [ObatController::class, 'store'])->name('apoteker.obat.store')->middleware('menu:Obat,tambah');
+    Route::put('/apoteker/obat/{id}',       [ObatController::class, 'update'])->name('apoteker.obat.update')->middleware('menu:Obat,edit');
+    Route::delete('/apoteker/obat/{id}',    [ObatController::class, 'destroy'])->name('apoteker.obat.destroy')->middleware('menu:Obat,hapus');
+    Route::post('/apoteker/obat/{id}/stok-opname', [ObatController::class, 'stokOpname'])->name('apoteker.obat.stok-opname')->middleware('menu:Obat,edit');
+    Route::post('/apoteker/obat/{id}/restok', [ObatController::class, 'restok'])->name('apoteker.obat.restok')->middleware('menu:Obat,edit');
     Route::get('/apoteker/obat/{id}/riwayat-stok-opname', [ObatController::class, 'riwayatStokOpname'])->name('apoteker.obat.riwayat-stok-opname');
 });
 
@@ -151,9 +155,9 @@ Route::middleware(['auth', 'menu:ICDX'])->group(function () {
 // ── Laporan ──
 Route::middleware(['auth', 'menu:Laporan'])->group(function () {
     Route::get('/admin/laporan',   function () { return view('laporan'); })->name('admin.laporan');
-    Route::get('/admin/laporan/penanganan', [LaporanController::class, 'penanganan'])->name('admin.laporan.penanganan');
-    Route::get('/admin/laporan/keuangan', [LaporanController::class, 'keuangan'])->name('admin.laporan.keuangan');
-    Route::get('/apoteker/laporan', [ObatController::class, 'laporan'])->name('apoteker.laporan');
+    Route::get('/admin/laporan/penanganan', [LaporanController::class, 'penanganan'])->name('admin.laporan.penanganan')->middleware('menu:Laporan,penanganan');
+    Route::get('/admin/laporan/keuangan', [LaporanController::class, 'keuangan'])->name('admin.laporan.keuangan')->middleware('menu:Laporan,keuangan');
+    Route::get('/apoteker/laporan', [ObatController::class, 'laporan'])->name('apoteker.laporan')->middleware('menu:Laporan,apotek');
 });
 
 // ── Manajemen Kamar ──
@@ -174,7 +178,7 @@ Route::middleware(['auth', 'menu:Rawat Inap'])->group(function () {
 // ── Komentar ──
 Route::middleware(['auth', 'menu:Komentar'])->group(function () {
     Route::get('/admin/komentar', [KomentarController::class, 'index'])->name('admin.komentar');
-    Route::delete('/admin/komentar/{id}', [KomentarController::class, 'destroy'])->name('admin.komentar.destroy');
+    Route::delete('/admin/komentar/{id}', [KomentarController::class, 'destroy'])->name('admin.komentar.destroy')->middleware('menu:Komentar,hapus');
 });
 
 // ── Jabatan & Hak Akses (hanya Admin) ──

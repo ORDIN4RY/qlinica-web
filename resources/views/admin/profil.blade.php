@@ -19,7 +19,7 @@
     </div>
     <h2 class="font-bold text-lg text-gray-800">{{ $user->name }}</h2>
     <p class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full inline-block mt-1 mb-2">
-      {{ $user->pegawai->jabatan->nama_jabatan ?? ($user->role === 'admin' ? 'Administrator' : 'Pegawai') }}
+      {{ $user->pegawai->jabatan->nama_jabatan ?? 'Pegawai' }}
     </p>
     <p class="text-sm text-gray-500 mb-1">{{ $user->email }}</p>
     <p class="text-xs text-gray-400 mb-6 font-mono">{{ $user->pegawai->nik ?? '-' }}</p>
@@ -77,7 +77,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-600 mb-1">Jabatan</label>
-            <input type="text" value="{{ $user->pegawai->jabatan->nama_jabatan ?? ($user->role === 'admin' ? 'Administrator' : 'Pegawai') }}" disabled
+            <input type="text" value="{{ $user->pegawai->jabatan->nama_jabatan ?? 'Pegawai' }}" disabled
               class="w-full px-4 py-2.5 border border-gray-100 rounded-xl bg-gray-50 text-sm text-gray-400 cursor-not-allowed">
           </div>
           <div>
