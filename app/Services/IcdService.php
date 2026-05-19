@@ -75,6 +75,11 @@ class IcdService
     {
         $url = $uri ?? "{$this->apiUrl}/icd/release/11/2024-01/mms";
 
+        // Ubah http:// menjadi https:// agar Guzzle tidak membuang header Authorization saat redirect
+        if ($uri) {
+            $url = str_replace('http://', 'https://', $uri);
+        }
+
         $response = Http::withHeaders($this->headers())
             ->timeout(15)
             ->get($url);

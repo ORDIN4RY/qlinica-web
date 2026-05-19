@@ -79,6 +79,11 @@ class HakAksesSeeder extends Seeder
                 'menu_id' => $menus['Antrian Pemesanan'],
                 'sub_akses' => ['view' => true, 'tambah' => true, 'edit' => true, 'hapus' => true],
             ],
+            [
+                'jabatan_id' => 3,
+                'menu_id' => $menus['Billing'],
+                'sub_akses' => ['view' => true, 'tambah' => true, 'edit' => true, 'hapus' => true],
+            ],
             
             // Hak Akses Apoteker
             [

@@ -15,6 +15,7 @@ use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\KomentarController;
 use App\Http\Controllers\AdminProfilController;
 use App\Http\Controllers\ObatController;
+use App\Http\Controllers\BillingController;
 
 // Public
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
@@ -117,6 +118,14 @@ Route::middleware(['auth', 'menu:Resep'])->group(function () {
     Route::patch('/apoteker/resep/{resep}', [ResepController::class, 'update'])->name('apoteker.resep.update')->middleware('menu:Resep,edit');
 });
 
+// ── Billing ──
+Route::middleware(['auth', 'menu:Billing'])->group(function () {
+    Route::get('/admin/billing', [BillingController::class, 'index'])->name('admin.billing');
+    Route::get('/admin/billing/{billing}', [BillingController::class, 'show'])->name('admin.billing.show');
+    Route::post('/admin/billing/{billing}/bayar', [BillingController::class, 'bayar'])->name('admin.billing.bayar');
+    Route::post('/admin/billing/{billing}/cek-bpjs', [BillingController::class, 'cekBpjs'])->name('admin.billing.cek-bpjs');
+});
+
 // ── Obat ──
 Route::middleware(['auth', 'menu:Obat'])->group(function () {
     Route::get('/apoteker/obat',            [ObatController::class, 'index'])->name('apoteker.obat');
@@ -138,6 +147,7 @@ Route::middleware(['auth', 'menu:ICDX'])->group(function () {
 Route::middleware(['auth', 'menu:Laporan'])->group(function () {
     Route::get('/admin/laporan',   function () { return view('laporan'); })->name('admin.laporan');
     Route::get('/admin/laporan/penanganan', [LaporanController::class, 'penanganan'])->name('admin.laporan.penanganan');
+    Route::get('/admin/laporan/keuangan', [LaporanController::class, 'keuangan'])->name('admin.laporan.keuangan');
     Route::get('/apoteker/laporan', function () { return view('apoteker.laporan'); })->name('apoteker.laporan');
 });
 
