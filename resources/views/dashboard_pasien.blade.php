@@ -189,8 +189,22 @@
               <div class="mt-3 inline-flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 px-3 py-1.5 rounded-full text-xs font-semibold">
                 <i class="fas fa-wifi"></i> Antrian Online
               </div>
-              <button onclick="batalAntrian()" class="mt-4 w-full border border-red-300 text-red-600 hover:bg-red-50 py-2.5 rounded-xl text-sm font-semibold transition">
-                <i class="fas fa-times"></i> Batalkan Antrian
+              <button
+                id="btnBatalAntrian"
+                onclick="batalAntrian()"
+                class="mt-4 w-full border border-red-300 text-red-600 hover:bg-red-50 py-2.5 rounded-xl text-sm font-semibold transition"
+                @if($antrianAktif && strtolower($antrianAktif->status) === 'dipanggil')
+                  disabled
+                  title="Antrian Anda sedang dipanggil, tidak dapat dibatalkan"
+                  style="opacity:0.45; cursor:not-allowed; pointer-events:none;"
+                @endif
+              >
+                <i class="fas fa-times"></i>
+                @if($antrianAktif && strtolower($antrianAktif->status) === 'dipanggil')
+                  Sedang Dipanggil...
+                @else
+                  Batalkan Antrian
+                @endif
               </button>
             </div>
           </div>
@@ -441,7 +455,7 @@
     </section>
 
     <!-- ===== KRITIK & SARAN ===== -->
-    <section id="feedback" class="py-16 bg-gradient-to-b from-white to-blue-50/30">
+    {{-- <section id="feedback" class="py-16 bg-gradient-to-b from-white to-blue-50/30">
       <div class="max-w-3xl mx-auto px-4">
         <div class="text-center mb-10" data-aos="fade-up">
           <span class="text-blue-900 font-semibold tracking-wider uppercase text-xs">Ulasan Anda</span>
@@ -488,7 +502,7 @@
           </button>
         </form>
       </div>
-    </section>
+    </section> --}}
 
   </main>
 
@@ -503,6 +517,109 @@
       <p>&copy; 2025 Sahaduta — Portal Pasien</p>
     </div>
   </footer>
+
+  <!-- Modal Kritik & Saran Selesai Periksa -->
+  <div id="modalFeedback" class="fixed inset-0 z-[60] hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+  <div class="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 relative" id="modalFeedbackContent">
+    
+    <button onclick="closeModalFeedback()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
+      <i class="fas fa-times text-xl"></i>
+    </button>
+
+    <div class="p-8">
+      <div class="text-center mb-6">
+        <h3 class="text-2xl font-bold text-gray-800">Kritik & Saran</h3>
+      </div>
+
+      <form action="#" method="POST" id="formModalFeedback">
+        <input type="hidden" id="feedbackAntrianId" value="">
+
+        <!-- Rating -->
+        <div class="mb-6 text-center">
+          <label class="block text-base font-semibold text-gray-700 mb-3">
+            Seberapa puas Anda dengan layanan kami?
+          </label>
+
+          <div class="star-rating justify-center">
+            <input type="radio" id="m_star5" name="rating" value="5" />
+            <label for="m_star5" title="Sangat Puas"><i class="fas fa-star"></i></label>
+
+            <input type="radio" id="m_star4" name="rating" value="4" />
+            <label for="m_star4" title="Puas"><i class="fas fa-star"></i></label>
+
+            <input type="radio" id="m_star3" name="rating" value="3" />
+            <label for="m_star3" title="Cukup"><i class="fas fa-star"></i></label>
+
+            <input type="radio" id="m_star2" name="rating" value="2" />
+            <label for="m_star2" title="Kurang"><i class="fas fa-star"></i></label>
+
+            <input type="radio" id="m_star1" name="rating" value="1" />
+            <label for="m_star1" title="Sangat Kurang"><i class="fas fa-star"></i></label>
+          </div>
+        </div>
+
+        <!-- Input -->
+        <div class="grid md:grid-cols-3 gap-5 mb-5">
+          
+          <!-- Nama lebih lebar -->
+          <div class="md:col-span-5">
+            <label class="block text-sm font-semibold text-gray-600 mb-2">
+              Nama Lengkap
+            </label>
+
+            <input 
+              type="text" 
+              name="name" 
+              value="{{ $pasien->nama ?? '' }}"
+              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition"
+              placeholder="Masukkan nama Anda"
+            >
+          </div>
+        </div>
+
+        <!-- Kritik -->
+        <div class="mb-5">
+          <label class="block text-sm font-semibold text-gray-600 mb-2">
+            Kritik
+          </label>
+
+          <textarea 
+            name="kritik" 
+            rows="3" 
+            required
+            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none"
+            placeholder="Tuliskan kritik Anda..."
+          ></textarea>
+        </div>
+
+        <!-- Saran -->
+        <div class="mb-6">
+          <label class="block text-sm font-semibold text-gray-600 mb-2">
+            Saran
+          </label>
+
+          <textarea 
+            name="saran" 
+            rows="3"
+            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none"
+            placeholder="Tuliskan saran Anda..."
+          ></textarea>
+        </div>
+
+        <!-- Button -->
+        <button 
+          type="button" 
+          id="btnSubmitFeedback"
+          onclick="submitModalFeedback()"
+          class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 shadow-md"
+        >
+          <i class="fas fa-paper-plane"></i> Kirim Ulasan
+        </button>
+
+      </form>
+    </div>
+  </div>
+</div>
 
   <!-- Toast notification -->
   <div id="toast" class="fixed bottom-5 right-5 bg-green-700 text-white px-5 py-3 rounded-2xl shadow-xl font-semibold text-sm flex items-center gap-2 z-50 opacity-0 translate-y-4 transition-all duration-300 pointer-events-none">
@@ -522,13 +639,21 @@
     // ================================================================
     // DATA RIWAYAT
     // ================================================================
-    const riwayatData = [
-      { id:1, tanggal:'2025-02-14', layanan:'Konsultasi Umum', dokter:'dr. Megawati', noAntrian:'A-04', status:'selesai', keluhan:'Demam dan batuk' },
-      { id:2, tanggal:'2025-01-22', layanan:'Laboratorium',    dokter:'—',           noAntrian:'L-07', status:'selesai', keluhan:'Cek darah rutin' },
-      { id:3, tanggal:'2024-12-10', layanan:'Klinik Gigi',     dokter:'drg. Masyitah',noAntrian:'G-02', status:'selesai', keluhan:'Gigi berlubang' },
-      { id:4, tanggal:'2024-11-05', layanan:'Konsultasi Umum', dokter:'dr. Megawati', noAntrian:'A-11', status:'batal',  keluhan:'Sakit kepala' },
-      { id:5, tanggal:'2024-09-20', layanan:'Imunisasi / Vaksin',dokter:'—',          noAntrian:'V-03', status:'selesai', keluhan:'Vaksin flu' },
-    ];
+    const riwayatData = {!! json_encode($riwayatAntrian->map(function($r) {
+        $dokter = '—';
+        if ($r->rekamMedis && $r->rekamMedis->dokter) {
+            $dokter = $r->rekamMedis->dokter->nama ?? '—';
+        }
+        return [
+            'id' => $r->id,
+            'tanggal' => \Carbon\Carbon::parse($r->tanggal)->format('Y-m-d'),
+            'layanan' => 'Layanan Klinik', // Placeholder as backend overwrites jenis to 'Online'
+            'dokter' => $dokter,
+            'noAntrian' => $r->jenis === 'Online' ? 'O-'.str_pad($r->no_antrian, 3, '0', STR_PAD_LEFT) : str_pad($r->no_antrian, 3, '0', STR_PAD_LEFT),
+            'status' => strtolower($r->status),
+            'keluhan' => $r->keluhan ?? '—'
+        ];
+    })) !!};
 
     document.getElementById('totalKunjungan').textContent = riwayatData.filter(r=>r.status==='selesai').length;
 
@@ -552,7 +677,10 @@
               <div class="text-xs text-gray-500 mt-0.5 italic">${r.keluhan}</div>
             </div>
           </div>
-          <span class="text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0 ${statusCls[r.status]}">${statusLbl[r.status]}</span>
+          <div class="flex flex-col items-end gap-2">
+            <span class="text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0 ${statusCls[r.status]}">${statusLbl[r.status]}</span>
+            ${r.status === 'selesai' ? `<button onclick="showModalFeedback(${r.id})" class="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1 font-semibold hover:underline transition"><i class="fas fa-star text-yellow-400"></i> Beri Ulasan</button>` : ''}
+          </div>
         </div>`).join('');
     }
     renderRiwayat();
@@ -568,6 +696,85 @@
         if(t!==tab) document.getElementById('tab-'+t).classList.add('text-gray-600');
         else document.getElementById('tab-'+t).classList.remove('text-gray-600');
       });
+    }
+
+    // ================================================================
+    // MODAL FEEDBACK
+    // ================================================================
+    function showModalFeedback(id = null) {
+      const modal = document.getElementById('modalFeedback');
+      const content = document.getElementById('modalFeedbackContent');
+      
+      document.getElementById('feedbackAntrianId').value = id;
+      document.getElementById('formModalFeedback').reset();
+      
+      modal.classList.remove('hidden');
+      // Trigger reflow
+      void modal.offsetWidth;
+      modal.classList.remove('opacity-0');
+      content.classList.remove('scale-95');
+      content.classList.add('scale-100');
+    }
+
+    function closeModalFeedback() {
+      const modal = document.getElementById('modalFeedback');
+      const content = document.getElementById('modalFeedbackContent');
+      modal.classList.add('opacity-0');
+      content.classList.remove('scale-100');
+      content.classList.add('scale-95');
+      setTimeout(() => { modal.classList.add('hidden'); }, 300);
+    }
+
+    async function submitModalFeedback() {
+      const antrianId = document.getElementById('feedbackAntrianId').value;
+      const rating = document.querySelector('#formModalFeedback input[name="rating"]:checked')?.value;
+      const kritik = document.querySelector('#formModalFeedback textarea[name="kritik"]')?.value ?? '';
+      const saran  = document.querySelector('#formModalFeedback textarea[name="saran"]')?.value ?? '';
+
+      if (!antrianId) {
+        showToast('Terjadi kesalahan, antrian tidak valid!', 'red');
+        return;
+      }
+      if (!rating) {
+        showToast('Silakan berikan rating (bintang) terlebih dahulu!', 'red');
+        return;
+      }
+
+      const btn = document.getElementById('btnSubmitFeedback');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+
+      try {
+        const response = await fetch("{{ route('pasien.antrian.feedback') }}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+          },
+          body: JSON.stringify({
+            antrian_id: antrianId,
+            rating: parseInt(rating),
+            kritik: kritik,
+            saran: saran
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showToast('Terima kasih atas ulasan Anda! 🎉', 'green');
+          closeModalFeedback();
+        } else {
+          showToast(data.message || 'Gagal mengirim ulasan.', 'red');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Terjadi kesalahan jaringan.', 'red');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
     }
 
     // ================================================================
@@ -894,6 +1101,28 @@
               antrianAktif && data.antrian_aktif.no_antrian === antrianAktif.nomor) {
             showToast('🔔 Antrian Anda ' + antrianAktif.nomor + ' sedang dipanggil!', 'amber');
           }
+        }
+
+        // — Disable/enable tombol Batalkan Antrian berdasarkan status —
+        const btnBatal = document.getElementById('btnBatalAntrian');
+        if (btnBatal) {
+          const statusAktif = data.antrian_aktif ? data.antrian_aktif.status : null;
+          const isDipanggil = statusAktif && statusAktif.toLowerCase() === 'dipanggil';
+          if (isDipanggil) {
+            btnBatal.disabled = true;
+            btnBatal.style.opacity = '0.45';
+            btnBatal.style.cursor  = 'not-allowed';
+            btnBatal.style.pointerEvents = 'none';
+            btnBatal.title = 'Antrian Anda sedang dipanggil, tidak dapat dibatalkan';
+            btnBatal.innerHTML = '<i class="fas fa-bell fa-shake"></i> Sedang Dipanggil...';
+          } else {
+            btnBatal.disabled = false;
+            btnBatal.style.opacity = '';
+            btnBatal.style.cursor  = '';
+            btnBatal.style.pointerEvents = '';
+            btnBatal.title = '';
+            btnBatal.innerHTML = '<i class="fas fa-times"></i> Batalkan Antrian';
+            }
         }
         if (skrgEl) animateChange(skrgEl, newDisplay);
 
