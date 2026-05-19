@@ -506,60 +506,106 @@
 
   <!-- Modal Kritik & Saran Selesai Periksa -->
   <div id="modalFeedback" class="fixed inset-0 z-[60] hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div class="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 relative" id="modalFeedbackContent">
-      <button onclick="closeModalFeedback()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
-        <i class="fas fa-times text-xl"></i>
-      </button>
-      <div class="p-8">
-        <div class="text-center mb-6">
-          <div class="w-16 h-16 bg-blue-100 text-blue-900 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-            <i class="fas fa-star"></i>
-          </div>
-          <h3 class="text-2xl font-bold text-gray-800">Kritik & Saran</h3>
-        </div>
-        
-        <form action="#" method="POST" id="formModalFeedback">
-          <input type="hidden" id="feedbackAntrianId" value="">
-          <!-- Rating Bintang -->
-          <div class="mb-6 text-center">
-            <label class="block text-base font-semibold text-gray-700 mb-3">Seberapa puas Anda dengan layanan kami?</label>
-            <div class="star-rating justify-center">
-              <input type="radio" id="m_star5" name="rating" value="5" />
-              <label for="m_star5" title="Sangat Puas"><i class="fas fa-star"></i></label>
-              <input type="radio" id="m_star4" name="rating" value="4" />
-              <label for="m_star4" title="Puas"><i class="fas fa-star"></i></label>
-              <input type="radio" id="m_star3" name="rating" value="3" />
-              <label for="m_star3" title="Cukup"><i class="fas fa-star"></i></label>
-              <input type="radio" id="m_star2" name="rating" value="2" />
-              <label for="m_star2" title="Kurang"><i class="fas fa-star"></i></label>
-              <input type="radio" id="m_star1" name="rating" value="1" />
-              <label for="m_star1" title="Sangat Kurang"><i class="fas fa-star"></i></label>
-            </div>
-          </div>
+  <div class="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 relative" id="modalFeedbackContent">
+    
+    <button onclick="closeModalFeedback()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
+      <i class="fas fa-times text-xl"></i>
+    </button>
 
-          <div class="grid md:grid-cols-2 gap-5 mb-5">
-            <div>
-              <label class="block text-sm font-semibold text-gray-600 mb-2">Nama Lengkap</label>
-              <input type="text" name="name" value="{{ $pasien->nama ?? '' }}" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition" placeholder="Masukkan nama Anda">
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-600 mb-2">Email / No. HP (Opsional)</label>
-              <input type="text" name="contact" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition" placeholder="Email atau No. HP">
-            </div>
-          </div>
-          
-          <div class="mb-6">
-            <label class="block text-sm font-semibold text-gray-600 mb-2">Pesan, Kritik, atau Saran</label>
-            <textarea name="message" rows="4" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none" placeholder="Tuliskan pengalaman Anda atau saran untuk kami..."></textarea>
-          </div>
-
-          <button type="button" id="btnSubmitFeedback" onclick="submitModalFeedback()" class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 shadow-md">
-            <i class="fas fa-paper-plane"></i> Kirim Ulasan
-          </button>
-        </form>
+    <div class="p-8">
+      <div class="text-center mb-6">
+        <h3 class="text-2xl font-bold text-gray-800">Kritik & Saran</h3>
       </div>
+
+      <form action="#" method="POST" id="formModalFeedback">
+        <input type="hidden" id="feedbackAntrianId" value="">
+
+        <!-- Rating -->
+        <div class="mb-6 text-center">
+          <label class="block text-base font-semibold text-gray-700 mb-3">
+            Seberapa puas Anda dengan layanan kami?
+          </label>
+
+          <div class="star-rating justify-center">
+            <input type="radio" id="m_star5" name="rating" value="5" />
+            <label for="m_star5" title="Sangat Puas"><i class="fas fa-star"></i></label>
+
+            <input type="radio" id="m_star4" name="rating" value="4" />
+            <label for="m_star4" title="Puas"><i class="fas fa-star"></i></label>
+
+            <input type="radio" id="m_star3" name="rating" value="3" />
+            <label for="m_star3" title="Cukup"><i class="fas fa-star"></i></label>
+
+            <input type="radio" id="m_star2" name="rating" value="2" />
+            <label for="m_star2" title="Kurang"><i class="fas fa-star"></i></label>
+
+            <input type="radio" id="m_star1" name="rating" value="1" />
+            <label for="m_star1" title="Sangat Kurang"><i class="fas fa-star"></i></label>
+          </div>
+        </div>
+
+        <!-- Input -->
+        <div class="grid md:grid-cols-3 gap-5 mb-5">
+          
+          <!-- Nama lebih lebar -->
+          <div class="md:col-span-5">
+            <label class="block text-sm font-semibold text-gray-600 mb-2">
+              Nama Lengkap
+            </label>
+
+            <input 
+              type="text" 
+              name="name" 
+              value="{{ $pasien->nama ?? '' }}"
+              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition"
+              placeholder="Masukkan nama Anda"
+            >
+          </div>
+        </div>
+
+        <!-- Kritik -->
+        <div class="mb-5">
+          <label class="block text-sm font-semibold text-gray-600 mb-2">
+            Kritik
+          </label>
+
+          <textarea 
+            name="kritik" 
+            rows="3" 
+            required
+            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none"
+            placeholder="Tuliskan kritik Anda..."
+          ></textarea>
+        </div>
+
+        <!-- Saran -->
+        <div class="mb-6">
+          <label class="block text-sm font-semibold text-gray-600 mb-2">
+            Saran
+          </label>
+
+          <textarea 
+            name="saran" 
+            rows="3"
+            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none"
+            placeholder="Tuliskan saran Anda..."
+          ></textarea>
+        </div>
+
+        <!-- Button -->
+        <button 
+          type="button" 
+          id="btnSubmitFeedback"
+          onclick="submitModalFeedback()"
+          class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 shadow-md"
+        >
+          <i class="fas fa-paper-plane"></i> Kirim Ulasan
+        </button>
+
+      </form>
     </div>
   </div>
+</div>
 
   <!-- Toast notification -->
   <div id="toast" class="fixed bottom-5 right-5 bg-green-700 text-white px-5 py-3 rounded-2xl shadow-xl font-semibold text-sm flex items-center gap-2 z-50 opacity-0 translate-y-4 transition-all duration-300 pointer-events-none">
@@ -667,8 +713,9 @@
 
     async function submitModalFeedback() {
       const antrianId = document.getElementById('feedbackAntrianId').value;
-      const rating = document.querySelector('input[name="rating"]:checked')?.value;
-      const message = document.querySelector('textarea[name="message"]').value;
+      const rating = document.querySelector('#formModalFeedback input[name="rating"]:checked')?.value;
+      const kritik = document.querySelector('#formModalFeedback textarea[name="kritik"]')?.value ?? '';
+      const saran  = document.querySelector('#formModalFeedback textarea[name="saran"]')?.value ?? '';
 
       if (!antrianId) {
         showToast('Terjadi kesalahan, antrian tidak valid!', 'red');
@@ -693,20 +740,22 @@
           },
           body: JSON.stringify({
             antrian_id: antrianId,
-            rating: rating,
-            message: message
+            rating: parseInt(rating),
+            kritik: kritik,
+            saran: saran
           })
         });
 
         const data = await response.json();
 
         if (data.success) {
-          showToast('Terima kasih atas ulasan Anda!', 'green');
+          showToast('Terima kasih atas ulasan Anda! 🎉', 'green');
           closeModalFeedback();
         } else {
           showToast(data.message || 'Gagal mengirim ulasan.', 'red');
         }
       } catch (err) {
+        console.error(err);
         showToast('Terjadi kesalahan jaringan.', 'red');
       } finally {
         btn.disabled = false;
