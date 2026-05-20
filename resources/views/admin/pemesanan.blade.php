@@ -500,9 +500,9 @@
             </select>
           </div>
 
-          {{-- Pelayanan Kesehatan (BPJS/Umum) --}}
+          {{-- Jenis Pelayanan (BPJS/Umum) --}}
           <div class="form-group" style="grid-column:1/-1">
-            <label>Pelayanan Kesehatan <span class="text-red-500 normal-case font-normal">*</span></label>
+            <label>Jenis Pelayanan <span class="text-red-500 normal-case font-normal">*</span></label>
             <select name="jenis_pelayanan" class="form-select" required>
               <option value="">— Pilih Jenis —</option>
               <option value="Umum">Umum</option>
@@ -510,9 +510,9 @@
             </select>
           </div>
 
-          {{-- Jenis Pelayanan (Poli) --}}
+          {{-- Layanan Kesehatan (Poli) --}}
           <div class="form-group" style="grid-column:1/-1">
-            <label>Jenis Pelayanan <span class="text-red-500 normal-case font-normal">*</span></label>
+            <label>Layanan Kesehatan <span class="text-red-500 normal-case font-normal">*</span></label>
             <select name="pelayanan_kesehatan" class="form-select" required>
               <option value="">— Pilih Layanan —</option>
               <option value="Poli Umum">Poli Umum</option>

@@ -221,7 +221,11 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
                 ->where('status', 'Selesai')
                 ->exists();
             
-            $riwayatAntrian = \App\Models\Antrian::with('rekamMedis.dokter')
+            $riwayatAntrian = \App\Models\Antrian::with([
+                    'rekamMedis.dokter',
+                    'rekamMedis.diagnosa.icdx',
+                    'rekamMedis.resep.details.obat',
+                ])
                 ->where('pasien_id', $pasien->id)
                 ->where('status', 'Selesai')
                 ->orderBy('tanggal', 'desc')
@@ -235,6 +239,7 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
     Route::post('/dashboard-pasien/antrian', [AntrianController::class, 'storePasien'])->name('pasien.antrian.store');
     Route::post('/dashboard-pasien/antrian/{id}/cancel', [AntrianController::class, 'cancelPasien'])->name('pasien.antrian.cancel');
     Route::post('/dashboard-pasien/feedback', [AntrianController::class, 'storeFeedback'])->name('pasien.antrian.feedback');
+    Route::get('/dashboard-pasien/riwayat/{id}', [AntrianController::class, 'showRiwayatDetail'])->name('pasien.riwayat.detail');
     Route::put('/dashboard-pasien/profil', function (\Illuminate\Http\Request $request) {
         $user   = auth()->user();
         $pasien = $user->pasien;

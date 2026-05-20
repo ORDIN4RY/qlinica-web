@@ -265,7 +265,7 @@
                   <th class="px-5 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">No.</th>
                   <th class="px-5 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">No. RM</th>
                   <th class="px-5 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">Nama</th>
-                  <th class="px-5 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">Layanan</th>
+                  <th class="px-5 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">Layanan Kesehatan</th>
                   <th class="px-5 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">Waktu</th>
                   <th class="px-5 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">Status</th>
                   <th class="px-5 py-4 text-left text-xs font-bold text-blue-900 uppercase tracking-wider">Aksi</th>
@@ -299,12 +299,12 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           @php
             $layanan = [
-              ['icon'=>'fa-heartbeat','warna'=>'blue','nama'=>'Umum'],
-              ['icon'=>'fa-tooth','warna'=>'green','nama'=>'Gigi'],
-              ['icon'=>'fa-flask','warna'=>'purple','nama'=>'Lab'],
-              ['icon'=>'fa-syringe','warna'=>'amber','nama'=>'Vaksin'],
-              ['icon'=>'fa-baby','warna'=>'pink','nama'=>'KIA/KB'],
-              ['icon'=>'fa-truck-medical','warna'=>'red','nama'=>'Darurat'],
+              ['icon'=>'fa-stethoscope','warna'=>'blue','nama'=>'Poli Umum'],
+              ['icon'=>'fa-tooth','warna'=>'green','nama'=>'Poli Gigi'],
+              ['icon'=>'fa-baby','warna'=>'pink','nama'=>'Poli KIA'],
+              ['icon'=>'fa-truck-medical','warna'=>'red','nama'=>'UGD'],
+              ['icon'=>'fa-flask','warna'=>'purple','nama'=>'Laboratorium'],
+              ['icon'=>'fa-spa','warna'=>'amber','nama'=>'Baby Spa'],
             ];
           @endphp
           @foreach($layanan as $i => $l)
@@ -363,7 +363,7 @@
             class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-blue-900 focus:ring-2 focus:ring-blue-900/10 outline-none bg-gray-50">
         </div>
         <div>
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1.5">Jenis Layanan</label>
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1.5">Layanan Kesehatan</label>
           <select id="inLayanan"
             class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-blue-900 outline-none bg-gray-50">
             <option value="">— Pilih Layanan —</option>
@@ -430,8 +430,7 @@
     document.getElementById('btnAmbil').addEventListener('click', () => openModal());
 
     window.pilihLayanan = (nama) => {
-      const map = { 'Umum':'Konsultasi Umum','Gigi':'Klinik Gigi','Lab':'Laboratorium','Vaksin':'Imunisasi / Vaksin','KIA/KB':'KIA / KB','Darurat':'Gawat Darurat' };
-      openModal(map[nama] || nama);
+      openModal(nama);
       document.querySelector('#antrian').scrollIntoView({ behavior:'smooth' });
     };
 

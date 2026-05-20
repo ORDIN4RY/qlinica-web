@@ -153,14 +153,15 @@
 
             <div id="formAntrian" class="space-y-4 {{ $antrianAktif ? 'hidden' : '' }}">
               <div>
-                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Jenis Layanan</label>
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Layanan Kesehatan</label>
                 <select id="jenisLayanan" class="mt-1.5 w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-blue-900 focus:ring-2 focus:ring-blue-900/10 outline-none bg-gray-50">
                   <option value="">— Pilih Layanan —</option>
-                  <option value="Konsultasi Umum">Konsultasi Umum</option>
-                  <option value="Klinik Gigi">Klinik Gigi</option>
+                  <option value="Poli Umum">Poli Umum</option>
+                  <option value="Poli Gigi">Poli Gigi</option>
+                  <option value="Poli KIA">Poli KIA</option>
+                  <option value="UGD">UGD</option>
                   <option value="Laboratorium">Laboratorium</option>
-                  <option value="Imunisasi / Vaksin">Imunisasi / Vaksin</option>
-                  <option value="KIA / KB">KIA / KB</option>
+                  <option value="Baby Spa">Baby Spa</option>
                 </select>
               </div>
               <div>
@@ -408,7 +409,7 @@
               </div>
               <div class="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2">
                 <i class="fas fa-search text-gray-400 text-xs"></i>
-                <input type="text" id="searchRiwayat" placeholder="Cari layanan..." class="bg-transparent text-sm outline-none w-36">
+                <input type="text" id="searchRiwayat" placeholder="Cari layanan, diagnosa..." class="bg-transparent text-sm outline-none w-44">
               </div>
             </div>
             <div class="divide-y divide-gray-100" id="listRiwayat"></div>
@@ -428,12 +429,12 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           @php
             $layanan = [
-              ['icon'=>'fa-heartbeat','warna'=>'blue','nama'=>'Konsultasi Umum','desc'=>'Dokter umum siap melayani konsultasi kesehatan Anda.'],
-              ['icon'=>'fa-tooth','warna'=>'green','nama'=>'Klinik Gigi','desc'=>'Perawatan gigi modern dengan alat standar internasional.'],
-              ['icon'=>'fa-flask','warna'=>'purple','nama'=>'Laboratorium','desc'=>'Pengecekan lab cepat, akurat, dan steril.'],
-              ['icon'=>'fa-syringe','warna'=>'amber','nama'=>'Imunisasi / Vaksin','desc'=>'Program vaksinasi lengkap untuk semua usia.'],
-              ['icon'=>'fa-baby','warna'=>'pink','nama'=>'KIA / KB','desc'=>'Layanan kesehatan ibu dan anak serta KB.'],
-              ['icon'=>'fa-truck-medical','warna'=>'red','nama'=>'Gawat Darurat','desc'=>'Penanganan darurat 24 jam oleh tenaga ahli.'],
+              ['icon'=>'fa-stethoscope','warna'=>'blue','nama'=>'Poli Umum','desc'=>'Layanan pemeriksaan kesehatan umum dan konsultasi dokter umum.'],
+              ['icon'=>'fa-tooth','warna'=>'green','nama'=>'Poli Gigi','desc'=>'Pemeriksaan dan perawatan kesehatan gigi serta mulut modern.'],
+              ['icon'=>'fa-baby','warna'=>'pink','nama'=>'Poli KIA','desc'=>'Kesehatan Ibu & Anak, KB, Imunisasi, serta pemantauan tumbuh kembang anak.'],
+              ['icon'=>'fa-truck-medical','warna'=>'red','nama'=>'UGD','desc'=>'Unit Gawat Darurat yang siap melayani penanganan medis kritis dan mendadak.'],
+              ['icon'=>'fa-flask','warna'=>'purple','nama'=>'Laboratorium','desc'=>'Pengecekan sampel laboratorium medis yang steril, cepat, dan akurat.'],
+              ['icon'=>'fa-spa','warna'=>'amber','nama'=>'Baby Spa','desc'=>'Layanan spa bayi khusus untuk menstimulasi tumbuh kembang anak dengan rileks.'],
             ];
           @endphp
           @foreach($layanan as $i => $l)
@@ -640,49 +641,165 @@
     // DATA RIWAYAT
     // ================================================================
     const riwayatData = {!! json_encode($riwayatAntrian->map(function($r) {
-        $dokter = '—';
-        if ($r->rekamMedis && $r->rekamMedis->dokter) {
-            $dokter = $r->rekamMedis->dokter->nama ?? '—';
+        $rm     = $r->rekamMedis;
+        $dokter = $rm && $rm->dokter ? ($rm->dokter->nama ?? '—') : '—';
+
+        // Diagnosa ICD-X
+        $diagnosa = [];
+        if ($rm && $rm->diagnosa) {
+            foreach ($rm->diagnosa as $d) {
+                $diagnosa[] = [
+                    'kode'   => $d->icdx ? ($d->icdx->kode ?? '?') : '?',
+                    'nama'   => $d->icdx ? ($d->icdx->nama ?? '—') : '—',
+                    'primer' => (bool) $d->is_primer,
+                ];
+            }
         }
+
+        // Vital Sign
+        $vitalSign = null;
+        if ($rm) {
+            $vitalSign = [
+                'tekanan_darah' => $rm->tekanan_darah ?? null,
+                'suhu'          => $rm->suhu ?? null,
+                'nadi'          => $rm->nadi ?? null,
+                'respirasi'     => $rm->respirasi ?? null,
+                'berat_badan'   => $rm->berat_badan ?? null,
+                'tinggi_badan'  => $rm->tinggi_badan ?? null,
+            ];
+        }
+
+        // Resep Obat
+        $resepObat = [];
+        if ($rm && $rm->resep && $rm->resep->details) {
+            foreach ($rm->resep->details as $det) {
+                $resepObat[] = [
+                    'nama'        => $det->obat ? ($det->obat->nama ?? '—') : '—',
+                    'jumlah'      => $det->jumlah ?? null,
+                    'dosis'       => $det->dosis ?? null,
+                    'aturan_pakai'=> $det->aturan_pakai ?? null,
+                ];
+            }
+        }
+
+        $layananRaw = $rm ? ($rm->pelayanan_kesehatan ?? 'Poli Umum') : 'Poli Umum';
+        $jenisRaw = $rm ? ($rm->jenis_pelayanan ?? 'Umum') : 'Umum';
+
+        $layananUpper = strtoupper(trim($layananRaw));
+        $jenisUpper = strtoupper(trim($jenisRaw));
+
+        // Deteksi jika terbalik (Layanan berisi jenis pembayaran atau Jenis berisi Poli)
+        $isLayananPayment = in_array($layananUpper, ['UMUM', 'BPJS']);
+        $isJenisPoli = str_contains($jenisUpper, 'POLI') || str_contains($jenisUpper, 'UGD') || str_contains($jenisUpper, 'LAB') || str_contains($jenisUpper, 'SPA');
+
+        if ($isLayananPayment || $isJenisPoli) {
+            $temp = $layananRaw;
+            $layananRaw = $jenisRaw;
+            $jenisRaw = $temp;
+
+            $layananUpper = strtoupper(trim($layananRaw));
+            $jenisUpper = strtoupper(trim($jenisRaw));
+        }
+
+        // Standardisasi Jenis Pelayanan (Payment)
+        if (in_array($jenisUpper, ['UMUM', 'BPJS'])) {
+            $jenisPelayanan = ($jenisUpper === 'BPJS') ? 'BPJS' : 'Umum';
+        } else {
+            $jenisPelayanan = 'Umum';
+        }
+
+        // Standardisasi Layanan Kesehatan (Poli)
+        if (str_contains($layananUpper, 'GIGI')) {
+            $layanan = 'Poli Gigi';
+        } elseif (str_contains($layananUpper, 'KIA') || str_contains($layananUpper, 'KB')) {
+            $layanan = 'Poli KIA';
+        } elseif (str_contains($layananUpper, 'UGD') || str_contains($layananUpper, 'DARURAT')) {
+            $layanan = 'UGD';
+        } elseif (str_contains($layananUpper, 'LAB')) {
+            $layanan = 'Laboratorium';
+        } elseif (str_contains($layananUpper, 'SPA')) {
+            $layanan = 'Baby Spa';
+        } else {
+            $layanan = 'Poli Umum';
+        }
+
         return [
-            'id' => $r->id,
-            'tanggal' => \Carbon\Carbon::parse($r->tanggal)->format('Y-m-d'),
-            'layanan' => 'Layanan Klinik', // Placeholder as backend overwrites jenis to 'Online'
-            'dokter' => $dokter,
-            'noAntrian' => $r->jenis === 'Online' ? 'O-'.str_pad($r->no_antrian, 3, '0', STR_PAD_LEFT) : str_pad($r->no_antrian, 3, '0', STR_PAD_LEFT),
-            'status' => strtolower($r->status),
-            'keluhan' => $r->keluhan ?? '—'
+            'id'               => $r->id,
+            'tanggal'          => \Carbon\Carbon::parse($r->tanggal)->format('Y-m-d'),
+            'tanggalFormatted' => \Carbon\Carbon::parse($r->tanggal)->isoFormat('D MMMM Y'),
+            'layanan'          => $layanan,
+            'jenisPelayanan'   => $jenisPelayanan,
+            'dokter'           => $dokter,
+            'noAntrian'        => $r->jenis === 'Online' ? 'O-'.str_pad($r->no_antrian, 3, '0', STR_PAD_LEFT) : str_pad($r->no_antrian, 3, '0', STR_PAD_LEFT),
+            'status'           => strtolower($r->status),
+            'keluhan'          => $r->keluhan ?? null,
+            'anamnesis'        => $rm ? ($rm->anamnesis ?? null) : null,
+            'tindakan'         => $rm ? ($rm->tindakan ?? null) : null,
+            'pengobatan'       => $rm ? ($rm->pengobatan ?? null) : null,
+            'prognosa'         => $rm ? ($rm->prognosa ?? null) : null,
+            'diagnosa'         => $diagnosa,
+            'vitalSign'        => $vitalSign,
+            'resepObat'        => $resepObat,
+            'hasRekamMedis'    => $rm !== null,
         ];
     })) !!};
 
     document.getElementById('totalKunjungan').textContent = riwayatData.filter(r=>r.status==='selesai').length;
 
+    // ================================================================
+    // RENDER RIWAYAT (Redirect to Page)
+    // ================================================================
     function renderRiwayat(filter='') {
-      const list = document.getElementById('listRiwayat');
+      const list  = document.getElementById('listRiwayat');
       const empty = document.getElementById('riwayatEmpty');
-      const items = riwayatData.filter(r => !filter || r.layanan.toLowerCase().includes(filter.toLowerCase()));
+      const q = filter.toLowerCase();
+      const items = riwayatData.filter(r => !q ||
+        r.layanan.toLowerCase().includes(q) ||
+        r.dokter.toLowerCase().includes(q) ||
+        (r.keluhan && r.keluhan.toLowerCase().includes(q)) ||
+        (r.diagnosa && r.diagnosa.some(d => d.nama.toLowerCase().includes(q) || d.kode.toLowerCase().includes(q)))
+      );
       if (!items.length) { list.innerHTML=''; empty.style.display='block'; return; }
       empty.style.display='none';
+
       const statusCls = { selesai:'status-selesai', batal:'status-batal', menunggu:'status-menunggu' };
       const statusLbl = { selesai:'Selesai', batal:'Batal', menunggu:'Menunggu' };
-      list.innerHTML = items.map(r => `
-        <div class="p-5 flex items-center justify-between gap-4 hover:bg-gray-50 transition group">
-          <div class="flex items-center gap-4">
-            <div class="w-10 h-10 bg-blue-100 text-blue-900 rounded-2xl flex items-center justify-center flex-shrink-0 text-sm font-bold group-hover:bg-blue-900 group-hover:text-white transition">
-              ${r.noAntrian.split('-')[0]}
+
+      list.innerHTML = items.map((r, idx) => {
+        const primerDiagnosa = r.diagnosa && r.diagnosa.find(d => d.primer);
+
+        return `
+        <div class="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors">
+          <div class="p-5 cursor-pointer flex items-start justify-between gap-3 group" onclick="window.location.href='/dashboard-pasien/riwayat/${r.id}'">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 bg-blue-50 text-blue-900 rounded-2xl flex items-center justify-center flex-shrink-0 font-bold group-hover:bg-blue-900 group-hover:text-white transition-all text-xs border border-blue-100/50">
+                ${r.noAntrian}
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-bold text-gray-800 text-sm group-hover:text-blue-900 transition-colors">${r.layanan}</span>
+                  ${r.jenisPelayanan ? `<span class="text-xs px-2 py-0.5 bg-blue-50/80 text-blue-700 border border-blue-100/50 rounded-full font-semibold">${r.jenisPelayanan}</span>` : ''}
+                </div>
+                <div class="text-xs text-gray-400 mt-1 flex items-center gap-1.5 flex-wrap">
+                  <i class="fas fa-calendar-alt text-gray-300"></i><span>${r.tanggalFormatted}</span>
+                  ${r.dokter !== '—' ? `<span class="text-gray-300">·</span><i class="fas fa-user-md text-gray-300"></i><span>${r.dokter}</span>` : ''}
+                </div>
+                ${r.keluhan ? `<div class="text-xs text-gray-500 mt-1.5 italic"><i class="fas fa-comment-medical mr-1.5 text-blue-400"></i>&ldquo;${r.keluhan}&rdquo;</div>` : ''}
+                ${primerDiagnosa ? `<div class="mt-2 inline-flex items-center gap-1.5 text-xs bg-red-50/80 border border-red-100/50 text-red-700 px-2.5 py-1 rounded-full font-semibold"><i class="fas fa-virus text-xs"></i>${primerDiagnosa.kode} &mdash; ${primerDiagnosa.nama}</div>` : ''}
+              </div>
             </div>
-            <div>
-              <div class="font-semibold text-gray-800 text-sm">${r.layanan}</div>
-              <div class="text-xs text-gray-400 mt-0.5">${r.tanggal} · Antrian ${r.noAntrian} · ${r.dokter}</div>
-              <div class="text-xs text-gray-500 mt-0.5 italic">${r.keluhan}</div>
+            <div class="flex flex-col items-end gap-2.5 flex-shrink-0">
+              <span class="text-xs font-bold px-3 py-1.5 rounded-full ${statusCls[r.status]}">${statusLbl[r.status]}</span>
+              <div class="flex gap-2">
+                ${r.status === 'selesai' ? `<button onclick="event.stopPropagation(); showModalFeedback(${r.id})" class="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1.5 font-semibold transition bg-blue-50 hover:bg-blue-100 border border-blue-100 px-2.5 py-1.5 rounded-lg"><i class="fas fa-star text-yellow-400"></i> Beri Ulasan</button>` : ''}
+                <button class="text-blue-900 bg-blue-50 group-hover:bg-blue-900 group-hover:text-white border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all"><i class="fas fa-eye"></i> Detail</button>
+              </div>
             </div>
           </div>
-          <div class="flex flex-col items-end gap-2">
-            <span class="text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0 ${statusCls[r.status]}">${statusLbl[r.status]}</span>
-            ${r.status === 'selesai' ? `<button onclick="showModalFeedback(${r.id})" class="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1 font-semibold hover:underline transition"><i class="fas fa-star text-yellow-400"></i> Beri Ulasan</button>` : ''}
-          </div>
-        </div>`).join('');
+        </div>`;
+      }).join('');
     }
+
     renderRiwayat();
     document.getElementById('searchRiwayat').addEventListener('input', e => renderRiwayat(e.target.value));
 
