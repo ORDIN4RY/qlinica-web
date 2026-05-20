@@ -44,7 +44,9 @@
             <th class="px-6 py-4">Dokter Pemeriksa</th>
             <th class="px-6 py-4 text-right">Total Tagihan</th>
             <th class="px-6 py-4 text-center">Status</th>
+            @if(auth()->user()->hasMenuAccess('Billing', 'bayar'))
             <th class="px-6 py-4 text-center">Aksi</th>
+            @endif
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 bg-white">
@@ -78,12 +80,14 @@
                   {{ $b->status }}
                 </span>
               </td>
+              @if(auth()->user()->hasMenuAccess('Billing', 'bayar'))
               <td class="px-6 py-4 text-center">
                 <a href="{{ route('admin.billing.show', $b) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ $b->status === 'Belum Bayar' ? 'bg-blue-900 text-white hover:bg-blue-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
                   <i class="fas {{ $b->status === 'Belum Bayar' ? 'fa-wallet' : 'fa-receipt' }}"></i>
                   {{ $b->status === 'Belum Bayar' ? 'Bayar Kasir' : 'Detail Invoice' }}
                 </a>
               </td>
+              @endif
             </tr>
           @endforeach
         </tbody>

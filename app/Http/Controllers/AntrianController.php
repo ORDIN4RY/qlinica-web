@@ -13,7 +13,7 @@ class AntrianController extends Controller
 {
     public function index()
     {
-        $antrians = Antrian::with('pasien')
+        $antrians = Antrian::with(['pasien', 'rekamMedis'])
             ->where('tanggal', now()->toDateString())
             ->orderByRaw("
                 CASE
@@ -257,7 +257,7 @@ class AntrianController extends Controller
 
     public function realtimeData()
     {
-        $antrians = Antrian::with('pasien')
+        $antrians = Antrian::with(['pasien', 'rekamMedis'])
             ->where('tanggal', now()->toDateString())
             ->orderByRaw("
                 CASE
@@ -289,7 +289,11 @@ class AntrianController extends Controller
             if ($st === 'menunggu') {
                 $statusHtml = '<span class="status-badge s-menunggu">Menunggu</span>';
             } elseif ($st === 'dipanggil') {
-                $statusHtml = '<span class="status-badge s-dipanggil">Dipanggil</span>';
+                if ($a->rekamMedis) {
+                    $statusHtml = '<span class="status-badge s-menunggu-dokter">Menunggu Dokter</span>';
+                } else {
+                    $statusHtml = '<span class="status-badge s-menunggu-ttv">Menunggu TTV</span>';
+                }
             } elseif ($st === 'dilayani') {
                 $statusHtml = '<span class="status-badge s-dilayani">Dilayani</span>';
             } elseif ($st === 'selesai') {
@@ -302,7 +306,12 @@ class AntrianController extends Controller
             if ($hasUpdate) {
                 $buttonsHtml = '<td class="px-5 py-3.5"><div class="flex items-center gap-2">';
                 if ($st === 'menunggu') {
-                    $buttonsHtml .= '<button type="button" class="btn-panggil" onclick="openPanggil(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Panggil Pasien"><i class="fas fa-bullhorn text-xs"></i> Panggil</button>';
+                    $buttonsHtml .= '<button type="button" class="btn-panggil" onclick="panggilStatusLangsung(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Panggil Pasien"><i class="fas fa-bullhorn text-xs"></i> Panggil</button>';
+                } elseif ($st === 'dipanggil') {
+                    if (!$a->rekamMedis) {
+                        $buttonsHtml .= '<button type="button" class="btn-ttv" onclick="openPanggil(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Pemeriksaan Awal TTV"><i class="fas fa-notes-medical text-xs"></i> Pemeriksaan Awal</button>';
+                    }
+                    $buttonsHtml .= '<button type="button" class="btn-panggil" onclick="panggilStatusLangsung(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Panggil Ulang Pasien"><i class="fas fa-redo text-xs"></i> Panggil Ulang</button>';
                 }
                 if (!in_array($st, ['selesai', 'batal'])) {
                     $buttonsHtml .= '<button class="btn-batal" onclick="openBatal(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Batalkan"><i class="fas fa-times text-xs"></i></button>';
@@ -363,6 +372,15 @@ class AntrianController extends Controller
         $antrian->update(['status' => $request->status]);
 
         $message = 'Status antrian berhasil diupdate.';
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'antrian' => $antrian
+            ]);
+        }
+
         return redirect()->route('admin.pemesanan')->with('success', $message);
     }
 

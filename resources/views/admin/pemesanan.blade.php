@@ -98,6 +98,10 @@
   .s-menunggu::before  { background:#ca8a04; }
   .s-dipanggil { background:#eff6ff; color:#2563eb; }
   .s-dipanggil::before { background:#2563eb; }
+  .s-menunggu-ttv { background:#faf5ff; color:#7c3aed; }
+  .s-menunggu-ttv::before { background:#7c3aed; }
+  .s-menunggu-dokter { background:#eff6ff; color:#2563eb; }
+  .s-menunggu-dokter::before { background:#2563eb; }
   .s-dilayani  { background:#ecfdf5; color:#059669; }
   .s-dilayani::before  { background:#059669; }
   .s-selesai   { background:#f1f5f9; color:#64748b; }
@@ -129,6 +133,16 @@
     transition: all .15s; white-space: nowrap;
   }
   .btn-panggil:hover { background: #dbeafe; }
+
+  .btn-ttv {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 700;
+    padding: 5px 12px; border-radius: 8px;
+    background: #faf5ff; color: #7c3aed;
+    border: 1px solid #e9d5ff; cursor: pointer;
+    transition: all .15s; white-space: nowrap;
+  }
+  .btn-ttv:hover { background: #f3e8ff; }
 
   .btn-selesai {
     display: inline-flex; align-items: center; gap: 5px;
@@ -329,7 +343,11 @@
               @if($st === 'menunggu')
                 <span class="status-badge s-menunggu">Menunggu</span>
               @elseif($st === 'dipanggil')
-                <span class="status-badge s-dipanggil">Dipanggil</span>
+                @if($a->rekamMedis)
+                  <span class="status-badge s-menunggu-dokter">Menunggu Dokter</span>
+                @else
+                  <span class="status-badge s-menunggu-ttv">Menunggu TTV</span>
+                @endif
               @elseif($st === 'dilayani')
                 <span class="status-badge s-dilayani">Dilayani</span>
               @elseif($st === 'selesai')
@@ -343,8 +361,17 @@
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-2">
                 @if($st === 'menunggu')
-                  <button type="button" class="btn-panggil" onclick="openPanggil({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Panggil Pasien">
+                  <button type="button" class="btn-panggil" onclick="panggilStatusLangsung({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Panggil Pasien">
                     <i class="fas fa-bullhorn text-xs"></i> Panggil
+                  </button>
+                @elseif($st === 'dipanggil')
+                  @if(!$a->rekamMedis)
+                    <button type="button" class="btn-ttv" onclick="openPanggil({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Pemeriksaan Awal TTV">
+                      <i class="fas fa-notes-medical text-xs"></i> Pemeriksaan Awal
+                    </button>
+                  @endif
+                  <button type="button" class="btn-panggil" onclick="panggilStatusLangsung({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Panggil Ulang Pasien">
+                    <i class="fas fa-redo text-xs"></i> Panggil Ulang
                   </button>
                 @endif
                 @if(!in_array($st, ['selesai','batal']))
@@ -731,9 +758,8 @@
     }
   });
 
-  // Polling Realtime Antrian (setiap 5 detik)
-  setInterval(function() {
-    fetch('{{ route("admin.antrian.realtime") }}')
+  function loadRealtimeData() {
+    return fetch('{{ route("admin.antrian.realtime") }}')
       .then(function(r) { return r.json(); })
       .then(function(data) {
         // Update statistik kartu di bagian atas
@@ -765,6 +791,38 @@
         document.getElementById('tableInfo').innerHTML = 'Menampilkan <strong>' + data.jumlahAntrian + '</strong> antrian';
       })
       .catch(function(err) { console.error('Gagal mengambil data antrian realtime:', err); });
-  }, 5000); // 5000ms = 5 detik
+  }
+
+  // Polling Realtime Antrian (setiap 5 detik)
+  setInterval(loadRealtimeData, 5000); // 5000ms = 5 detik
+
+  async function panggilStatusLangsung(id, nama) {
+    if (!confirm('Panggil pasien "' + nama + '"? Status antrian akan berubah menjadi Dipanggil.')) return;
+    
+    try {
+      const response = await fetch(BASE_ANTRIAN + '/' + id + '/status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          _method: 'PATCH',
+          status: 'Dipanggil'
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        loadRealtimeData();
+      } else {
+        alert(data.message || 'Gagal mengubah status antrian.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Terjadi kesalahan saat menghubungi server.');
+    }
+  }
 </script>
 @endpush

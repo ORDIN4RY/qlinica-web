@@ -151,25 +151,23 @@
               <i class="fas fa-plus-circle text-blue-900"></i> Ambil Nomor Antrian
             </h3>
 
-            <div id="formAntrian" class="space-y-4 {{ $antrianAktif ? 'hidden' : '' }}">
-              <div>
-                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Layanan Kesehatan</label>
-                <select id="jenisLayanan" class="mt-1.5 w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-blue-900 focus:ring-2 focus:ring-blue-900/10 outline-none bg-gray-50">
-                  <option value="">— Pilih Layanan —</option>
-                  <option value="Poli Umum">Poli Umum</option>
-                  <option value="Poli Gigi">Poli Gigi</option>
-                  <option value="Poli KIA">Poli KIA</option>
-                  <option value="UGD">UGD</option>
-                  <option value="Laboratorium">Laboratorium</option>
-                  <option value="Baby Spa">Baby Spa</option>
-                </select>
+            <div id="formAntrian" class="space-y-6 {{ $antrianAktif ? 'hidden' : '' }}">
+              <div class="bg-blue-50/50 border border-blue-100 rounded-2xl p-5 text-sm text-blue-900">
+                <div class="flex items-start gap-3">
+                  <div class="w-8 h-8 bg-blue-100 text-blue-900 rounded-lg flex items-center justify-center text-sm shrink-0">
+                    <i class="fas fa-info-circle"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-gray-800">Alur Antrian Cepat</h4>
+                    <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">
+                      Anda hanya perlu mengklik tombol di bawah ini untuk mengambil nomor antrian. Layanan kesehatan (poliklinik) dan dokter tujuan akan ditentukan oleh Resepsionis saat Anda melakukan pemeriksaan awal di klinik.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Keluhan (opsional)</label>
-                <textarea id="keluhan" rows="3" placeholder="Deskripsikan keluhan Anda..." class="mt-1.5 w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-blue-900 outline-none resize-none bg-gray-50"></textarea>
-              </div>
-              <button onclick="ambilAntrian()" class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-3 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 shadow-md">
-                <i class="fas fa-ticket-alt"></i> Ambil Antrian Sekarang
+
+              <button onclick="openModalAmbil()" class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-4 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-900/20 transition-all duration-300">
+                <i class="fas fa-ticket-alt text-lg animate-pulse"></i> Ambil Nomor Antrian
               </button>
             </div>
 
@@ -622,6 +620,58 @@
   </div>
 </div>
 
+  <!-- Modal Ambil Antrian Online -->
+  <div id="modalAmbilAntrianOnline" class="fixed inset-0 z-[60] hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 relative" id="modalAmbilAntrianOnlineContent">
+      
+      <button onclick="closeModalAmbil()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+
+      <div class="p-8">
+        <div class="text-center mb-6">
+          <div class="w-16 h-16 bg-blue-100 text-blue-900 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+            <i class="fas fa-ticket-alt"></i>
+          </div>
+          <h3 class="text-2xl font-bold text-gray-800">Ambil Antrian Online</h3>
+          <p class="text-sm text-gray-500 mt-1">Dapatkan nomor antrian Anda secara instan untuk hari ini.</p>
+        </div>
+
+        <div class="mb-6 bg-blue-50/50 border border-blue-100 rounded-2xl p-4 text-sm text-blue-900">
+          <h4 class="font-bold mb-1.5 flex items-center gap-1.5"><i class="fas fa-info-circle"></i> Kebijakan & Panduan:</h4>
+          <ul class="list-disc list-inside space-y-1 text-xs text-blue-955/85 text-left">
+            <li>Nomor antrian berlaku untuk hari ini.</li>
+            <li>Anda tidak perlu memilih poliklinik sekarang. Poliklinik dan dokter tujuan akan diproses langsung oleh Resepsionis saat pemeriksaan awal.</li>
+            <li>Harap datang tepat waktu sesuai dengan estimasi antrian Anda.</li>
+          </ul>
+        </div>
+
+        <div class="space-y-4">
+          <div class="text-left">
+            <label class="block text-sm font-semibold text-gray-600 mb-2">
+              Keluhan Awal (Opsional)
+            </label>
+            <textarea 
+              id="keluhanAwalModal" 
+              rows="3" 
+              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none text-sm"
+              placeholder="Jelaskan keluhan medis awal Anda jika ada (misal: Demam sejak kemarin, sakit kepala, dll.)..."
+            ></textarea>
+          </div>
+
+          <button 
+            type="button" 
+            id="btnConfirmAmbilAntrian"
+            onclick="confirmAmbilAntrian()"
+            class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-3.5 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 shadow-md"
+          >
+            <i class="fas fa-check-circle"></i> Konfirmasi Ambil Antrian
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast notification -->
   <div id="toast" class="fixed bottom-5 right-5 bg-green-700 text-white px-5 py-3 rounded-2xl shadow-xl font-semibold text-sm flex items-center gap-2 z-50 opacity-0 translate-y-4 transition-all duration-300 pointer-events-none">
     <i class="fas fa-check-circle"></i>
@@ -899,13 +949,29 @@
     // ================================================================
     let antrianAktif = {!! json_encode($antrianAktif ? ['id' => $antrianAktif->id, 'nomor' => str_pad($antrianAktif->no_antrian, 3, '0', STR_PAD_LEFT), 'layanan' => $antrianAktif->jenis] : null) !!};
 
-    async function ambilAntrian() {
-      const layanan = document.getElementById('jenisLayanan').value;
-      const keluhan = document.getElementById('keluhan').value;
-      if (!layanan) { showToast('Pilih jenis layanan terlebih dahulu!', 'red'); return; }
+    function openModalAmbil() {
+      const modal = document.getElementById('modalAmbilAntrianOnline');
+      if (modal) {
+        modal.classList.remove('hidden');
+        void modal.offsetWidth;
+        modal.classList.remove('opacity-0');
+      }
+    }
 
-      // Tampilkan loading state
-      const btn = document.querySelector('#formAntrian button[onclick="ambilAntrian()"]');
+    function closeModalAmbil() {
+      const modal = document.getElementById('modalAmbilAntrianOnline');
+      if (modal) {
+        modal.classList.add('opacity-0');
+        setTimeout(() => { modal.classList.add('hidden'); }, 300);
+      }
+    }
+
+    async function confirmAmbilAntrian() {
+      const keluhan = document.getElementById('keluhanAwalModal').value;
+      const btn = document.getElementById('btnConfirmAmbilAntrian');
+      if (!btn) return;
+      const originalText = btn.innerHTML;
+
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
 
@@ -916,33 +982,30 @@
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
           },
-          body: JSON.stringify({ jenis: layanan, keluhan: keluhan })
+          body: JSON.stringify({ jenis: 'Online', keluhan: keluhan })
         });
         const data = await response.json();
 
         if (data.success) {
-          // Gunakan no_antrian dari server (format "001")
-          antrianAktif = { id: data.id, nomor: data.no_antrian, layanan };
+          antrianAktif = { id: data.id, nomor: data.no_antrian, layanan: 'Online' };
 
           document.getElementById('nomorAntrian').textContent  = data.no_antrian;
-          document.getElementById('layananDipilih').textContent = data.layanan;
+          document.getElementById('layananDipilih').textContent = 'Online';
           document.getElementById('tanggalAntrian').textContent = data.tanggal;
           document.getElementById('noAntrianKu').textContent   = data.no_antrian;
           document.getElementById('estimasiHasil').textContent = '~15 mnt';
           document.getElementById('formAntrian').classList.add('hidden');
           document.getElementById('hasilAntrian').classList.remove('hidden');
 
-          // Update statistik lokal sementara
           const total  = parseInt(document.getElementById('totalAntrianHari').textContent) + 1;
           const tunggu = parseInt(document.getElementById('menunggu').textContent) + 1;
           document.getElementById('totalAntrianHari').textContent = total;
           document.getElementById('menunggu').textContent = tunggu;
 
-          // Tambah ke riwayat lokal sementara
           riwayatData.unshift({
-            id: Date.now(),
+            id: data.id,
             tanggal: new Date().toLocaleDateString('en-CA'),
-            layanan: data.layanan,
+            layanan: 'Online',
             dokter: '—',
             noAntrian: data.no_antrian,
             status: 'menunggu',
@@ -951,18 +1014,18 @@
           renderRiwayat(document.getElementById('searchRiwayat').value);
           document.getElementById('totalKunjungan').textContent = riwayatData.filter(r => r.status === 'selesai').length;
 
+          closeModalAmbil();
           showToast(data.message);
         } else {
           showToast(data.message || 'Gagal mengambil antrian', 'red');
-          // Kembalikan tombol
           btn.disabled = false;
-          btn.innerHTML = '<i class="fas fa-ticket-alt"></i> Ambil Antrian Sekarang';
+          btn.innerHTML = originalText;
         }
       } catch (err) {
         showToast('Terjadi kesalahan pada server', 'red');
         console.error(err);
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-ticket-alt"></i> Ambil Antrian Sekarang';
+        btn.innerHTML = originalText;
       }
     }
 
@@ -1042,8 +1105,10 @@
     }
 
     function pilihLayanan(nama) {
-      document.getElementById('jenisLayanan').value = nama;
       document.querySelector('#antrian').scrollIntoView({behavior:'smooth'});
+      setTimeout(() => {
+        openModalAmbil();
+      }, 500);
     }
 
     // ================================================================

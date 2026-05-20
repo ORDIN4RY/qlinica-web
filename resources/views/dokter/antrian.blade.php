@@ -18,25 +18,14 @@
     </div>
   </div>
 
-  <!-- Menunggu -->
+  <!-- Belum Diperiksa -->
   <div class="bg-gradient-to-br from-white to-amber-50/10 rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
     <div>
-      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Menunggu</p>
-      <p class="text-3xl font-extrabold text-amber-600">{{ $antrians->where('status', 'Menunggu')->count() }}</p>
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Belum Diperiksa</p>
+      <p class="text-3xl font-extrabold text-amber-600">{{ $Dipanggil }}</p>
     </div>
     <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 border border-amber-100">
       <i class="fas fa-clock text-lg"></i>
-    </div>
-  </div>
-
-  <!-- Dipanggil -->
-  <div class="bg-gradient-to-br from-white to-blue-50/10 rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
-    <div>
-      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Dipanggil</p>
-      <p class="text-3xl font-extrabold text-blue-600">{{ $Dipanggil }}</p>
-    </div>
-    <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 border border-blue-100">
-      <i class="fas fa-bullhorn text-lg"></i>
     </div>
   </div>
 
@@ -48,6 +37,17 @@
     </div>
     <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 border border-emerald-100">
       <i class="fas fa-check-circle text-lg"></i>
+    </div>
+  </div>
+
+  <!-- Batal -->
+  <div class="bg-gradient-to-br from-white to-rose-50/10 rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
+    <div>
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Batal</p>
+      <p class="text-3xl font-extrabold text-rose-600">{{ $antrians->where('status', 'Batal')->count() }}</p>
+    </div>
+    <div class="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 border border-rose-100">
+      <i class="fas fa-ban text-lg"></i>
     </div>
   </div>
 

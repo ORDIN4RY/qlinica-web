@@ -92,7 +92,6 @@ class JabatanController extends Controller
             'Billing' => [
                 'view'   => ['label' => 'Lihat Billing',   'icon' => 'fa-wallet',     'desc' => 'Melihat data billing & kasir pasien'],
                 'bayar'  => ['label' => 'Proses Bayar',    'icon' => 'fa-cash-register','desc' => 'Memproses pembayaran tagihan pasien'],
-                'bpjs'   => ['label' => 'Cek BPJS',        'icon' => 'fa-id-card',    'desc' => 'Memeriksa status rujukan/keanggotaan BPJS'],
             ],
             'Kamar' => [
                 'view'   => ['label' => 'Lihat Kamar',     'icon' => 'fa-eye',        'desc' => 'Melihat daftar dan status keterisian kamar'],
