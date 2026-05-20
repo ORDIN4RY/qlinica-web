@@ -165,6 +165,7 @@
       </thead>
       <tbody class="divide-y divide-gray-50">
         @forelse($pegawais as $i => $p)
+          @continue($p->id == auth()->user()->pegawai->id || $p->user->role == 'admin')
           <tr class="table-row">
             {{-- No --}}
             <td class="px-5 py-4 text-gray-400 font-semibold text-xs">

@@ -30,7 +30,7 @@ class PegawaiSeeder extends Seeder
                 'nik'         => '1234567890123456',
                 'nama'        => 'Dr. Ahmad Wijaya',
                 'spesialisasi' => 'Umum',
-                'jabatan_id' => 1,
+                'jabatan_id' => 2,
                 'no_sip'      => 'SIP/2026/001',
                 'alamat'      => 'Jl. Kesehatan No. 1, Jakarta',
                 'no_hp'       => '081234567890',
@@ -57,7 +57,7 @@ class PegawaiSeeder extends Seeder
                 'nik'         => '1234567890123457',
                 'nama'        => 'Siti Nurhaliza',
                 'spesialisasi' => 'Apoteker',
-                'jabatan_id'   => 4, // Apoteker
+                'jabatan_id'   => 5, // Apoteker
                 'no_sip'      => 'SIP/2026/002',
                 'alamat'      => 'Jl. Kesehatan No. 2, Jakarta',
                 'no_hp'       => '081234567891',
@@ -84,7 +84,7 @@ class PegawaiSeeder extends Seeder
                 'nik'         => '1234567890123458',
                 'nama'        => 'Maya Sari',
                 'spesialisasi' => 'Perawat',
-                'jabatan_id'   => 2, // Perawat
+                'jabatan_id'   => 3, // Perawat
                 'no_sip'      => 'SIP/2026/003',
                 'alamat'      => 'Jl. Kesehatan No. 3, Jakarta',
                 'no_hp'       => '081234567892',

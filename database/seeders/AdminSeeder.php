@@ -14,7 +14,7 @@ class AdminSeeder extends Seeder
         $user = User::updateOrCreate(
             ['email' => 'admin@sahaduta.com'],
             [
-                'name'      => 'Admin Sahaduta',
+                'name'      => 'SUPERADMIN',
                 'email'     => 'admin@sahaduta.com',
                 'password'  => Hash::make('password'),
                 'role'      => 'admin',
@@ -27,7 +27,7 @@ class AdminSeeder extends Seeder
             ['user_id' => $user->id],
             [
                 'nik'         => '0000000000000000',
-                'nama'        => 'Admin Sahaduta',
+                'nama'        => 'SUPERADMIN',
                 'jabatan_id'  => 1, // Admin
                 'alamat'      => 'Klinik Sahaduta',
                 'no_hp'       => '081000000000',

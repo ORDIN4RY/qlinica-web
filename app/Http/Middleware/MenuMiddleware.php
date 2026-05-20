@@ -31,25 +31,51 @@ class MenuMiddleware
 
         // Cek akses menu berdasarkan jabatan pegawai
         if (!$user->hasMenuAccess($menuName, $level)) {
-            // Redirect ke halaman yang sesuai berdasarkan menu pertama yang bisa diakses
-            $firstMenu = $user->accessibleMenus()->keys()->first();
-            $route = match ($firstMenu) {
-                'Dashboard' => route('beranda_admin'),
-                'Pasien'    => route('admin.pasien'),
-                'Pegawai'   => route('admin.pegawai'),
-                'Antrian'   => route('admin.pemesanan'),
-                'Resep'     => route('apoteker.resep'),
-                'Obat'      => route('apoteker.obat'),
-                'ICDX'      => route('admin.icdx'),
-                'Laporan'   => route('admin.laporan'),
-                'Komentar'  => route('admin.komentar'),
-                'Jabatan'   => route('admin.jabatan'),
-                default     => url('/'),
-            };
-            // Sanitize to prevent HTTP header injection (newlines in URL)
-            $route = preg_replace('/[\r\n]/', '', $route);
-            return redirect($route)
-                ->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
+            // Dapatkan semua menu yang bisa diakses user
+            $accessible = $user->accessibleMenus();
+
+            foreach ($accessible as $name => $subAkses) {
+                $route = match ($name) {
+                    'Dashboard' => $user->hasMenuAccess('Dashboard', 'admin_dashboard') 
+                        ? route('beranda_admin') 
+                        : ($user->hasMenuAccess('Dashboard', 'dokter_dashboard') 
+                            ? route('dokter.dashboard') 
+                            : ($user->hasMenuAccess('Dashboard', 'apoteker_dashboard') 
+                                ? route('apoteker.dashboard') 
+                                : null)),
+                    'Pasien'              => route('admin.pasien'),
+                    'Pegawai'             => route('admin.pegawai'),
+                    'Antrian Pemesanan'   => route('admin.pemesanan'),
+                    'Resep'               => route('apoteker.resep'),
+                    'Obat'                => route('apoteker.obat'),
+                    'ICDX'                => route('admin.icdx'),
+                    'Laporan'             => route('admin.laporan'),
+                    'Komentar'            => route('admin.komentar'),
+                    'Rekam Medis'         => route('dokter.pasien'),
+                    'Jabatan'             => route('admin.jabatan'),
+                    'Presensi'            => route('admin.presensi'),
+                    'Antrian Pemeriksaan' => route('dokter.antrian'),
+                    'Billing'             => route('admin.billing'),
+                    'Kamar'               => route('admin.kamar'),
+                    'Rawat Inap'          => route('admin.rawat_inap'),
+                    default               => null,
+                };
+
+                // Pastikan route yang dituju valid, tidak sama dengan current request,
+                // dan tidak memicu loop
+                if ($route) {
+                    $routeCleaned = preg_replace('/[\r\n]/', '', $route);
+                    $currentUrl = $request->url();
+                    
+                    if ($routeCleaned !== $currentUrl && $routeCleaned !== url()->current()) {
+                        return redirect($routeCleaned)
+                            ->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
+                    }
+                }
+            }
+
+            // Jika tidak ada menu lain yang bisa dialihkan atau memicu redirect loop, abort 403
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
         return $next($request);

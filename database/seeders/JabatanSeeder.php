@@ -10,6 +10,7 @@ class JabatanSeeder extends Seeder
     public function run(): void
     {
         $data = [
+            'Admin',
             'Dokter',
             'Perawat',
             'Resepsionis',

@@ -69,9 +69,6 @@ class JabatanController extends Controller
                 'edit'   => ['label' => 'Edit Data',       'icon' => 'fa-pen',        'desc' => 'Mengubah data pegawai'],
                 'hapus'  => ['label' => 'Hapus Data',      'icon' => 'fa-trash',      'desc' => 'Menghapus data pegawai'],
             ],
-            'Presensi' => [
-                'view'   => ['label' => 'Lihat Data',      'icon' => 'fa-eye',        'desc' => 'Melihat data presensi pegawai'],
-            ],
             'Resep' => [
                 'view'   => ['label' => 'Lihat Resep',     'icon' => 'fa-eye',        'desc' => 'Melihat daftar resep masuk'],
                 'edit'   => ['label' => 'Proses Resep',    'icon' => 'fa-check',      'desc' => 'Mengubah status & memproses resep'],
@@ -87,8 +84,26 @@ class JabatanController extends Controller
             ],
             'Laporan' => [
                 'view'      => ['label' => 'Lihat Laporan',     'icon' => 'fa-eye',        'desc' => 'Akses halaman laporan'],
-                'penanganan'=> ['label' => 'Lap. Penanganan',   'icon' => 'fa-chart-line',  'desc' => 'Laporan data penanganan pasien'],
+                'penanganan'=> ['label' => 'Lap. Penanganan',   'icon' => 'fa-notes-medical','desc' => 'Laporan data penanganan pasien'],
+                'keuangan'  => ['label' => 'Lap. Keuangan',     'icon' => 'fa-sack-dollar', 'desc' => 'Laporan keuangan dan pembayaran kasir'],
+                'apotek'    => ['label' => 'Lap. Apotek',       'icon' => 'fa-prescription-bottle-alt', 'desc' => 'Laporan resep & stok obat'],
                 'export'    => ['label' => 'Export Data',       'icon' => 'fa-file-export', 'desc' => 'Export laporan ke PDF/Excel'],
+            ],
+            'Billing' => [
+                'view'   => ['label' => 'Lihat Billing',   'icon' => 'fa-wallet',     'desc' => 'Melihat data billing & kasir pasien'],
+                'bayar'  => ['label' => 'Proses Bayar',    'icon' => 'fa-cash-register','desc' => 'Memproses pembayaran tagihan pasien'],
+                'bpjs'   => ['label' => 'Cek BPJS',        'icon' => 'fa-id-card',    'desc' => 'Memeriksa status rujukan/keanggotaan BPJS'],
+            ],
+            'Kamar' => [
+                'view'   => ['label' => 'Lihat Kamar',     'icon' => 'fa-eye',        'desc' => 'Melihat daftar dan status keterisian kamar'],
+                'tambah' => ['label' => 'Tambah Kamar',    'icon' => 'fa-plus',       'desc' => 'Menambahkan data kamar baru'],
+                'edit'   => ['label' => 'Edit Kamar',      'icon' => 'fa-pen',        'desc' => 'Mengubah data kamar'],
+                'hapus'  => ['label' => 'Hapus Kamar',     'icon' => 'fa-trash',      'desc' => 'Menghapus data kamar'],
+            ],
+            'Rawat Inap' => [
+                'view'   => ['label' => 'Lihat Rawat Inap', 'icon' => 'fa-eye',       'desc' => 'Melihat daftar pasien rawat inap'],
+                'tambah' => ['label' => 'Registrasi Inap',  'icon' => 'fa-user-plus',  'desc' => 'Mendaftarkan pasien masuk rawat inap'],
+                'edit'   => ['label' => 'Checkout Pasien',  'icon' => 'fa-door-open',  'desc' => 'Memproses checkout / keluar pasien'],
             ],
             'Komentar' => [
                 'view'   => ['label' => 'Lihat Komentar',  'icon' => 'fa-eye',        'desc' => 'Melihat komentar & ulasan pasien'],

@@ -113,17 +113,29 @@ class AuthController extends Controller
         $firstMenu = $menus->keys()->first();
 
         $redirectTo = match ($firstMenu) {
-            'Dashboard' => route('beranda_admin'),
-            'Resep' => route('apoteker.resep'),
-            'Obat' => route('apoteker.obat'),
-            'Antrian' => route('admin.pemesanan'),
-            'Pasien' => route('admin.pasien'),
-            'Pegawai' => route('admin.pegawai'),
-            'ICDX' => route('admin.icdx'),
-            'Laporan' => route('admin.laporan'),
-            'Komentar' => route('admin.komentar'),
-            'Jabatan' => route('admin.jabatan'),
-            default => route('beranda_admin'),
+            'Dashboard' => $user->hasMenuAccess('Dashboard', 'admin_dashboard') 
+                ? route('beranda_admin') 
+                : ($user->hasMenuAccess('Dashboard', 'dokter_dashboard') 
+                    ? route('dokter.dashboard') 
+                    : ($user->hasMenuAccess('Dashboard', 'apoteker_dashboard') 
+                        ? route('apoteker.dashboard') 
+                        : route('beranda_admin'))),
+            'Pasien'              => route('admin.pasien'),
+            'Pegawai'             => route('admin.pegawai'),
+            'Antrian Pemesanan'   => route('admin.pemesanan'),
+            'Resep'               => route('apoteker.resep'),
+            'Obat'                => route('apoteker.obat'),
+            'ICDX'                => route('admin.icdx'),
+            'Laporan'             => route('admin.laporan'),
+            'Komentar'            => route('admin.komentar'),
+            'Rekam Medis'         => route('dokter.pasien'),
+            'Jabatan'             => route('admin.jabatan'),
+            'Presensi'            => route('admin.presensi'),
+            'Antrian Pemeriksaan' => route('dokter.antrian'),
+            'Billing'             => route('admin.billing'),
+            'Kamar'               => route('admin.kamar'),
+            'Rawat Inap'          => route('admin.rawat_inap'),
+            default               => route('beranda_admin'),
         };
 
         return redirect($redirectTo);
