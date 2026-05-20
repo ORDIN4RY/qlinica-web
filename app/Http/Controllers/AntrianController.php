@@ -365,4 +365,68 @@ class AntrianController extends Controller
         $message = 'Status antrian berhasil diupdate.';
         return redirect()->route('admin.pemesanan')->with('success', $message);
     }
+
+    public function showRiwayatDetail($id)
+    {
+        $user = auth()->user();
+        $pasien = $user->pasien ?? null;
+
+        if (!$pasien) {
+            abort(403, 'Profil pasien tidak ditemukan.');
+        }
+
+        $antrian = Antrian::with([
+            'rekamMedis.dokter',
+            'rekamMedis.diagnosa.icdx',
+            'rekamMedis.resep.details.obat',
+            'rekamMedis.billing.details'
+        ])->findOrFail($id);
+
+        // Security check
+        if ($antrian->pasien_id !== $pasien->id) {
+            abort(403, 'Anda tidak memiliki hak akses untuk melihat data ini.');
+        }
+
+        // Normalisasi data terbalik (Self-healing layer)
+        $rm = $antrian->rekamMedis;
+        $layananRaw = $rm ? ($rm->pelayanan_kesehatan ?? 'Poli Umum') : 'Poli Umum';
+        $jenisRaw = $rm ? ($rm->jenis_pelayanan ?? 'Umum') : 'Umum';
+
+        $layananUpper = strtoupper(trim($layananRaw));
+        $jenisUpper = strtoupper(trim($jenisRaw));
+
+        $isLayananPayment = in_array($layananUpper, ['UMUM', 'BPJS']);
+        $isJenisPoli = str_contains($jenisUpper, 'POLI') || str_contains($jenisUpper, 'UGD') || str_contains($jenisUpper, 'LAB') || str_contains($jenisUpper, 'SPA');
+
+        if ($isLayananPayment || $isJenisPoli) {
+            $temp = $layananRaw;
+            $layananRaw = $jenisRaw;
+            $jenisRaw = $temp;
+
+            $layananUpper = strtoupper(trim($layananRaw));
+            $jenisUpper = strtoupper(trim($jenisRaw));
+        }
+
+        if (in_array($jenisUpper, ['UMUM', 'BPJS'])) {
+            $jenisPelayanan = ($jenisUpper === 'BPJS') ? 'BPJS' : 'Umum';
+        } else {
+            $jenisPelayanan = 'Umum';
+        }
+
+        if (str_contains($layananUpper, 'GIGI')) {
+            $layanan = 'Poli Gigi';
+        } elseif (str_contains($layananUpper, 'KIA') || str_contains($layananUpper, 'KB')) {
+            $layanan = 'Poli KIA';
+        } elseif (str_contains($layananUpper, 'UGD') || str_contains($layananUpper, 'DARURAT')) {
+            $layanan = 'UGD';
+        } elseif (str_contains($layananUpper, 'LAB')) {
+            $layanan = 'Laboratorium';
+        } elseif (str_contains($layananUpper, 'SPA')) {
+            $layanan = 'Baby Spa';
+        } else {
+            $layanan = 'Poli Umum';
+        }
+
+        return view('dashboard_pasien_detail', compact('antrian', 'pasien', 'layanan', 'jenisPelayanan'));
+    }
 }

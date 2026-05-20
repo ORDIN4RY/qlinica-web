@@ -218,10 +218,10 @@
           <!-- card 1 -->
           <div class="service-card bg-white border border-blue-900/20 rounded-3xl p-8 shadow-sm" data-aos="fade-up" data-aos-delay="100">
             <div class="w-16 h-16 bg-blue-100 text-blue-900 rounded-2xl flex items-center justify-center mb-6">
-              <i class="fas fa-heartbeat text-3xl"></i>
+              <i class="fas fa-stethoscope text-3xl"></i>
             </div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Konsultasi Umum</h3>
-            <p class="text-gray-600 leading-relaxed">Dokter umum siap melayani dengan suasana ruang konsultasi yang privat dan bersih.</p>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Poli Umum</h3>
+            <p class="text-gray-600 leading-relaxed">Pemeriksaan kesehatan umum dan konsultasi medis privat oleh dokter berpengalaman.</p>
             <a href="#" class="inline-flex items-center mt-4 text-blue-900 hover:text-blue-800 font-medium gap-1 group">
               Selengkapnya <i class="fas fa-arrow-right text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
             </a>
@@ -229,11 +229,11 @@
           
           <!-- card 2 -->
           <div class="service-card bg-white border border-blue-900/20 rounded-3xl p-8 shadow-sm" data-aos="fade-up" data-aos-delay="200">
-            <div class="w-16 h-16 bg-blue-100 text-blue-900 rounded-2xl flex items-center justify-center mb-6">
+            <div class="w-16 h-16 bg-green-100 text-green-700 rounded-2xl flex items-center justify-center mb-6">
               <i class="fas fa-tooth text-3xl"></i>
             </div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Klinik Gigi</h3>
-            <p class="text-gray-600 leading-relaxed">Perawatan gigi modern dengan alat standar internasional, ruangan putih dan wangi.</p>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Poli Gigi</h3>
+            <p class="text-gray-600 leading-relaxed">Perawatan kesehatan gigi, mulut, dan ortodonti dengan teknologi medis terbaru.</p>
             <a href="#" class="inline-flex items-center mt-4 text-blue-900 hover:text-blue-800 font-medium gap-1 group">
               Selengkapnya <i class="fas fa-arrow-right text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
             </a>
@@ -241,11 +241,47 @@
           
           <!-- card 3 -->
           <div class="service-card bg-white border border-blue-900/20 rounded-3xl p-8 shadow-sm" data-aos="fade-up" data-aos-delay="300">
-            <div class="w-16 h-16 bg-blue-100 text-blue-900 rounded-2xl flex items-center justify-center mb-6">
+            <div class="w-16 h-16 bg-pink-100 text-pink-600 rounded-2xl flex items-center justify-center mb-6">
+              <i class="fas fa-baby text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Poli KIA</h3>
+            <p class="text-gray-600 leading-relaxed">Kesehatan Ibu dan Anak, KB, vaksinasi balita, serta konsultasi kehamilan menyeluruh.</p>
+            <a href="#" class="inline-flex items-center mt-4 text-blue-900 hover:text-blue-800 font-medium gap-1 group">
+              Selengkapnya <i class="fas fa-arrow-right text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
+            </a>
+          </div>
+
+          <!-- card 4 -->
+          <div class="service-card bg-white border border-blue-900/20 rounded-3xl p-8 shadow-sm" data-aos="fade-up" data-aos-delay="400">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mb-6">
+              <i class="fas fa-truck-medical text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">UGD</h3>
+            <p class="text-gray-600 leading-relaxed">Unit Gawat Darurat yang bersiaga penuh untuk memberikan tindakan pertolongan pertama.</p>
+            <a href="#" class="inline-flex items-center mt-4 text-blue-900 hover:text-blue-800 font-medium gap-1 group">
+              Selengkapnya <i class="fas fa-arrow-right text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
+            </a>
+          </div>
+
+          <!-- card 5 -->
+          <div class="service-card bg-white border border-blue-900/20 rounded-3xl p-8 shadow-sm" data-aos="fade-up" data-aos-delay="500">
+            <div class="w-16 h-16 bg-purple-100 text-purple-700 rounded-2xl flex items-center justify-center mb-6">
               <i class="fas fa-flask text-3xl"></i>
             </div>
             <h3 class="text-xl font-semibold text-gray-800 mb-2">Laboratorium</h3>
-            <p class="text-gray-600 leading-relaxed">Pengecekan lab cepat, akurat, dan steril. Area putih dengan pencahayaan baik.</p>
+            <p class="text-gray-600 leading-relaxed">Pemeriksaan darah, urine, dan tes laboratorium cepat, steril, serta akurat.</p>
+            <a href="#" class="inline-flex items-center mt-4 text-blue-900 hover:text-blue-800 font-medium gap-1 group">
+              Selengkapnya <i class="fas fa-arrow-right text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
+            </a>
+          </div>
+
+          <!-- card 6 -->
+          <div class="service-card bg-white border border-blue-900/20 rounded-3xl p-8 shadow-sm" data-aos="fade-up" data-aos-delay="600">
+            <div class="w-16 h-16 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mb-6">
+              <i class="fas fa-spa text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Baby Spa</h3>
+            <p class="text-gray-600 leading-relaxed">Pijat, spa, dan terapi stimulasi tumbuh kembang bayi yang menenangkan dan aman.</p>
             <a href="#" class="inline-flex items-center mt-4 text-blue-900 hover:text-blue-800 font-medium gap-1 group">
               Selengkapnya <i class="fas fa-arrow-right text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
             </a>

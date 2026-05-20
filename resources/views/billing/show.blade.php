@@ -87,7 +87,8 @@
         <div>
           <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Pemeriksaan Klinis</p>
           <p class="font-semibold text-gray-800">Dokter: {{ $billing->rekamMedis?->dokter?->nama ?? '–' }}</p>
-          <p class="text-xs text-gray-600">Poli / Pelayanan: {{ $billing->rekamMedis?->jenis_pelayanan ?: 'Umum' }}</p>
+          <p class="text-xs text-gray-600">Layanan Kesehatan: {{ $billing->rekamMedis?->pelayanan_kesehatan ?: '-' }}</p>
+          <p class="text-xs text-gray-600">Jenis Pelayanan: {{ $billing->rekamMedis?->jenis_pelayanan ?: 'Umum' }}</p>
           <p class="text-xs text-gray-600">Kasus Penyakit: {{ $billing->rekamMedis?->kasus_penyakit ?: 'Baru' }}</p>
         </div>
       </div>
