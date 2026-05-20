@@ -14,9 +14,11 @@
   </form>
 
   <!-- Add Button -->
+   @if(auth()->user()->hasMenuAccess('kamar', 'tambah'))
   <button onclick="openModal('tambahKamarModal')" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition shadow-sm flex items-center justify-center gap-2 text-sm">
     <i class="fas fa-plus"></i> Tambah Kamar Baru
   </button>
+  @endif
 </div>
 
 <!-- Table -->
@@ -30,7 +32,9 @@
           <th class="px-6 py-4">Kelas</th>
           <th class="px-6 py-4">Tarif per Malam</th>
           <th class="px-6 py-4 text-center">Status</th>
+          @if (auth()->user()->hasMenuAccess('kamar', 'edit') || auth()->user()->hasMenuAccess('kamar', 'hapus'))
           <th class="px-6 py-4 text-right">Aksi</th>
+          @endif
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100">
@@ -51,17 +55,23 @@
                 <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold"><i class="fas fa-wrench mr-1"></i> Perbaikan</span>
               @endif
             </td>
+            @if(auth()->user()->hasMenuAccess('kamar', 'edit') || auth()->user()->hasMenuAccess('kamar', 'hapus'))
             <td class="px-6 py-4 text-right space-x-1">
+              @if(auth()->user()->hasMenuAccess('kamar', 'edit'))
               <button onclick="editKamar({{ $k }})" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit">
                 <i class="fas fa-edit"></i>
               </button>
+              @endif
+              @if(auth()->user()->hasMenuAccess('kamar', 'hapus'))
               <form action="{{ route('admin.kamar.destroy', $k->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus kamar ini?');">
                 @csrf @method('DELETE')
                 <button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition" title="Hapus">
                   <i class="fas fa-trash-alt"></i>
                 </button>
               </form>
+              @endif
             </td>
+            @endif
           </tr>
         @empty
           <tr>
