@@ -204,6 +204,7 @@ class PresensiController extends Controller
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'pola' => 'required|array',
+            'skip_minggu' => 'nullable|boolean',
         ]);
 
         $tanggalMulai = Carbon::parse($request->tanggal_mulai);
@@ -220,6 +221,11 @@ class PresensiController extends Controller
             $patternIndex = 0;
 
             while ($currentDate->lte($tanggalSelesai)) {
+                if ($request->skip_minggu && $currentDate->isSunday()) {
+                    $currentDate->addDay();
+                    continue;
+                }
+
                 $shiftId = $pola[$patternIndex % $polaLength];
 
                 if (!$shiftId || $shiftId == '0') {

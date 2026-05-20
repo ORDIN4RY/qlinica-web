@@ -215,7 +215,16 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 pt-3 border-t border-slate-200/50">
                 <div>
                   <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Aturan Pakai</label>
-                  <input type="text" name="aturan_pakai[]" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-sm" placeholder="Sesudah makan">
+                  <div class="aturan-pakai-container">
+                    <select name="aturan_pakai[]" class="aturan-pakai-select w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-sm" onchange="toggleAturanPakaiCustom(this)">
+                      <option value="Sesudah makan">Sesudah makan</option>
+                      <option value="Sebelum makan">Sebelum makan</option>
+                      <option value="Bersama makan">Bersama makan</option>
+                      <option value="Sebelum tidur">Sebelum tidur</option>
+                      <option value="custom">Lainnya (Ketik Manual)...</option>
+                    </select>
+                    <input type="text" class="aturan-pakai-custom hidden mt-2 w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-sm" placeholder="Tulis aturan pakai sendiri...">
+                  </div>
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Keterangan</label>
@@ -269,24 +278,16 @@
         
         <div>
           <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Pelayanan Kesehatan</label>
-          <select name="pelayanan_kesehatan" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-            <option value="">— Pilih Pelayanan —</option>
-            <option value="BPJS">BPJS</option>
-            <option value="UMUM">UMUM</option>
-          </select>
+          <div class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700">
+            {{ $antrian->rekamMedis?->pelayanan_kesehatan ?? '-' }}
+          </div>
         </div>
         
         <div>
           <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Jenis Pelayanan</label>
-          <select name="jenis_pelayanan" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-            <option value="">— Pilih Jenis —</option>
-            <option value="Poli Umum">Poli Umum</option>
-            <option value="Poli Gigi">Poli Gigi</option>
-            <option value="Poli KIA">Poli KIA</option>
-            <option value="UGD">UGD</option>
-            <option value="Laboratorium">Laboratorium</option>
-            <option value="Baby Spa">Baby Spa</option>
-          </select>
+          <div class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700">
+            {{ $antrian->rekamMedis?->jenis_pelayanan ?? '-' }}
+          </div>
         </div>
       </div>
 
@@ -554,6 +555,23 @@ function updateDiagnosaPrimer() {
   });
 }
 
+function toggleAturanPakaiCustom(select) {
+  const container = select.closest('.aturan-pakai-container');
+  const customInput = container.querySelector('.aturan-pakai-custom');
+  
+  if (select.value === 'custom') {
+    select.removeAttribute('name');
+    customInput.setAttribute('name', 'aturan_pakai[]');
+    customInput.classList.remove('hidden');
+    customInput.focus();
+  } else {
+    select.setAttribute('name', 'aturan_pakai[]');
+    customInput.removeAttribute('name');
+    customInput.classList.add('hidden');
+    customInput.value = '';
+  }
+}
+
 function addObat() {
   const container = document.getElementById('obat-container');
   const items = container.querySelectorAll('.obat-item');
@@ -564,6 +582,17 @@ function addObat() {
   inputs.forEach(input => {
     input.value = '';
   });
+
+  // Reset the Aturan Pakai dropdown in the cloned item
+  const selectAturan = newItem.querySelector('.aturan-pakai-select');
+  const customAturan = newItem.querySelector('.aturan-pakai-custom');
+  if (selectAturan && customAturan) {
+    selectAturan.value = 'Sesudah makan';
+    selectAturan.setAttribute('name', 'aturan_pakai[]');
+    customAturan.value = '';
+    customAturan.removeAttribute('name');
+    customAturan.classList.add('hidden');
+  }
 
   // Show delete button
   const removeBtn = newItem.querySelector('.remove-obat-btn');

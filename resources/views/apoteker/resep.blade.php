@@ -147,7 +147,23 @@
                 </button>
               </form>
 
-            @elseif($resep->status === 'Sudah Dibayar' || $resep->status === 'Diproses')
+            @elseif($resep->status === 'Diproses')
+              
+              <form action="{{ route('apoteker.resep.update', $resep) }}" method="POST" class="inline-block">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="action" value="selesai_racik">
+                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-sm flex items-center gap-1.5">
+                  <i class="fas fa-mortar-pestle"></i> Selesai Racik & Kirim ke Kasir
+                </button>
+              </form>
+
+              {{-- CETAK ETIKET --}}
+              <button type="button" onclick="printEtiket('{{ $resep->id }}', '{{ addslashes($resep->rekamMedis?->pasien?->nama) }}', '{{ $resep->rekamMedis?->pasien?->no_rm }}', '{{ optional($resep->rekamMedis?->tanggal_periksa)->format('d/m/Y') }}', {{ json_encode($resep->details->map(function($d) { return ['nama' => $d->obat?->nama, 'kategori' => $d->obat?->kategori, 'jumlah' => $d->jumlah, 'dosis' => $d->dosis, 'aturan_pakai' => $d->aturan_pakai]; })) }})" class="px-5 py-2.5 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold rounded-xl hover:bg-blue-100 transition flex items-center gap-1.5">
+                <i class="fas fa-print"></i> Cetak Etiket Obat
+              </button>
+
+            @elseif($resep->status === 'Sudah Dibayar')
               
               {{-- TRIGGER HANDOVER MODAL --}}
               <button type="button" onclick="openHandoverModal('{{ $resep->id }}', '{{ addslashes($resep->rekamMedis?->pasien?->nama) }}', '{{ $resep->rekamMedis?->pasien?->no_rm }}')" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-sm flex items-center gap-1.5">

@@ -5,6 +5,7 @@
 @section('nav_laporan', 'aktif')
 
 @section('extra_styles')
+<style>
     /* FILTER */
     .filter-card { background: var(--putih); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 14px; box-shadow: var(--shadow); border: 1px solid var(--border); }
     .filter-card h3 { font-size: 13px; font-weight: 700; margin-bottom: 12px; color: var(--teks); }
@@ -19,7 +20,7 @@
     /* ACTION BAR */
     .action-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
     .action-left { display: flex; align-items: center; gap: 6px; }
-    .btn-action { border: 1px solid var(--border); background: #fff; color: var(--teks); padding: 6px 13px; border-radius: 7px; font-size: 11.5px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-action { border: 1px solid var(--border); background: #fff; color: var(--teks); padding: 6px 13px; border-radius: 7px; font-size: 11.5px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; }
     .btn-action:hover { background: #f8faff; }
     .tampilkan { display: flex; align-items: center; gap: 6px; color: var(--terang); font-size: 12px; }
     .tampilkan select { border: 1px solid var(--border); border-radius: 7px; padding: 5px 8px; font-size: 12px; font-family: 'Inter', sans-serif; outline: none; }
@@ -51,9 +52,32 @@
     .page-btn { padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border); background: #fff; color: var(--abu); font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; }
     .page-btn.active { background: var(--biru); color: #fff; border-color: var(--biru); }
     .page-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    @media print {
+        @page { size: landscape; margin: 8mm 12mm; }
+        body { background: #fff !important; color: #000 !important; }
+        .sidebar, .filter-card, .action-bar, .tfoot-bar, h2 { display: none !important; }
+        .main-content { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
+        .table-card { border: none !important; box-shadow: none !important; background: #fff !important; }
+        .table-wrap { overflow: visible !important; width: 100% !important; }
+        table { width: 100% !important; min-width: 100% !important; border: 1.5px solid #000 !important; font-size: 7.5pt !important; }
+        thead { display: table-header-group !important; }
+        tr { page-break-inside: avoid !important; }
+        th { background: #f3f4f6 !important; color: #000 !important; border: 1px solid #000 !important; font-size: 7.5pt !important; padding: 6px 4px !important; font-weight: bold !important; text-transform: uppercase !important; }
+        td { border: 1px solid #000 !important; font-size: 7.5pt !important; padding: 6px 4px !important; color: #000 !important; vertical-align: middle !important; white-space: normal !important; word-break: break-word !important; }
+        .status-badge { border: 1px solid #000 !important; background: transparent !important; color: #000 !important; padding: 1px 4px !important; }
+        .print-header { display: block !important; }
+    }
+</style>
 @endsection
 
 @section('content')
+
+  {{-- PRINT HEADER --}}
+  <div class="print-header" style="display: none;">
+      <h1 style="font-size: 20px; font-weight: 800; margin-bottom: 4px; color: #1e3a8a; text-align: center; font-family: 'Inter', sans-serif;">QLINICA</h1>
+      <p style="font-size: 12px; text-align: center; margin-bottom: 20px; color: #4b5563; font-weight: 600; font-family: 'Inter', sans-serif;">LAPORAN KUNJUNGAN PASIEN</p>
+  </div>
 
   {{-- FILTER --}}
   <div class="filter-card">
@@ -74,9 +98,9 @@
   {{-- ACTION BAR --}}
   <div class="action-bar">
     <div class="action-left">
-      <button class="btn-action" onclick="copyTable()">Copy</button>
-      <button class="btn-action" onclick="exportCSV()">CSV</button>
-      <button class="btn-action" onclick="window.print()">Print</button>
+      <button class="btn-action" onclick="copyTable()"><i class="fas fa-copy mr-1.5 text-gray-500"></i> Copy</button>
+      <button class="btn-action" onclick="exportExcel()"><i class="fas fa-file-excel mr-1.5 text-emerald-600"></i> Excel</button>
+      <button class="btn-action" onclick="window.print()"><i class="fas fa-print mr-1.5 text-blue-600"></i> Print</button>
       <div class="tampilkan">
         Tampilkan
         <select id="perPageSel">
@@ -186,11 +210,85 @@ function copyTable() {
   var rows = Array.from(document.querySelectorAll('#mainTable tbody tr')).map(tr => Array.from(tr.querySelectorAll('td')).map(td=>td.textContent.trim()).join('\t'));
   navigator.clipboard.writeText(rows.join('\n')).then(() => alert('Data berhasil disalin!'));
 }
-function exportCSV() {
-  var headers = ['No','No.RM','Nama Pasien','Tanggal Lahir','Umur','Status Pasien','Status Penyakit','Alamat','Nama KK','Agama','Pendidikan','Pekerjaan','Jenis Kelamin'];
+function exportExcel() {
   var filtered = getFiltered();
-  var rows = [headers.join(','), ...filtered.map((d,i) => [i+1,d.rm,d.nama,d.tgl,d.umur,d.sp,d.spkt,'"'+d.alamat+'"',d.kk,d.agama,d.pend,d.kerja,d.jk].join(','))];
-  var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([rows.join('\n')], {type:'text/csv'})); a.download = 'laporan_kunjungan.csv'; a.click();
+  var html = `
+  <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+  <head>
+      <!--[if gte mso 9]>
+      <xml>
+          <x:ExcelWorkbook>
+              <x:ExcelWorksheets>
+                  <x:ExcelWorksheet>
+                      <x:Name>Laporan Kunjungan</x:Name>
+                      <x:WorksheetOptions>
+                          <x:DisplayGridlines/>
+                      </x:WorksheetOptions>
+                  </x:ExcelWorksheet>
+              </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+      </xml>
+      <![endif]-->
+      <style>
+          table { border-collapse: collapse; }
+          th { background-color: #1e3a8a; color: #ffffff; font-weight: bold; border: 1.5px solid #cbd5e1; padding: 8px; text-align: left; }
+          td { border: 1px solid #cbd5e1; padding: 8px; vertical-align: top; }
+      </style>
+  </head>
+  <body>
+      <table>
+          <thead>
+              <tr>
+                  <th>No</th>
+                  <th>No.RM</th>
+                  <th>Nama Pasien</th>
+                  <th>Tanggal Lahir</th>
+                  <th>Umur</th>
+                  <th>Status Pasien</th>
+                  <th>Status Penyakit</th>
+                  <th>Alamat</th>
+                  <th>Nama KK</th>
+                  <th>Agama</th>
+                  <th>Pendidikan</th>
+                  <th>Pekerjaan</th>
+                  <th>Jenis Kelamin</th>
+              </tr>
+          </thead>
+          <tbody>
+  `;
+  
+  filtered.forEach((d, i) => {
+      html += `
+          <tr>
+              <td>${i + 1}</td>
+              <td style="mso-number-format:'@';">${d.rm}</td>
+              <td>${d.nama}</td>
+              <td>${d.tgl}</td>
+              <td>${d.umur || '-'}</td>
+              <td>${d.sp || '-'}</td>
+              <td>${d.spkt || '-'}</td>
+              <td>${d.alamat || '-'}</td>
+              <td>${d.kk || '-'}</td>
+              <td>${d.agama || '-'}</td>
+              <td>${d.pend || '-'}</td>
+              <td>${d.kerja || '-'}</td>
+              <td>${d.jk || '-'}</td>
+          </tr>
+      `;
+  });
+  
+  html += `
+          </tbody>
+      </table>
+  </body>
+  </html>
+  `;
+  
+  var blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'laporan_kunjungan.xls';
+  a.click();
 }
 
 render();

@@ -44,7 +44,7 @@ class ResepController extends Controller
     public function update(Request $request, Resep $resep)
     {
         $request->validate([
-            'action' => 'required|in:proses,selesai,kembalikan',
+            'action' => 'required|in:proses,selesai_racik,selesai,kembalikan',
             'catatan_apoteker' => 'nullable|string|max:500',
         ]);
 
@@ -70,6 +70,12 @@ class ResepController extends Controller
                 if ($obat->stok < $detail->jumlah) {
                     return redirect()->route('apoteker.resep')->with('error', "Stok obat tidak cukup untuk {$obat->nama}. Stok saat ini: {$obat->stok}, dibutuhkan: {$detail->jumlah}.");
                 }
+            }
+        }
+
+        if ($action === 'selesai_racik') {
+            if ($resep->status !== 'Diproses') {
+                return redirect()->route('apoteker.resep')->with('error', 'Resep hanya bisa diselesaikan peracikannya jika sedang diproses.');
             }
         }
 
@@ -106,6 +112,15 @@ class ResepController extends Controller
         try {
             DB::transaction(function () use ($resep, $action, $apoteker, $request, $oldStatus) {
                 if ($action === 'proses') {
+                    $resep->update([
+                        'status' => 'Diproses',
+                        'apoteker_id' => $apoteker->id,
+                        'diproses_at' => now(),
+                        'catatan_apoteker' => $request->input('catatan_apoteker'),
+                    ]);
+                }
+
+                if ($action === 'selesai_racik') {
                     $totalHargaObat = 0;
 
                     // Cari atau buat billing untuk rekam medis ini
@@ -155,9 +170,6 @@ class ResepController extends Controller
 
                     $resep->update([
                         'status' => 'Menunggu Pembayaran',
-                        'apoteker_id' => $apoteker->id,
-                        'diproses_at' => now(),
-                        'catatan_apoteker' => $request->input('catatan_apoteker'),
                     ]);
                 }
 
@@ -210,7 +222,8 @@ class ResepController extends Controller
         }
 
         $message = match ($action) {
-            'proses' => 'Resep berhasil dikalkulasi harganya dan dikirim ke Kasir untuk pembayaran.',
+            'proses' => 'Resep sedang diproses (Tahap Peracikan).',
+            'selesai_racik' => 'Resep berhasil dikalkulasi harganya dan dikirim ke Kasir untuk pembayaran.',
             'selesai' => 'Resep selesai dan stok obat diperbarui.',
             'kembalikan' => 'Resep berhasil dikembalikan dan ditarik dari billing kasir.',
         };

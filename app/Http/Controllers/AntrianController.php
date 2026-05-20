@@ -72,11 +72,13 @@ class AntrianController extends Controller
 
         $request->validate([
             'dokter_id' => 'required|exists:pegawai,id',
-            'tekanan_darah' => 'required|string|max:20',
+            'jenis_pelayanan' => 'required|in:Umum,BPJS',
+            'pelayanan_kesehatan' => 'required|in:Poli Umum,Poli Gigi,Poli KIA,UGD,Laboratorium,Baby Spa',
+            'tekanan_darah' => 'required|string|max:10',
             'suhu' => 'required|numeric|min:30|max:45',
-            'berat_badan' => 'required|numeric|min:1|max:200',
-            'tinggi_badan' => 'required|numeric|min:30|max:250',
-            'nadi' => 'required|integer|min:40|max:200',
+            'berat_badan' => 'required|numeric|min:1|max:300',
+            'tinggi_badan' => 'required|numeric|min:30|max:300',
+            'nadi' => 'required|integer|min:30|max:200',
             'respirasi' => 'required|integer|min:10|max:60',
         ]);
 
@@ -88,6 +90,8 @@ class AntrianController extends Controller
                 'antrian_id' => $antrian->id,
                 'pasien_id' => $antrian->pasien_id,
                 'dokter_id' => $request->dokter_id,
+                'jenis_pelayanan' => $request->jenis_pelayanan,
+                'pelayanan_kesehatan' => $request->pelayanan_kesehatan,
                 'tanggal_periksa' => now(),
                 'tekanan_darah' => $request->tekanan_darah,
                 'suhu' => $request->suhu,

@@ -45,6 +45,9 @@
     .rotate-180 {
       transform: rotate(180deg);
     }
+    @media print {
+      .no-print { display: none !important; }
+    }
   </style>
   @stack('styles')
 </head>
@@ -411,25 +414,25 @@
     <main class="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden">
       <div class="w-full max-w-6xl mx-auto">
       @if(session('success'))
-        <div class="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-5 py-4 rounded-2xl shadow-sm">
+        <div class="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-5 py-4 rounded-2xl shadow-sm no-print">
           <i class="fas fa-check-circle text-green-500 text-lg"></i>
           <span>{{ session('success') }}</span>
         </div>
       @endif
       @if(session('error'))
-        <div class="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-2xl shadow-sm">
+        <div class="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-2xl shadow-sm no-print">
           <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
           <span>{{ session('error') }}</span>
         </div>
       @endif
       @if(session('warning'))
-        <div class="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-2xl shadow-sm">
+        <div class="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-2xl shadow-sm no-print">
           <i class="fas fa-triangle-exclamation text-amber-500 text-lg"></i>
           <span>{{ session('warning') }}</span>
         </div>
       @endif
       @if($errors->any())
-        <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-2xl shadow-sm">
+        <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-2xl shadow-sm no-print">
           <div class="flex items-center gap-3 mb-2">
             <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
             <span class="font-bold">Terjadi Kesalahan:</span>

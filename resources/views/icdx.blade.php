@@ -68,15 +68,7 @@
 @endif
 
 {{-- ─── TOOLBAR ─────────────────────────────────────────────────────── --}}
-<div class="bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
-  <div class="flex items-center gap-2">
-    @if(auth()->user()->hasMenuAccess('ICDX', 'tambah'))
-    <button id="btnSync"
-      class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-md">
-      <i class="fas fa-sync-alt text-xs"></i> Sync dari API
-    </button>
-    @endif
-  </div>
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 px-6 py-4 flex flex-wrap items-center justify-end gap-3">
 
   <div class="flex items-center gap-3 flex-wrap">
     {{-- Per page --}}
@@ -126,7 +118,6 @@
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-12">No</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-36">Kode ICD-X</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Diagnosa</th>
-          <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Aksi</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-50">
@@ -142,32 +133,11 @@
             </td>
             {{-- Nama --}}
             <td class="px-5 py-3.5 text-gray-500 text-xs hide-sm">{{ $icdx->nama ?: '—' }}</td>
-            {{-- Aksi --}}
-            <td class="px-5 py-3.5">
-              <div class="flex items-center gap-2">
-                @if(auth()->user()->hasMenuAccess('ICDX', 'edit'))
-                <button
-                  onclick="openEdit({{ $icdx->id }}, '{{ addslashes($icdx->kode) }}', '{{ addslashes($icdx->nama) }}')"
-                  class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition"
-                  title="Edit">
-                  <i class="fas fa-pen text-xs"></i>
-                </button>
-                @endif
-                @if(auth()->user()->hasMenuAccess('ICDX', 'hapus'))
-                <button
-                  onclick="openDel({{ $icdx->id }}, '{{ addslashes($icdx->kode) }}', '{{ addslashes($icdx->nama) }}')"
-                  class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition"
-                  title="Hapus">
-                  <i class="fas fa-trash text-xs"></i>
-                </button>
-                @endif
-              </div>
-            </td>
           </tr>
 
         @empty
           <tr>
-            <td colspan="4" class="text-center py-16 text-gray-400">
+            <td colspan="3" class="text-center py-16 text-gray-400">
               <i class="fas fa-file-medical-alt text-4xl mb-4 block opacity-30"></i>
               <p class="font-semibold">Tidak ada data ICD-X{{ $search ? ' untuk pencarian "' . $search . '"' : '' }}</p>
             </td>

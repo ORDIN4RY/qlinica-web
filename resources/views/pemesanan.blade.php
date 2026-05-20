@@ -367,12 +367,12 @@
           <select id="inLayanan"
             class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-blue-900 outline-none bg-gray-50">
             <option value="">— Pilih Layanan —</option>
-            <option value="Konsultasi Umum">Konsultasi Umum</option>
-            <option value="Klinik Gigi">Klinik Gigi</option>
+            <option value="Poli Umum">Poli Umum</option>
+            <option value="Poli Gigi">Poli Gigi</option>
+            <option value="Poli KIA">Poli KIA</option>
+            <option value="UGD">UGD</option>
             <option value="Laboratorium">Laboratorium</option>
-            <option value="Imunisasi / Vaksin">Imunisasi / Vaksin</option>
-            <option value="KIA / KB">KIA / KB</option>
-            <option value="Gawat Darurat">Gawat Darurat</option>
+            <option value="Baby Spa">Baby Spa</option>
           </select>
         </div>
         <div>

@@ -325,11 +325,11 @@
                     <button onclick="openPatternModal()" class="px-3 py-2 bg-purple-50 text-purple-700 text-[10px] font-bold rounded-lg border border-purple-200 hover:bg-purple-100 transition shadow-sm">
                         <i class="fas fa-sync-alt mr-1"></i> Pola Berulang
                     </button>
-                    <form action="{{ route('admin.presensi.shift.copy') }}" method="POST" onsubmit="return confirm('Salin semua jadwal dari bulan lalu ke bulan ini? Jadwal hari yang sama pada bulan ini akan ditimpa.')" class="inline">
+                    <form id="copyShiftForm" action="{{ route('admin.presensi.shift.copy') }}" method="POST" class="inline">
                         @csrf
                         <input type="hidden" name="bulan" value="{{ $bulan }}">
                         <input type="hidden" name="tahun" value="{{ $tahun }}">
-                        <button type="submit" class="px-3 py-2 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg border border-emerald-200 hover:bg-emerald-100 transition shadow-sm">
+                        <button type="button" onclick="openCopyConfirmModal()" class="px-3 py-2 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg border border-emerald-200 hover:bg-emerald-100 transition shadow-sm">
                             <i class="fas fa-copy mr-1"></i> Salin Bulan Lalu
                         </button>
                     </form>
@@ -588,11 +588,35 @@
                     </div>
                 </div>
 
+                <div>
+                    <label class="flex items-center gap-3 cursor-pointer p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition">
+                        <input type="checkbox" name="skip_minggu" value="1" class="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500">
+                        <span class="text-sm font-bold text-gray-700">Abaikan Hari Minggu (Libur)</span>
+                    </label>
+                </div>
+
                 <div class="pt-4 flex gap-3">
                     <button type="button" onclick="closePatternModal()" class="flex-1 px-4 py-2 border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50">Batal</button>
                     <button type="submit" class="flex-2 px-6 py-2 bg-purple-900 text-white rounded-xl font-bold text-sm hover:bg-purple-800 shadow-lg shadow-purple-900/20">Generate Pola</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    {{-- MODAL KONFIRMASI SALIN BULAN LALU --}}
+    <div id="copyConfirmModal" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 text-center shadow-2xl scale-95 transition-transform duration-300" id="copyConfirmModalContent">
+            <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-copy text-lg"></i>
+            </div>
+            <h4 class="font-black text-lg text-gray-800 mb-2">Salin Jadwal Bulan Lalu?</h4>
+            <p class="text-xs text-gray-500 mb-6 leading-relaxed">
+                Apakah Anda yakin ingin menyalin semua jadwal dari bulan sebelumnya ke bulan ini? Jadwal hari yang sama pada bulan ini akan ditimpa.
+            </p>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeCopyConfirmModal()" class="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-bold text-xs hover:bg-gray-50 transition">Batal</button>
+                <button type="button" onclick="submitCopyForm()" class="flex-1 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-lg shadow-emerald-600/20 transition">Ya, Salin</button>
+            </div>
         </div>
     </div>
 
@@ -712,6 +736,25 @@
         const content = document.getElementById('patternModalContent');
         content.classList.add('scale-95');
         setTimeout(() => modal.classList.add('hidden'), 200);
+    }
+
+    /* ── CONFIRM COPY MODAL ── */
+    function openCopyConfirmModal() {
+        const modal = document.getElementById('copyConfirmModal');
+        const content = document.getElementById('copyConfirmModalContent');
+        modal.classList.remove('hidden');
+        setTimeout(() => content.classList.remove('scale-95'), 10);
+    }
+
+    function closeCopyConfirmModal() {
+        const modal = document.getElementById('copyConfirmModal');
+        const content = document.getElementById('copyConfirmModalContent');
+        content.classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 200);
+    }
+
+    function submitCopyForm() {
+        document.getElementById('copyShiftForm').submit();
     }
 
     // Auto switch tab based on URL param

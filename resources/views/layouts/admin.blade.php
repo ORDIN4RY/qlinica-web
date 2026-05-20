@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - @yield('title')</title>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body { display: flex; min-height: 100vh; }
         .sidebar {
@@ -32,7 +33,14 @@
             padding: 30px;
             width: 100%;
         }
+
+        @media print {
+            .no-print, .sidebar { display: none !important; }
+            .main-content { margin-left: 0 !important; padding: 10px !important; width: 100% !important; }
+        }
     </style>
+    @yield('extra_styles')
+    @stack('styles')
 </head>
 <body>
     <div class="sidebar" style="overflow-y: scroll;">
@@ -48,5 +56,7 @@
         <h2>@yield('title')</h2>
         @yield('content')
     </div>
+    @stack('scripts')
+    @yield('scripts')
 </body>
 </html>

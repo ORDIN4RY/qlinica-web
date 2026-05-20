@@ -336,9 +336,7 @@ class DokterController extends Controller
                         'rujukan_ke' => $request->rujukan_ke,
                         'catatan' => $request->catatan,
                         'kasus_penyakit' => $request->kasus_penyakit,
-                        'pelayanan_kesehatan' => $request->pelayanan_kesehatan,
                         'status_pasien' => $request->status_pasien,
-                        'jenis_pelayanan' => $request->jenis_pelayanan,
                         'pengobatan' => $request->pengobatan,
                     ]
                 );

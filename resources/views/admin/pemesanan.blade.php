@@ -500,6 +500,30 @@
             </select>
           </div>
 
+          {{-- Pelayanan Kesehatan (BPJS/Umum) --}}
+          <div class="form-group" style="grid-column:1/-1">
+            <label>Pelayanan Kesehatan <span class="text-red-500 normal-case font-normal">*</span></label>
+            <select name="jenis_pelayanan" class="form-select" required>
+              <option value="">— Pilih Jenis —</option>
+              <option value="Umum">Umum</option>
+              <option value="BPJS">BPJS</option>
+            </select>
+          </div>
+
+          {{-- Jenis Pelayanan (Poli) --}}
+          <div class="form-group" style="grid-column:1/-1">
+            <label>Jenis Pelayanan <span class="text-red-500 normal-case font-normal">*</span></label>
+            <select name="pelayanan_kesehatan" class="form-select" required>
+              <option value="">— Pilih Layanan —</option>
+              <option value="Poli Umum">Poli Umum</option>
+              <option value="Poli Gigi">Poli Gigi</option>
+              <option value="Poli KIA">Poli KIA</option>
+              <option value="UGD">UGD</option>
+              <option value="Laboratorium">Laboratorium</option>
+              <option value="Baby Spa">Baby Spa</option>
+            </select>
+          </div>
+
           {{-- Vital Signs --}}
           <div class="form-group">
             <label>Tekanan Darah <span class="text-red-500 normal-case font-normal">*</span></label>
