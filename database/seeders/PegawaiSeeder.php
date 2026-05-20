@@ -24,7 +24,7 @@ class PegawaiSeeder extends Seeder
             ]
         );
 
-        Pegawai::updateOrCreate(
+        Pegawai::withTrashed()->updateOrCreate(
             ['user_id' => $userDokter->id],
             [
                 'nik'         => '1234567890123456',
@@ -34,6 +34,7 @@ class PegawaiSeeder extends Seeder
                 'no_sip'      => 'SIP/2026/001',
                 'alamat'      => 'Jl. Kesehatan No. 1, Jakarta',
                 'no_hp'       => '081234567890',
+                'deleted_at'  => null,
             ]
         );
 
@@ -50,7 +51,7 @@ class PegawaiSeeder extends Seeder
             ]
         );
 
-        Pegawai::updateOrCreate(
+        Pegawai::withTrashed()->updateOrCreate(
             ['user_id' => $userApoteker->id],
             [
                 'nik'         => '1234567890123457',
@@ -60,6 +61,7 @@ class PegawaiSeeder extends Seeder
                 'no_sip'      => 'SIP/2026/002',
                 'alamat'      => 'Jl. Kesehatan No. 2, Jakarta',
                 'no_hp'       => '081234567891',
+                'deleted_at'  => null,
             ]
         );
 
@@ -76,7 +78,7 @@ class PegawaiSeeder extends Seeder
             ]
         );
 
-        Pegawai::updateOrCreate(
+        Pegawai::withTrashed()->updateOrCreate(
             ['user_id' => $userPerawat->id],
             [
                 'nik'         => '1234567890123458',
@@ -86,6 +88,34 @@ class PegawaiSeeder extends Seeder
                 'no_sip'      => 'SIP/2026/003',
                 'alamat'      => 'Jl. Kesehatan No. 3, Jakarta',
                 'no_hp'       => '081234567892',
+                'deleted_at'  => null,
+            ]
+        );
+
+        // Resepsionis
+        $userResepsionis = User::updateOrCreate(
+            ['email' => 'resepsionis@sahaduta.com'],
+            [
+                'name'      => 'Rina Resepsionis',
+                'email'     => 'resepsionis@sahaduta.com',
+                'password'  => Hash::make('password'),
+                'role'      => 'pegawai',
+                'is_active' => true,
+                'phone'     => '081234567893',
+            ]
+        );
+
+        Pegawai::withTrashed()->updateOrCreate(
+            ['user_id' => $userResepsionis->id],
+            [
+                'nik'         => '1234567890123459',
+                'nama'        => 'Rina Resepsionis',
+                'spesialisasi' => 'Resepsionis',
+                'jabatan_id'   => 3, // Resepsionis
+                'no_sip'      => '-',
+                'alamat'      => 'Jl. Kesehatan No. 4, Jakarta',
+                'no_hp'       => '081234567893',
+                'deleted_at'  => null,
             ]
         );
     }
