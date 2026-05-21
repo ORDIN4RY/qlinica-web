@@ -502,35 +502,36 @@
      MODAL PANGGIL & PEMERIKSAAN TTV
 ════════════════════════════════════ --}}
 <div class="modal-overlay" id="modalPanggil">
-  <div class="modal-box">
-    <div class="modal-head">
-      <h2 class="text-base font-bold text-gray-800">Pemeriksaan Awal (TTV)</h2>
-      <button onclick="closePanggil()" class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition text-gray-500">
+  <div class="modal-box shadow-2xl rounded-2xl border border-gray-100 overflow-hidden bg-white">
+    <div class="modal-head bg-slate-50 border-b border-slate-100 flex items-center justify-between px-6 py-4">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+          <i class="fas fa-heartbeat text-sm"></i>
+        </div>
+        <h2 class="text-base font-bold text-gray-800 font-sora">Pemeriksaan Awal (TTV)</h2>
+      </div>
+      <button type="button" onclick="closePanggil()" class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition text-gray-500">
         <i class="fas fa-times text-sm"></i>
       </button>
     </div>
     <form id="panggilForm" method="POST" action="">
       @csrf
-      <div class="modal-body">
-        <p class="text-sm text-gray-600 mb-4">Pemeriksaan awal untuk pasien: <strong id="panggilPasienName"></strong></p>
-        
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-          
-          {{-- Dokter --}}
-          <div class="form-group" style="grid-column:1/-1">
-            <label>Pilih Dokter <span class="text-red-500 normal-case font-normal">*</span></label>
-            <select name="dokter_id" class="form-select" required>
-              <option value="">— Pilih Dokter —</option>
-              @foreach($dokters as $d)
-                <option value="{{ $d->id }}">{{ $d->nama }}</option>
-              @endforeach
-            </select>
+      <div class="modal-body px-6 py-5">
+        <div class="bg-blue-50/50 rounded-xl p-3.5 border border-blue-100/50 flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 rounded-full bg-blue-500/10 text-blue-700 flex items-center justify-center">
+            <i class="fas fa-user-injured text-sm"></i>
           </div>
-
+          <div>
+            <div class="text-[11px] font-bold text-blue-500 uppercase tracking-wider">Pasien Yang Diperiksa</div>
+            <div class="text-sm font-bold text-gray-800" id="panggilPasienName"></div>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 font-sora">
           {{-- Jenis Pelayanan (BPJS/Umum) --}}
-          <div class="form-group" style="grid-column:1/-1">
-            <label>Jenis Pelayanan <span class="text-red-500 normal-case font-normal">*</span></label>
-            <select name="jenis_pelayanan" class="form-select" required>
+          <div class="form-group col-span-2">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Jenis Pelayanan <span class="text-red-500">*</span></label>
+            <select name="jenis_pelayanan" class="form-select border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 rounded-xl transition" required>
               <option value="">— Pilih Jenis —</option>
               <option value="Umum">Umum</option>
               <option value="BPJS">BPJS</option>
@@ -538,9 +539,9 @@
           </div>
 
           {{-- Layanan Kesehatan (Poli) --}}
-          <div class="form-group" style="grid-column:1/-1">
-            <label>Layanan Kesehatan <span class="text-red-500 normal-case font-normal">*</span></label>
-            <select name="pelayanan_kesehatan" class="form-select" required>
+          <div class="form-group col-span-2">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Layanan Kesehatan <span class="text-red-500">*</span></label>
+            <select name="pelayanan_kesehatan" class="form-select border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 rounded-xl transition" required>
               <option value="">— Pilih Layanan —</option>
               <option value="Poli Umum">Poli Umum</option>
               <option value="Poli Gigi">Poli Gigi</option>
@@ -553,42 +554,58 @@
 
           {{-- Vital Signs --}}
           <div class="form-group">
-            <label>Tekanan Darah <span class="text-red-500 normal-case font-normal">*</span></label>
-            <input type="text" name="tekanan_darah" class="form-input" placeholder="Contoh: 120/80" required>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Tekanan Darah <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="text" name="tekanan_darah" class="form-input pl-9 border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 rounded-xl transition" placeholder="120/80" required>
+              <i class="fas fa-gauge absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            </div>
           </div>
           <div class="form-group">
-            <label>Suhu (°C) <span class="text-red-500 normal-case font-normal">*</span></label>
-            <input type="number" step="0.1" name="suhu" class="form-input" placeholder="Contoh: 36.5" required min="30" max="45">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Suhu (°C) <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="number" step="0.1" name="suhu" class="form-input pl-9 border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 rounded-xl transition" placeholder="36.5" required min="30" max="45">
+              <i class="fas fa-temperature-half absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            </div>
           </div>
           <div class="form-group">
-            <label>Berat Badan (kg) <span class="text-red-500 normal-case font-normal">*</span></label>
-            <input type="number" step="0.1" name="berat_badan" class="form-input" placeholder="Contoh: 60.5" required min="1" max="200">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Berat Badan (kg) <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="number" step="0.1" name="berat_badan" class="form-input pl-9 border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 rounded-xl transition" placeholder="60.5" required min="1" max="200">
+              <i class="fas fa-weight-scale absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            </div>
           </div>
           <div class="form-group">
-            <label>Tinggi Badan (cm) <span class="text-red-500 normal-case font-normal">*</span></label>
-            <input type="number" step="0.1" name="tinggi_badan" class="form-input" placeholder="Contoh: 165" required min="30" max="250">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Tinggi Badan (cm) <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="number" step="0.1" name="tinggi_badan" class="form-input pl-9 border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 rounded-xl transition" placeholder="165" required min="30" max="250">
+              <i class="fas fa-ruler-vertical absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            </div>
           </div>
           <div class="form-group">
-            <label>Nadi (x/menit) <span class="text-red-500 normal-case font-normal">*</span></label>
-            <input type="number" name="nadi" class="form-input" placeholder="Contoh: 80" required min="40" max="200">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Nadi (x/menit) <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="number" name="nadi" class="form-input pl-9 border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 rounded-xl transition" placeholder="80" required min="40" max="200">
+              <i class="fas fa-heartbeat absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            </div>
           </div>
           <div class="form-group">
-            <label>Respirasi (x/menit) <span class="text-red-500 normal-case font-normal">*</span></label>
-            <input type="number" name="respirasi" class="form-input" placeholder="Contoh: 20" required min="10" max="60">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Respirasi (x/menit) <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="number" name="respirasi" class="form-input pl-9 border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 rounded-xl transition" placeholder="20" required min="10" max="60">
+              <i class="fas fa-wind absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            </div>
           </div>
-          
         </div>
-
       </div>
-      <div class="modal-foot">
+      <div class="modal-foot bg-slate-50 border-t border-slate-100 flex justify-end gap-3 px-6 py-4">
         <button type="button" onclick="closePanggil()"
-          class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">
+          class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-100 transition">
           Batal
         </button>
         <button type="submit"
-          class="px-6 py-2.5 rounded-xl text-white text-sm font-bold transition shadow-md"
+          class="px-6 py-2.5 rounded-xl text-white text-xs font-bold transition shadow-md hover:brightness-110 flex items-center gap-2"
           style="background:linear-gradient(135deg,#059669,#10b981)">
-          <i class="fas fa-check mr-1.5"></i> Simpan & Panggil
+          <i class="fas fa-check"></i> Simpan & Panggil
         </button>
       </div>
     </form>

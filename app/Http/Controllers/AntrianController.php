@@ -73,7 +73,7 @@ class AntrianController extends Controller
         $antrian = Antrian::findOrFail($id);
 
         $request->validate([
-            'dokter_id' => 'required|exists:pegawai,id',
+            'dokter_id' => 'nullable|exists:pegawai,id',
             'jenis_pelayanan' => 'required|in:Umum,BPJS',
             'pelayanan_kesehatan' => 'required|in:Poli Umum,Poli Gigi,Poli KIA,UGD,Laboratorium,Baby Spa',
             'tekanan_darah' => 'required|string|max:10',
@@ -91,7 +91,7 @@ class AntrianController extends Controller
             RekamMedis::create([
                 'antrian_id' => $antrian->id,
                 'pasien_id' => $antrian->pasien_id,
-                'dokter_id' => $request->dokter_id,
+                'dokter_id' => $request->dokter_id ?: null,
                 'jenis_pelayanan' => $request->jenis_pelayanan,
                 'pelayanan_kesehatan' => $request->pelayanan_kesehatan,
                 'tanggal_periksa' => now(),

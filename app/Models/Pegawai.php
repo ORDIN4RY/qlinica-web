@@ -23,6 +23,7 @@ class Pegawai extends Model
         'no_hp',
         'jatah_cuti',
         'hari_libur',
+        'poli',
     ];
 
     public function user()

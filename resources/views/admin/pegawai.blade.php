@@ -319,12 +319,30 @@
                   $namaLower = strtolower($nama);
                   $needsSip  = str_contains($namaLower, 'dokter') || str_contains($namaLower, 'perawat') || str_contains($namaLower, 'apoteker');
                   $isDokter  = str_contains($namaLower, 'dokter');
+                  $isPerawat = str_contains($namaLower, 'perawat');
+                  $needsPoli = $isDokter || $isPerawat;
                 @endphp
                 <option value="{{ $id }}"
                   data-needs-sip="{{ $needsSip ? '1' : '0' }}"
                   data-is-dokter="{{ $isDokter ? '1' : '0' }}"
+                  data-needs-poli="{{ $needsPoli ? '1' : '0' }}"
                 >{{ $nama }}</option>
               @endforeach
+            </select>
+          </div>
+
+          {{-- Poliklinik (Poli) --}}
+          <div class="form-group" id="groupPoli" style="display:none;">
+            <label>Poliklinik <span class="text-red-500 normal-case font-normal" id="poliReq">*</span></label>
+            <select name="poli" id="fPoli" class="form-select">
+              <option value="">— Pilih Poliklinik —</option>
+              <option value="Poli Umum">Poli Umum</option>
+              <option value="Poli Gigi">Poli Gigi</option>
+              <option value="Poli KIA">Poli KIA</option>
+              <option value="UGD">UGD</option>
+              <option value="Laboratorium">Laboratorium</option>
+              <option value="Baby Spa">Baby Spa</option>
+              <option value="Tidak Ada/Non-Medis">Tidak Ada/Non-Medis</option>
             </select>
           </div>
 
@@ -453,6 +471,10 @@
           <label class="block text-xs font-bold text-gray-400 uppercase mb-1">No. SIP</label>
           <div class="text-[15px] font-semibold text-gray-800 font-mono" id="infoSip">-</div>
         </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Poliklinik</label>
+          <div class="text-[15px] font-semibold text-gray-800" id="infoPoli">-</div>
+        </div>
         <div class="col-span-1 md:col-span-2">
           <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Alamat</label>
           <div class="text-[15px] font-semibold text-gray-800" id="infoAlamat">-</div>
@@ -479,6 +501,7 @@
     'no_sip'       => $p->no_sip ?? '',
     'no_hp'        => $p->no_hp ?? '',
     'alamat'       => $p->alamat ?? '',
+    'poli'         => $p->poli ?? '',
   ])->keyBy('id')) !!}
 </script>
 
@@ -490,15 +513,18 @@
   var BASE_URL   = '{{ url("/admin/pegawai") }}';
   var editingId  = null;
 
-  /* ── JABATAN LOGIC (SIP & Spesialisasi) ── */
+  /* ── JABATAN LOGIC (SIP, Spesialisasi & Poli) ── */
   function handleJabatanChange(select) {
     var opt             = select.options[select.selectedIndex];
     var needsSip        = opt && opt.dataset.needsSip === '1';
     var isDokter        = opt && opt.dataset.isDokter === '1';
+    var needsPoli       = opt && opt.dataset.needsPoli === '1';
     var sipGroup        = document.getElementById('groupSip');
     var sipReq          = document.getElementById('sipReq');
     var sipHint         = document.getElementById('sipHint');
     var spesialisasiGrp = document.getElementById('groupSpesialisasi');
+    var poliGroup       = document.getElementById('groupPoli');
+    var fPoli           = document.getElementById('fPoli');
     var fSip            = document.getElementById('fSip');
     var fSpesialisasi   = document.getElementById('fSpesialisasi');
 
@@ -519,6 +545,15 @@
       sipReq.style.display          = 'none';
       sipHint.textContent           = '';
       fSip.placeholder              = 'Nomor SIP';
+    }
+
+    if (needsPoli) {
+      poliGroup.style.display       = 'block';
+      fPoli.required                = true;
+    } else {
+      poliGroup.style.display       = 'none';
+      fPoli.required                = false;
+      fPoli.value                   = '';
     }
   }
 
@@ -559,6 +594,7 @@
     document.getElementById('fHp').value           = p.no_hp;
     document.getElementById('fAlamat').value       = p.alamat;
     document.getElementById('fEmail').value        = p.email;
+    document.getElementById('fPoli').value         = p.poli || '';
     document.getElementById('fPassword').value     = '';
 
     handleJabatanChange(document.getElementById('fJabatan'));
@@ -573,7 +609,7 @@
   }
 
   function clearForm() {
-    ['fNama','fNik','fSpesialisasi','fSip','fHp','fAlamat','fEmail','fPassword'].forEach(function(id) {
+    ['fNama','fNik','fSpesialisasi','fSip','fHp','fAlamat','fEmail','fPassword','fPoli'].forEach(function(id) {
       document.getElementById(id).value = '';
     });
     document.getElementById('fJabatan').selectedIndex = 0;
@@ -604,6 +640,7 @@
     document.getElementById('infoSpesialisasi').textContent = p.spesialisasi || '-';
     document.getElementById('infoSip').textContent         = p.no_sip || '-';
     document.getElementById('infoAlamat').textContent      = p.alamat || '-';
+    document.getElementById('infoPoli').textContent        = p.poli || '-';
 
     var badge = document.getElementById('infoJabatanBadge');
     badge.textContent = p.jabatan_nama || '-';

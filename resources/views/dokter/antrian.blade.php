@@ -62,7 +62,9 @@
         @if($hasAll)
           <span class="text-[10px] font-bold px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full border border-purple-200">Semua Dokter</span>
         @else
-          <span class="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full border border-blue-200">Antrian Saya</span>
+          <span class="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full border border-blue-200">
+            {{ auth()->user()->pegawai && auth()->user()->pegawai->poli ? auth()->user()->pegawai->poli : 'Antrian Saya' }}
+          </span>
         @endif
       </h2>
       <p class="text-xs text-slate-400 font-medium mt-0.5">Urutan default: aktif di atas, batal di bawah</p>

@@ -45,6 +45,7 @@ class PegawaiController extends Controller
             'alamat'       => 'nullable|string',
             'spesialisasi' => 'nullable|string|max:100',
             'no_sip'       => 'required_if:jabatan_id,1,2,3|nullable|string|max:60',
+            'poli'         => 'nullable|string|max:100',
         ], [
             'nama.required'     => 'Nama wajib diisi.',
             'email.required'    => 'Email wajib diisi.',
@@ -77,7 +78,8 @@ class PegawaiController extends Controller
                 'no_sip'       => $request->no_sip,
                 'alamat'       => $request->alamat,
                 'no_hp'        => $request->no_hp,
-                'hari_libur'   => $request->hari_libur,
+                'hari_libur'   => $request->input('hari_libur', 0),
+                'poli'         => $request->poli,
             ]);
         });
 
@@ -96,19 +98,20 @@ class PegawaiController extends Controller
             'jabatan_id'   => 'required|exists:jabatan,id',
             'nik'          => ['nullable', 'string', 'max:20', Rule::unique('pegawai', 'nik')->ignore($id)],
             'no_hp'        => 'nullable|string|max:15',
-            'role'         => ['required', Rule::in(['admin', 'dokter', 'perawat', 'apoteker'])],
             'nik'          => ['required', 'string', 'max:20', Rule::unique('pegawai', 'nik')->ignore($id)],
             'no_hp'        => 'required|string|max:15',
             'alamat'       => 'nullable|string',
             'spesialisasi' => 'nullable|string|max:100',
             'no_sip'       => 'required_if:role,dokter,perawat,apoteker|nullable|string|max:60',
             'password'     => 'nullable|string|min:6',
+            'poli'         => 'nullable|string|max:100',
         ], [
             'nama.required'      => 'Nama wajib diisi.',
             'email.required'     => 'Email wajib diisi.',
             'email.unique'       => 'Email sudah digunakan.',
             'nik.required'       => 'NIK wajib diisi.',
             'nik.unique'         => 'NIK sudah terdaftar.',
+            'jabatan_id.required' => 'Jabatan wajib dipilih.',
             'no_hp.required'     => 'Nomor HP wajib diisi.',
             'no_sip.required_if' => 'Nomor SIP wajib diisi untuk role dokter, perawat, atau apoteker.',
             'password.min'       => 'Password minimal 6 karakter.',
@@ -136,7 +139,8 @@ class PegawaiController extends Controller
                 'no_sip'       => $request->no_sip,
                 'alamat'       => $request->alamat,
                 'no_hp'        => $request->no_hp,
-                'hari_libur'   => $request->hari_libur,
+                'hari_libur'   => $request->input('hari_libur', $pegawai->hari_libur ?? 0),
+                'poli'         => $request->poli,
             ]);
         });
 

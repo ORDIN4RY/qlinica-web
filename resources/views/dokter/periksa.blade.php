@@ -54,7 +54,7 @@
         </span>
       </div>
     </div>
-    
+
     <div class="p-6 grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50/50">
       <div>
         <p class="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Golongan Darah</p>
@@ -85,16 +85,16 @@
 
   <!-- Formulir Pemeriksaan Medis -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    
+
     <!-- Kolom Kiri & Tengah: Data Diagnosa & Resep -->
     <div class="lg:col-span-2 space-y-6">
-      
+
       <!-- Box 1: Anamnesis & Pemeriksaan Fisik -->
       <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
         <h3 class="font-bold text-gray-800 text-base mb-2 flex items-center gap-2 border-b pb-3">
           <i class="fas fa-notes-medical text-blue-500"></i> Catatan Pemeriksaan Medis
         </h3>
-        
+
         <div>
           <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Anamnesis <span class="text-red-500">*</span></label>
           <textarea name="anamnesis" rows="3" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Tuliskan riwayat keluhan penyakit saat ini..." required>{{ old('anamnesis') }}</textarea>
@@ -125,18 +125,18 @@
             <div class="grid grid-cols-1 gap-3">
               <div class="relative">
                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Pencarian Diagnosa ICD-10 <span class="text-red-500">*</span></label>
-                
+
                 <!-- Hidden input for selected ICDX ID -->
                 <input type="hidden" name="diagnosa[]" class="diagnosa-id" required>
-                
+
                 <!-- Text input for search and display -->
-                <input type="text" 
-                       class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white diagnosa-search font-medium text-sm" 
-                       placeholder="Ketik kode ICD atau nama penyakit (misal: A00)..." 
-                       oninput="searchIcdx(this)" 
+                <input type="text"
+                       class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white diagnosa-search font-medium text-sm"
+                       placeholder="Ketik kode ICD atau nama penyakit (misal: A00)..."
+                       oninput="searchIcdx(this)"
                        onfocus="searchIcdx(this)"
                        autocomplete="off">
-                
+
                 <!-- Floating Results Dropdown -->
                 <div class="absolute left-0 right-0 z-50 mt-1 hidden max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg icdx-dropdown divide-y divide-slate-100">
                   <!-- Dynamic search results will be injected here -->
@@ -233,7 +233,7 @@
               </div>
             </div>
           </div>
-          
+
           <button type="button" onclick="addObat()" class="mt-2 flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition font-semibold text-sm border border-purple-100">
             <i class="fas fa-plus"></i> Tambah Obat Lain
           </button>
@@ -250,13 +250,13 @@
 
     <!-- Kolom Kanan: Rincian Pelayanan, TTV (Read-only), Tindakan, Prognosa -->
     <div class="space-y-6">
-      
+
       <!-- Box 4: Pelayanan & Status -->
       <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
         <h3 class="font-bold text-gray-800 text-base mb-2 flex items-center gap-2 border-b pb-3">
           <i class="fas fa-file-medical text-slate-600"></i> Status & Pelayanan
         </h3>
-        
+
         <div>
           <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Kasus Penyakit <span class="text-red-500">*</span></label>
           <select name="kasus_penyakit" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" required>
@@ -266,7 +266,7 @@
             <option value="KKL">KKL</option>
           </select>
         </div>
-        
+
         <div>
           <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Status Pasien</label>
           <select name="status_pasien" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
@@ -275,14 +275,14 @@
             <option value="Lama">Lama</option>
           </select>
         </div>
-        
+
         <div>
           <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Pelayanan Kesehatan</label>
           <div class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700">
             {{ $antrian->rekamMedis?->pelayanan_kesehatan ?? '-' }}
           </div>
         </div>
-        
+
         <div>
           <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Jenis Pelayanan</label>
           <div class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700">
@@ -353,7 +353,7 @@
           <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Prognosa</label>
           <textarea name="prognosa" rows="2" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Prognosa penyakit pasien...">{{ old('prognosa') }}</textarea>
         </div>
-        
+
         <div>
           <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Keadaan Keluar</label>
           <select name="keadaan_keluar" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
@@ -366,21 +366,22 @@
         </div>
 
         <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-200">
-          <label class="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" name="is_rekomendasi_rawat_inap" value="1" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300" {{ old('is_rekomendasi_rawat_inap', $antrian->rekamMedis?->is_rekomendasi_rawat_inap) ? 'checked' : '' }} onchange="toggleRekomendasi(this)">
+          @php
+            $availableClasses = App\Models\Kamar::where('status','Tersedia')->whereRaw('terisi < kapasitas')->select('kelas')->distinct()->pluck('kelas');
+            $hasAvailableRooms = !$availableClasses->isEmpty();
+          @endphp
+          <label class="flex items-center gap-3 {{ $hasAvailableRooms ? 'cursor-pointer' : 'cursor-not-allowed opacity-60' }}">
+            <input type="checkbox" name="is_rekomendasi_rawat_inap" value="1" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300" {{ old('is_rekomendasi_rawat_inap', $antrian->rekamMedis?->is_rekomendasi_rawat_inap) ? 'checked' : '' }} {{ !$hasAvailableRooms ? 'disabled' : '' }} onchange="toggleRekomendasi(this)">
             <div>
               <span class="block font-bold text-blue-900 text-sm">Rekomendasikan Rawat Inap</span>
-              <span class="block text-xs text-blue-600">Centang jika pasien ini membutuhkan layanan mondok/rawat inap.</span>
+              <span class="block text-xs text-blue-600">{{ $hasAvailableRooms ? 'Centang jika pasien ini membutuhkan layanan mondok/rawat inap.' : 'Semua kamar penuh - tidak bisa merekomendasikan rawat inap saat ini.' }}</span>
             </div>
           </label>
-          <!-- Rekomendasi Kelas (hidden by default) -->
-          <div id="rekomendasiKelasDiv" class="mt-2 {{ old('is_rekomendasi_rawat_inap', $antrian->rekamMedis?->is_rekomendasi_rawat_inap) ? '' : 'hidden' }}">
+          <!-- Rekomendasi Kelas (ditampilkan secara default) -->
+          <div id="rekomendasiKelasDiv" class="mt-2">
             <label class="block text-sm font-semibold text-gray-700 mb-1">Informasi Kamar Tersedia:</label>
             <div class="flex flex-wrap gap-2">
-              @php
-                  $availableClasses = App\Models\Kamar::where('status','Tersedia')->whereRaw('terisi < kapasitas')->select('kelas')->distinct()->pluck('kelas');
-              @endphp
-              @if($availableClasses->isEmpty())
+              @if(!$hasAvailableRooms)
                 <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">Saat ini tidak ada kamar kosong.</span>
               @else
                 @foreach($availableClasses as $kelas)
@@ -388,7 +389,7 @@
                 @endforeach
               @endif
             </div>
-            <p class="text-xs text-gray-500 mt-2">Silakan sampaikan kepada keluarga pasien untuk menentukan kelas kamar di bagian resepsionis.</p>
+            <p class="text-xs text-gray-500 mt-2">{{ $hasAvailableRooms ? 'Silakan sampaikan kepada keluarga pasien untuk menentukan kelas kamar di bagian resepsionis.' : 'Tidak ada kamar yang tersedia pada saat ini.' }}</p>
           </div>
         </div>
 
@@ -429,7 +430,7 @@ const icdxData = @json(\App\Models\Icdx::select('id', 'kode', 'nama')->orderBy('
 function toggleResep(show) {
   const sectionResep = document.getElementById('section-resep');
   const sectionCatatan = document.getElementById('section-catatan-resep');
-  
+
   if (show) {
     sectionResep.classList.remove('hidden');
     sectionCatatan.classList.remove('hidden');
@@ -442,10 +443,10 @@ function toggleResep(show) {
 function searchIcdx(input) {
   const query = input.value.toLowerCase().trim();
   const dropdown = input.nextElementSibling; // The floating dropdown container
-  
+
   // Clear previous search results
   dropdown.innerHTML = '';
-  
+
   if (!query) {
     dropdown.classList.add('hidden');
     // Clear selected ID if search input is cleared
@@ -455,7 +456,7 @@ function searchIcdx(input) {
     updateDiagnosaPrimer();
     return;
   }
-  
+
   // Filter top 10 matches client-side in a split second
   const matches = [];
   for (let i = 0; i < icdxData.length; i++) {
@@ -465,13 +466,13 @@ function searchIcdx(input) {
       if (matches.length >= 10) break; // Maximum 10 items for visual clarity and ultimate performance
     }
   }
-  
+
   if (matches.length === 0) {
     dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-slate-500 font-medium">Tidak ada hasil cocok</div>';
     dropdown.classList.remove('hidden');
     return;
   }
-  
+
   // Render search results dropdown
   matches.forEach(item => {
     const option = document.createElement('div');
@@ -490,7 +491,7 @@ function searchIcdx(input) {
     };
     dropdown.appendChild(option);
   });
-  
+
   dropdown.classList.remove('hidden');
 }
 
@@ -511,7 +512,7 @@ function addDiagnosa() {
   // Reset values for new cloned row
   const hiddenInput = newItem.querySelector('.diagnosa-id');
   if (hiddenInput) hiddenInput.value = '';
-  
+
   const searchInput = newItem.querySelector('.diagnosa-search');
   if (searchInput) {
     searchInput.value = '';
@@ -519,7 +520,7 @@ function addDiagnosa() {
     searchInput.oninput = function() { searchIcdx(this); };
     searchInput.onfocus = function() { searchIcdx(this); };
   }
-  
+
   const dropdown = newItem.querySelector('.icdx-dropdown');
   if (dropdown) {
     dropdown.innerHTML = '';
@@ -575,7 +576,7 @@ function updateDiagnosaPrimer() {
 function toggleAturanPakaiCustom(select) {
   const container = select.closest('.aturan-pakai-container');
   const customInput = container.querySelector('.aturan-pakai-custom');
-  
+
   if (select.value === 'custom') {
     select.removeAttribute('name');
     customInput.setAttribute('name', 'aturan_pakai[]');
@@ -632,12 +633,12 @@ function removeObat(button) {
 }
 
 function toggleRekomendasi(checkbox) {
-  const div = document.getElementById('rekomendasiKelasDiv');
-  if (checkbox.checked) {
-    div.classList.remove('hidden');
-  } else {
-    div.classList.add('hidden');
+  // Jika checkbox disabled, prevent action
+  if (checkbox.disabled) {
+    checkbox.checked = false;
+    return;
   }
+  // Info kamar selalu ditampilkan, tidak perlu toggle
 }
 
 // Initialize

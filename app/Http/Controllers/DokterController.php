@@ -21,10 +21,16 @@ class DokterController extends Controller
         $totalRekamMedis = RekamMedis::where('dokter_id', $pegawai->id)->count();
 
         // Hitung antrian hari ini khusus untuk dokter yang sedang login
-        // Filter melalui rekam_medis karena antrian tidak punya kolom dokter_id
+        // Filter melalui rekam_medis berdasarkan poli dokter saat ini dan dokter_id null (belum diklaim) ATAU dokter_id sama dengan dokter saat ini
         $antrianHariIni = \App\Models\Antrian::where('tanggal', now()->toDateString())
             ->whereHas('rekamMedis', function ($q) use ($pegawai) {
-                $q->where('dokter_id', $pegawai->id);
+                $q->where(function ($sub) use ($pegawai) {
+                    $sub->where('dokter_id', $pegawai->id)
+                        ->orWhere(function ($sub2) use ($pegawai) {
+                            $sub2->whereNull('dokter_id')
+                                 ->where('pelayanan_kesehatan', $pegawai->poli);
+                        });
+                });
             })
             ->count();
 
@@ -153,11 +159,17 @@ class DokterController extends Controller
             ->where('tanggal', now()->toDateString())
             ->whereHas('rekamMedis');
 
-        // Filter: hanya antrian yang ditugaskan ke dokter ini,
+        // Filter: hanya antrian yang ditugaskan ke dokter ini ATAU antrean poli dokter ini yang belum diklaim,
         // kecuali dokter memiliki akses 'Antrian Pemeriksaan > all'
         if (!$hasAll && $pegawai) {
             $query->whereHas('rekamMedis', function ($q) use ($pegawai) {
-                $q->where('dokter_id', $pegawai->id);
+                $q->where(function ($sub) use ($pegawai) {
+                    $sub->where('dokter_id', $pegawai->id)
+                        ->orWhere(function ($sub2) use ($pegawai) {
+                            $sub2->whereNull('dokter_id')
+                                 ->where('pelayanan_kesehatan', $pegawai->poli);
+                        });
+                });
             });
         }
 
@@ -261,14 +273,18 @@ class DokterController extends Controller
         $pegawai = auth()->user()->pegawai;
         $isAdmin = auth()->user()->role === 'admin';
 
-        // Validasi bahwa antrian ini memang ditugaskan ke dokter yang sedang login
+        // Validasi bahwa antrian ini ditugaskan ke dokter yang sedang login ATAU berada di poli dokter yang belum diklaim
         // Admin diperbolehkan membypass validasi ini untuk keperluan pengujian/supervisi
         if (!$isAdmin) {
             if (!$pegawai) {
                 return redirect()->route('dokter.antrian')->with('error', 'Anda tidak memiliki akses untuk mendiagnosa pasien ini.');
             }
-            if ($antrian->rekamMedis && $antrian->rekamMedis->dokter_id != $pegawai->id) {
-                return redirect()->route('dokter.antrian')->with('error', 'Anda tidak memiliki akses untuk mendiagnosa pasien ini.');
+            if ($antrian->rekamMedis) {
+                $canAccess = ($antrian->rekamMedis->dokter_id == $pegawai->id) ||
+                             (is_null($antrian->rekamMedis->dokter_id) && $antrian->rekamMedis->pelayanan_kesehatan === $pegawai->poli);
+                if (!$canAccess) {
+                    return redirect()->route('dokter.antrian')->with('error', 'Anda tidak memiliki akses untuk mendiagnosa pasien ini.');
+                }
             }
         }
 
@@ -527,14 +543,18 @@ class DokterController extends Controller
 
         $isAdmin = auth()->user()->role === 'admin';
 
-        // Validasi bahwa antrian ini memang ditugaskan ke dokter yang sedang login
+        // Validasi bahwa antrian ini ditugaskan ke dokter yang sedang login ATAU berada di poli dokter yang belum diklaim
         // Admin diperbolehkan membypass validasi ini untuk keperluan pengujian/supervisi
         if (!$isAdmin) {
             if (!$pegawai) {
                 return redirect()->route('dokter.antrian')->with('error', 'Anda tidak memiliki akses untuk memeriksa pasien ini.');
             }
-            if ($antrian->rekamMedis && $antrian->rekamMedis->dokter_id != $pegawai->id) {
-                return redirect()->route('dokter.antrian')->with('error', 'Anda tidak memiliki akses untuk memeriksa pasien ini.');
+            if ($antrian->rekamMedis) {
+                $canAccess = ($antrian->rekamMedis->dokter_id == $pegawai->id) ||
+                             (is_null($antrian->rekamMedis->dokter_id) && $antrian->rekamMedis->pelayanan_kesehatan === $pegawai->poli);
+                if (!$canAccess) {
+                    return redirect()->route('dokter.antrian')->with('error', 'Anda tidak memiliki akses untuk memeriksa pasien ini.');
+                }
             }
         }
 
