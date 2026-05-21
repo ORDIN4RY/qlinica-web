@@ -16,14 +16,62 @@
         / Pulang</a>
     </div>
 
-    <!-- Check-in Button -->
-    @if(auth()->user()->hasMenuAccess('Rawat Inap', 'tambah'))
-      <button onclick="openModal('checkInModal')"
-        class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-medium transition shadow-sm flex items-center justify-center gap-2 text-sm">
-        <i class="fas fa-procedures"></i> Pasien Masuk (Check-In)
-      </button>
-    @endif
+    <!-- Antrian rawat inap is now inline -->
   </div>
+
+  @if($rekomendasiData->count() > 0 && auth()->user()->hasMenuAccess('Rawat Inap', 'tambah'))
+  <div class="mb-6 bg-white rounded-xl shadow-sm border border-emerald-200 overflow-hidden">
+    <div class="bg-emerald-50 px-6 py-4 border-b border-emerald-100 flex items-center gap-2">
+      <i class="fas fa-clipboard-list text-emerald-600"></i>
+      <h3 class="font-bold text-emerald-800">Antrian Masuk Rawat Inap (Rekomendasi Dokter)</h3>
+    </div>
+    <div class="overflow-x-auto p-4">
+      <div class="space-y-4">
+        @foreach($rekomendasiData as $rm)
+        <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
+          <div class="flex-1">
+            <h4 class="font-bold text-gray-800">{{ $rm->pasien->nama }}</h4>
+            <p class="text-xs text-gray-500">No. RM: {{ $rm->pasien->no_rm }} | Dokter: dr. {{ $rm->dokter->nama }}</p>
+          </div>
+          <div class="flex-1 w-full md:w-auto">
+            <form action="{{ route('admin.rawat_inap.store') }}" method="POST" class="flex flex-col md:flex-row items-center gap-3 w-full">
+              @csrf
+              <input type="hidden" name="pasien_id" value="{{ $rm->pasien_id }}">
+              <input type="hidden" name="dokter_id" value="{{ $rm->dokter_id }}">
+              <input type="hidden" name="jenis_penjamin" value="Umum">
+              <input type="hidden" name="no_sep" value="">
+              <input type="hidden" name="tgl_masuk" value="{{ now()->format('Y-m-d\TH:i') }}">
+              
+              <div class="w-full md:w-40">
+                <select class="pilih-kelas w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" data-target="kamar_select_{{ $rm->pasien_id }}" required>
+                  <option value="">-- Pilih Kelas --</option>
+                  @php
+                      $availableClasses = $kamarsTersedia->filter(function($k) { return $k->terisi < $k->kapasitas; })->pluck('kelas')->unique();
+                  @endphp
+                  @foreach($availableClasses as $kelas)
+                    <option value="{{ $kelas }}">{{ $kelas }}</option>
+                  @endforeach
+                </select>
+              </div>
+
+              <div class="w-full md:w-48">
+                <select name="kamar_id" id="kamar_select_{{ $rm->pasien_id }}" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" required>
+                  <option value="">-- Pilih Kamar --</option>
+                  <!-- Options populated by JS -->
+                </select>
+              </div>
+
+              <button type="submit" class="w-full md:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm shadow-sm transition whitespace-nowrap">
+                <i class="fas fa-check mr-1"></i> Accept
+              </button>
+            </form>
+          </div>
+        </div>
+        @endforeach
+      </div>
+    </div>
+  </div>
+  @endif
 
   <!-- Table -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -107,96 +155,7 @@
     @endif
   </div>
 
-  <!-- Modal Check-In -->
-  <div id="checkInModal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 overflow-hidden fade-in-up">
-      <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-        <h3 class="font-bold text-lg text-gray-800">Pasien Masuk Rawat Inap (Check-In)</h3>
-        <button onclick="closeModal('checkInModal')" class="text-gray-400 hover:text-red-500 transition">
-          <i class="fas fa-times text-xl"></i>
-        </button>
-      </div>
-      <form action="{{ route('admin.rawat_inap.store') }}" method="POST">
-        @csrf
-        <div class="p-6 space-y-5">
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-1">Pilih Pasien</label>
-              <select name="pasien_id" required
-                class="w-full border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-sm">
-                <option value="">-- Pilih Pasien --</option>
-                @foreach($pasiens as $p)
-                  <option value="{{ $p->id }}" {{ in_array($p->id, $rekomendasiIds) ? 'class=bg-yellow-100 font-bold text-yellow-800' : '' }}>
-                    {{ $p->no_rm }} - {{ $p->nama }}
-                    {{ in_array($p->id, $rekomendasiIds) ? ' ⭐ (Rekomendasi Mondok)' : '' }}
-                  </option>
-                @endforeach
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-1">Pilih Kamar / Bed</label>
-              <select name="kamar_id" required
-                class="w-full border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-sm">
-                <option value="">-- Pilih Kamar Tersedia --</option>
-                @foreach($kamarsTersedia as $k)
-                  <option value="{{ $k->id }}">{{ $k->nama_kamar }} ({{ $k->kelas }}) - Rp
-                    {{ number_format($k->tarif_per_malam, 0, ',', '.') }}/malam</option>
-                @endforeach
-              </select>
-              @if($kamarsTersedia->isEmpty())
-                <p class="text-xs text-red-500 mt-1"><i class="fas fa-exclamation-triangle"></i> Tidak ada kamar tersedia.
-                </p>
-              @endif
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-1">Dokter Penanggung Jawab (DPJP)</label>
-              <select name="dokter_id" required
-                class="w-full border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-sm">
-                @foreach($dokters as $d)
-                  <option value="{{ $d->id }}">dr. {{ $d->nama }}</option>
-                @endforeach
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-1">Tanggal & Jam Masuk</label>
-              <input type="datetime-local" name="tgl_masuk" value="{{ now()->format('Y-m-d\TH:i') }}" required
-                class="w-full border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-sm">
-            </div>
-          </div>
-
-          <div class="p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-4">
-            <h4 class="font-bold text-sm text-blue-900 border-b border-blue-200 pb-2">Penjamin Pembayaran</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Jenis Penjamin</label>
-                <select name="jenis_penjamin" id="jenis_penjamin" onchange="toggleSep()" required
-                  class="w-full border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-sm">
-                  <option value="Umum">Umum / Pribadi</option>
-                  <option value="BPJS KESEHATAN">BPJS Kesehatan (INA-CBG)</option>
-                </select>
-              </div>
-              <div id="no_sep_container" class="hidden">
-                <label class="block text-sm font-semibold text-gray-700 mb-1">No. SEP BPJS</label>
-                <input type="text" name="no_sep" id="no_sep" placeholder="Wajib untuk klaim"
-                  class="w-full border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-sm">
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
-          <button type="button" onclick="closeModal('checkInModal')"
-            class="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-xl font-medium transition text-sm">Batal</button>
-          <button type="submit"
-            class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition shadow-sm text-sm"
-            @if($kamarsTersedia->isEmpty()) disabled @endif>Proses Check-In</button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <!-- Check-in Modal Removed -->
 
   <!-- Modal Check-Out -->
   <div id="checkOutModal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center z-50">
@@ -241,6 +200,32 @@
 
 @push('scripts')
   <script>
+    const kamarsTersedia = @json($kamarsTersedia->filter(function($k) { return $k->terisi < $k->kapasitas; })->values());
+
+    document.querySelectorAll('.pilih-kelas').forEach(select => {
+      select.addEventListener('change', function() {
+        const targetId = this.getAttribute('data-target');
+        const targetSelect = document.getElementById(targetId);
+        const kelas = this.value;
+        
+        targetSelect.innerHTML = '<option value="">-- Pilih Kamar --</option>';
+        
+        if (kelas) {
+          const filteredKamars = kamarsTersedia.filter(k => k.kelas === kelas);
+          filteredKamars.forEach(k => {
+            const option = document.createElement('option');
+            option.value = k.id;
+            option.text = `${k.nama_kamar} - Rp ${parseInt(k.tarif_per_malam).toLocaleString('id-ID')}/malam`;
+            targetSelect.appendChild(option);
+          });
+          
+          if (filteredKamars.length > 0) {
+            targetSelect.value = filteredKamars[0].id;
+          }
+        }
+      });
+    });
+
     function openModal(id) {
       document.getElementById(id).classList.remove('hidden');
       document.getElementById(id).classList.add('flex');
@@ -249,19 +234,6 @@
     function closeModal(id) {
       document.getElementById(id).classList.add('hidden');
       document.getElementById(id).classList.remove('flex');
-    }
-
-    function toggleSep() {
-      const penjamin = document.getElementById('jenis_penjamin').value;
-      const sepContainer = document.getElementById('no_sep_container');
-      const sepInput = document.getElementById('no_sep');
-      if (penjamin === 'BPJS KESEHATAN') {
-        sepContainer.classList.remove('hidden');
-        sepInput.setAttribute('required', 'required');
-      } else {
-        sepContainer.classList.add('hidden');
-        sepInput.removeAttribute('required');
-      }
     }
 
     function openCheckoutModal(id, namaPasien) {

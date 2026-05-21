@@ -27,11 +27,13 @@ class RawatInapController extends Controller
         $kamarsTersedia = Kamar::where('status', 'Tersedia')->orderBy('kelas')->get();
         $dokters = Pegawai::where('jabatan_id', 1)->get(); // DPJP
         $pasiens = Pasien::orderBy('nama')->get();
-        $rekomendasiIds = \App\Models\RekamMedis::where('is_rekomendasi_rawat_inap', true)
+        $rekomendasiData = \App\Models\RekamMedis::with(['pasien', 'dokter'])
+            ->where('is_rekomendasi_rawat_inap', true)
             ->whereDate('tanggal_periksa', '>=', Carbon::now()->subDays(7)) // Berlaku 7 hari
-            ->pluck('pasien_id')->toArray();
+            ->get()
+            ->keyBy('pasien_id');
 
-        return view('admin.rawat_inap', compact('rawat_inaps', 'kamarsTersedia', 'dokters', 'pasiens', 'rekomendasiIds'));
+        return view('admin.rawat_inap', compact('rawat_inaps', 'kamarsTersedia', 'dokters', 'pasiens', 'rekomendasiData'));
     }
 
     public function store(Request $request)
@@ -57,9 +59,12 @@ class RawatInapController extends Controller
                 'status' => 'Aktif'
             ]);
 
-            // Update bed status to Terisi
+            // Update bed status
             $kamar = Kamar::find($validated['kamar_id']);
-            $kamar->update(['status' => 'Terisi']);
+            $kamar->increment('terisi');
+            if ($kamar->isFull()) {
+                $kamar->update(['status' => 'Terisi']);
+            }
 
             // Hapus/konsumsi flag rekomendasi rawat inap agar tidak muncul lagi di dropdown
             \App\Models\RekamMedis::where('pasien_id', $validated['pasien_id'])
@@ -125,7 +130,8 @@ class RawatInapController extends Controller
             // Hitung biaya kamar
             $biayaKamar = $durasiHari * $rawatInap->kamar->tarif_per_malam;
 
-            // Update status kamar jadi Tersedia
+            // Update status kamar jadi Tersedia & kurangi kapasitas
+            $rawatInap->kamar->decrement('terisi');
             $rawatInap->kamar->update(['status' => 'Tersedia']);
 
             // Update Rawat Inap
