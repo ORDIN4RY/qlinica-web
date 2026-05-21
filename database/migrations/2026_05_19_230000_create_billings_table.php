@@ -31,7 +31,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('billing_id')->constrained('billing')->onDelete('cascade');
             $table->string('nama_item', 150);
-            $table->enum('kategori', ['Registrasi', 'Tindakan', 'Obat']);
+            $table->enum('kategori', ['Registrasi', 'Tindakan', 'Obat', 'Kamar']);
             $table->integer('jumlah')->default(1);
             $table->decimal('harga_satuan', 12, 2)->default(0.00);
             $table->decimal('subtotal', 12, 2)->default(0.00);

@@ -49,5 +49,10 @@ class RawatInap extends Model
     {
         return $this->hasMany(RawatInapKamarHistory::class, 'rawat_inap_id');
     }
+
+    public function reseps()
+    {
+        return $this->hasMany(Resep::class, 'rawat_inap_id');
+    }
 }
 

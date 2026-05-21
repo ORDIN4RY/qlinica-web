@@ -202,6 +202,92 @@
                   </div>
                 @endforeach
 
+                <!-- Widget Terapi Obat Berjalan (Active Prescriptions) -->
+                @if(isset($resepBerjalan) && $resepBerjalan->count() > 0)
+                  <div class="mt-4 bg-gradient-to-br from-indigo-50/70 to-indigo-100/40 border border-indigo-200 rounded-3xl p-5 shadow-sm relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 bottom-0 w-1 bg-indigo-500"></div>
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-indigo-500/10 text-indigo-700 rounded-xl flex items-center justify-center text-sm shrink-0">
+                          <i class="fas fa-pills animate-bounce"></i>
+                        </div>
+                        <div>
+                          <h4 class="font-bold text-gray-800 text-sm">Terapi Obat Berjalan</h4>
+                          <p class="text-[10px] text-gray-500 leading-tight">Resep aktif medis yang sedang diproses/dikonsumsi</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="space-y-4">
+                      @foreach($resepBerjalan as $resep)
+                        <div class="bg-white border border-indigo-100 rounded-2xl p-4 shadow-2xs hover:border-indigo-200 transition-colors duration-200">
+                          <div class="flex justify-between items-start gap-2 mb-2 pb-2 border-b border-indigo-50">
+                            <div>
+                              <div class="text-[10px] font-semibold text-gray-400 tracking-wide">NO. RESEP #{{ $resep->no_resep ?? $resep->id }}</div>
+                              <div class="text-xs text-gray-650 font-bold mt-0.5">
+                                <i class="fas fa-user-md text-gray-400 mr-1"></i>Dr. {{ $resep->dokter->nama ?? 'Dokter Klinik' }}
+                              </div>
+                            </div>
+                            
+                            @php
+                              $statusLower = strtolower($resep->status);
+                            @endphp
+                            @if($statusLower === 'menunggu')
+                              <span class="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                                <i class="fas fa-hourglass-half animate-spin mr-0.5"></i> Persiapan Apotek
+                              </span>
+                            @elseif($statusLower === 'diproses')
+                              <span class="inline-flex items-center gap-1 bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 animate-pulse">
+                                <i class="fas fa-mortar-pestle mr-0.5"></i> Sedang Diracik
+                              </span>
+                            @elseif($statusLower === 'selesai')
+                              <span class="inline-flex items-center gap-1 bg-green-50 border border-green-200 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                                <i class="fas fa-check-circle mr-0.5"></i> Siap Diambil / Diberikan
+                              </span>
+                            @else
+                              <span class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                                {{ $resep->status }}
+                              </span>
+                            @endif
+                          </div>
+
+                          <div class="space-y-2 mt-2">
+                            @foreach($resep->details as $detail)
+                              <div class="bg-indigo-50/20 hover:bg-indigo-50/40 border border-indigo-100/30 rounded-xl p-2.5 transition-colors duration-150">
+                                <div class="flex justify-between items-start gap-2">
+                                  <div class="flex items-start gap-1.5 flex-1">
+                                    <i class="fas fa-capsules text-indigo-400 mt-1 shrink-0 text-xs"></i>
+                                    <div>
+                                      <div class="text-xs font-bold text-gray-800 leading-tight">
+                                        {{ $detail->obat->nama ?? 'Nama Obat' }}
+                                      </div>
+                                      <div class="text-[10px] text-indigo-650 font-semibold mt-0.5">
+                                        Dosis: <span class="bg-indigo-50 border border-indigo-100 px-1 rounded">{{ $detail->dosis }}</span> 
+                                        &bull; <span class="bg-indigo-50 border border-indigo-100 px-1 rounded">{{ $detail->aturan_pakai }}</span>
+                                      </div>
+                                      
+                                      @if($detail->keterangan)
+                                        <div class="mt-1.5 text-[9px] text-gray-500 italic bg-gray-50/70 border border-gray-100 px-1.5 py-0.5 rounded flex items-start gap-1 leading-normal">
+                                          <i class="fas fa-info-circle text-gray-400 mt-0.5"></i>
+                                          <span>{{ $detail->keterangan }}</span>
+                                        </div>
+                                      @endif
+                                    </div>
+                                  </div>
+                                  <div class="text-[11px] font-bold text-gray-650 bg-indigo-50/50 border border-indigo-100/40 px-2 py-0.5 rounded-lg shrink-0 text-right">
+                                    {{ $detail->jumlah }} <span class="text-[9px] text-gray-400 font-normal uppercase">{{ $detail->obat->satuan ?? 'pcs' }}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            @endforeach
+                          </div>
+                        </div>
+                      @endforeach
+                    </div>
+                  </div>
+                @endif
+
+                <div class="my-4"></div>
                 <button disabled class="w-full bg-gray-200 text-gray-400 py-4 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 cursor-not-allowed border border-gray-300/40">
                   <i class="fas fa-ban text-lg"></i> Antrian Dikunci (Masih Dirawat)
                 </button>

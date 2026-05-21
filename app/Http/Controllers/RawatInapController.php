@@ -15,7 +15,7 @@ class RawatInapController extends Controller
 {
     public function index(Request $request)
     {
-        $query = RawatInap::with(['pasien', 'kamar', 'dokter', 'billing']);
+        $query = RawatInap::with(['pasien', 'kamar', 'dokter', 'billing', 'reseps']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -28,13 +28,62 @@ class RawatInapController extends Controller
         $kamarsTersedia = Kamar::where('status', 'Tersedia')->orderBy('kelas')->get();
         $dokters = Pegawai::where('jabatan_id', 1)->get(); // DPJP
         $pasiens = Pasien::orderBy('nama')->get();
+        $obats = \App\Models\Obat::orderBy('nama')->get();
         $rekomendasiData = \App\Models\RekamMedis::with(['pasien', 'dokter'])
             ->where('is_rekomendasi_rawat_inap', true)
             ->whereDate('tanggal_periksa', '>=', Carbon::now()->subDays(7)) // Berlaku 7 hari
             ->get()
             ->keyBy('pasien_id');
 
-        return view('admin.rawat_inap', compact('rawat_inaps', 'kamarsTersedia', 'dokters', 'pasiens', 'rekomendasiData'));
+        return view('admin.rawat_inap', compact('rawat_inaps', 'kamarsTersedia', 'dokters', 'pasiens', 'obats', 'rekomendasiData'));
+    }
+
+    public function storeResep(Request $request, $id)
+    {
+        $rawatInap = RawatInap::findOrFail($id);
+
+        $request->validate([
+            'catatan_dokter' => 'nullable|string|max:1000',
+            'obat_id' => 'required|array|min:1',
+            'obat_id.*' => 'required|exists:obat,id',
+            'jumlah' => 'required|array|min:1',
+            'jumlah.*' => 'required|integer|min:1',
+            'dosis' => 'nullable|array',
+            'aturan_pakai' => 'nullable|array',
+            'keterangan' => 'nullable|array',
+        ]);
+
+        $obatIds = $request->input('obat_id');
+        $jumlah = $request->input('jumlah');
+        $dosis = $request->input('dosis', []);
+        $aturanPakai = $request->input('aturan_pakai', []);
+        $keterangan = $request->input('keterangan', []);
+
+        if (count($obatIds) !== count($jumlah)) {
+            return redirect()->back()->with('error', 'Jumlah obat dan dosis tidak cocok.');
+        }
+
+        \DB::transaction(function () use ($rawatInap, $obatIds, $jumlah, $dosis, $aturanPakai, $keterangan, $request) {
+            $resep = \App\Models\Resep::create([
+                'rawat_inap_id' => $rawatInap->id,
+                'dokter_id' => $rawatInap->dokter_id,
+                'status' => 'Menunggu',
+                'catatan_dokter' => $request->input('catatan_dokter') ?: 'Resep Rawat Inap',
+            ]);
+
+            foreach ($obatIds as $index => $obatId) {
+                \App\Models\ResepDetail::create([
+                    'resep_id' => $resep->id,
+                    'obat_id' => $obatId,
+                    'jumlah' => $jumlah[$index],
+                    'dosis' => $dosis[$index] ?? null,
+                    'aturan_pakai' => $aturanPakai[$index] ?? null,
+                    'keterangan' => $keterangan[$index] ?? null,
+                ]);
+            }
+        });
+
+        return redirect()->back()->with('success', 'Resep rawat inap berhasil dibuat dan dikirim ke Apotek.');
     }
 
     public function store(Request $request)

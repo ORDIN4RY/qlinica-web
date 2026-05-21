@@ -28,6 +28,7 @@
     outline:none; transition:all .16s; box-sizing:border-box; font-family:inherit; }
   .form-input:focus, .form-select:focus {
     border-color:#d97706; box-shadow:0 0 0 3px rgba(217,119,6,.1); }
+  .modal-box-resep { max-width: 800px !important; }
 </style>
 @endpush
 
@@ -135,6 +136,24 @@
                 <span
                   class="block font-semibold {{ $ri->jenis_penjamin == 'Umum' ? 'text-gray-800' : 'text-emerald-700' }}">{{ $ri->jenis_penjamin }}</span>
                 <span class="text-xs text-gray-500">DPJP: dr. {{ $ri->dokter->nama }}</span>
+                @if($ri->reseps->isNotEmpty())
+                  <div class="mt-1.5 flex flex-wrap gap-1 max-w-[200px]">
+                    @foreach($ri->reseps as $resep)
+                      @php
+                        $badgeColor = match($resep->status) {
+                          'Menunggu' => 'bg-yellow-50 text-yellow-700 border-yellow-200',
+                          'Diproses' => 'bg-blue-50 text-blue-700 border-blue-200',
+                          'Selesai' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                          'Dibatalkan' => 'bg-red-50 text-red-750 border-red-200',
+                          default => 'bg-gray-50 text-gray-700 border-gray-200',
+                        };
+                      @endphp
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold border {{ $badgeColor }}" title="Resep Pasien">
+                        #RES-{{ $resep->id }} ({{ $resep->status }})
+                      </span>
+                    @endforeach
+                  </div>
+                @endif
               </td>
               <td class="px-6 py-4 text-center">
                 @if($ri->status === 'Aktif')
@@ -149,6 +168,10 @@
               @if (auth()->user()->hasMenuAccess('Rawat Inap', 'edit') || auth()->user()->hasMenuAccess('Rawat Inap', 'hapus'))
               <td class="px-6 py-4 text-right space-x-1">
                 @if($ri->status === 'Aktif' && auth()->user()->hasMenuAccess('Rawat Inap', 'edit'))
+                  <button onclick="openResepModal({{ $ri->id }}, '{{ addslashes($ri->pasien->nama) }}')"
+                    class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
+                    <i class="fas fa-pills mr-1"></i> Resep
+                  </button>
                   <button onclick="openPindahModal({{ $ri->id }}, '{{ $ri->pasien->nama }}', {{ $ri->kamar_id }}, '{{ $ri->kamar->kelas }}')"
                     class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
                     <i class="fas fa-exchange-alt mr-1"></i> Pindah
@@ -304,6 +327,65 @@
       </form>
     </div>
   </div>
+
+  <!-- Modal Resep -->
+  <div id="resepModal" class="modal-overlay">
+    <div class="modal-box modal-box-resep">
+      <div class="modal-head bg-emerald-50/50 border-b border-emerald-100">
+        <h3 class="font-bold text-lg text-emerald-950 flex items-center gap-2">
+          <i class="fas fa-prescription-bottle-alt text-emerald-600 text-xl"></i>
+          Beri Resep Medis Pasien
+        </h3>
+        <button onclick="closeModal('resepModal')" type="button" class="w-9 h-9 rounded-xl bg-emerald-100/50 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition text-emerald-800">
+          <i class="fas fa-times text-sm"></i>
+        </button>
+      </div>
+      <form id="resepForm" method="POST">
+        @csrf
+        <div class="modal-body space-y-4 max-h-[60vh] overflow-y-auto">
+          <!-- Patient Info -->
+          <div class="bg-emerald-50/70 text-emerald-900 p-4 rounded-xl text-sm border border-emerald-150 flex items-center gap-3">
+            <div class="w-10 h-10 bg-emerald-100/80 rounded-lg flex items-center justify-center text-emerald-600 flex-shrink-0">
+              <i class="fas fa-user-injured text-lg"></i>
+            </div>
+            <div>
+              <div class="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Nama Pasien</div>
+              <span id="resep_nama_pasien" class="font-bold text-base text-emerald-950"></span>
+            </div>
+          </div>
+
+          <!-- Catatan Resep -->
+          <div class="form-group">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Catatan Resep / Instruksi Dokter</label>
+            <textarea name="catatan_dokter" rows="2" class="form-input" placeholder="Contoh: Resep harian, berikan setelah makan pagi..."></textarea>
+          </div>
+
+          <!-- Dynamic Obat List -->
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider">Daftar Obat</label>
+              <button type="button" onclick="addObatRow()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1.5">
+                <i class="fas fa-plus text-[10px]"></i> Tambah Obat
+              </button>
+            </div>
+
+            <div class="space-y-3" id="resep-obat-rows">
+              <!-- Dynamically populated rows -->
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-foot bg-gray-50/50">
+          <button type="button" onclick="closeModal('resepModal')" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">
+            Batal
+          </button>
+          <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md transition">
+            Kirim Resep ke Apotek
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 @endsection
 
 @push('scripts')
@@ -399,6 +481,109 @@
           targetSelect.value = filteredKamars[0].id;
         }
       }
+    });
+
+    // ── RESEP MEDIS REPEATER ──
+    let resepRowIndex = 0;
+    const obatsOptionsHtml = `
+      @foreach($obats as $obat)
+        <option value="{{ $obat->id }}">{{ addslashes($obat->nama) }} (Stok: {{ $obat->stok }})</option>
+      @endforeach
+    `;
+
+    function openResepModal(id, namaPasien) {
+      document.getElementById('resep_nama_pasien').innerText = namaPasien;
+      document.getElementById('resepForm').action = `/admin/rawat_inap/${id}/resep`;
+      document.getElementById('resep-obat-rows').innerHTML = '';
+      resepRowIndex = 0;
+      addObatRow();
+      openModal('resepModal');
+    }
+
+    function addObatRow() {
+      resepRowIndex++;
+      const container = document.getElementById('resep-obat-rows');
+      const rowDiv = document.createElement('div');
+      rowDiv.id = `row-obat-${resepRowIndex}`;
+      rowDiv.className = 'grid grid-cols-1 md:grid-cols-12 gap-2.5 p-3.5 bg-gray-50/50 rounded-xl border border-gray-200 items-end relative';
+      
+      rowDiv.innerHTML = `
+        <div class="md:col-span-4">
+          <label class="block text-[11px] font-bold text-gray-500 mb-1">Nama Obat</label>
+          <select name="obat_id[]" class="form-select text-xs animate-none" required>
+            <option value="">Pilih Obat</option>
+            ${obatsOptionsHtml}
+          </select>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-[11px] font-bold text-gray-500 mb-1">Jumlah</label>
+          <input name="jumlah[]" type="number" min="1" value="1" class="form-input text-xs" required />
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-[11px] font-bold text-gray-500 mb-1">Dosis</label>
+          <input name="dosis[]" type="text" class="form-input text-xs" placeholder="Contoh: 3x1" required />
+        </div>
+        <div class="md:col-span-3">
+          <label class="block text-[11px] font-bold text-gray-500 mb-1">Aturan Pakai</label>
+          <div class="aturan-pakai-container-ri">
+            <select class="form-select text-xs aturan-pakai-select-ri" onchange="toggleAturanPakaiCustomRi(this)" name="aturan_pakai[]" required>
+              <option value="Sesudah makan">Sesudah makan</option>
+              <option value="Sebelum makan">Sebelum makan</option>
+              <option value="Bersama makan">Bersama makan</option>
+              <option value="Sebelum tidur">Sebelum tidur</option>
+              <option value="custom">Lainnya (Ketik)...</option>
+            </select>
+            <input type="text" class="form-input text-xs aturan-pakai-custom-ri hidden mt-1" placeholder="Aturan pakai manual...">
+          </div>
+        </div>
+        <div class="md:col-span-1 flex justify-center pb-0.5">
+          <button type="button" onclick="removeObatRow(${resepRowIndex})" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition border border-red-200">
+            <i class="fas fa-trash-alt text-xs"></i>
+          </button>
+        </div>
+      `;
+      container.appendChild(rowDiv);
+    }
+
+    function removeObatRow(rowId) {
+      const container = document.getElementById('resep-obat-rows');
+      if (container.children.length > 1) {
+        const row = document.getElementById(`row-obat-${rowId}`);
+        if (row) row.remove();
+      } else {
+        alert('Resep harus memiliki minimal 1 obat.');
+      }
+    }
+
+    function toggleAturanPakaiCustomRi(select) {
+      const container = select.closest('.aturan-pakai-container-ri');
+      const customInput = container.querySelector('.aturan-pakai-custom-ri');
+      
+      if (select.value === 'custom') {
+        select.removeAttribute('name');
+        customInput.setAttribute('name', 'aturan_pakai[]');
+        customInput.classList.remove('hidden');
+        customInput.required = true;
+        customInput.focus();
+      } else {
+        select.setAttribute('name', 'aturan_pakai[]');
+        customInput.removeAttribute('name');
+        customInput.classList.add('hidden');
+        customInput.required = false;
+        customInput.value = '';
+      }
+    }
+
+    // Close modal on Escape key for resepModal
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeModal('resepModal');
+      }
+    });
+
+    // Close modal on clicking overlay for resepModal
+    document.getElementById('resepModal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal('resepModal');
     });
   </script>
 @endpush

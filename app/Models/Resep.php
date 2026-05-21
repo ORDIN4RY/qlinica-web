@@ -14,6 +14,7 @@ class Resep extends Model
 
     protected $fillable = [
         'rekam_medis_id',
+        'rawat_inap_id',
         'dokter_id',
         'apoteker_id',
         'status',
@@ -31,6 +32,11 @@ class Resep extends Model
     public function rekamMedis()
     {
         return $this->belongsTo(RekamMedis::class, 'rekam_medis_id');
+    }
+
+    public function rawatInap()
+    {
+        return $this->belongsTo(RawatInap::class, 'rawat_inap_id');
     }
 
     public function dokter()

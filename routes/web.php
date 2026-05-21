@@ -174,6 +174,7 @@ Route::middleware(['auth', 'menu:Rawat Inap'])->group(function () {
     Route::post('/admin/rawat_inap', [RawatInapController::class, 'store'])->name('admin.rawat_inap.store')->middleware('menu:Rawat Inap,tambah');
     Route::post('/admin/rawat_inap/{id}/checkout', [RawatInapController::class, 'checkout'])->name('admin.rawat_inap.checkout')->middleware('menu:Rawat Inap,edit');
     Route::post('/admin/rawat_inap/{id}/pindah', [RawatInapController::class, 'pindahKamar'])->name('admin.rawat_inap.pindah')->middleware('menu:Rawat Inap,edit');
+    Route::post('/admin/rawat_inap/{id}/resep', [RawatInapController::class, 'storeResep'])->name('admin.rawat_inap.resep')->middleware('menu:Rawat Inap,edit');
 });
 
 // ── Komentar ──
@@ -234,6 +235,8 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
                 ->orderBy('created_at', 'desc')
                 ->get();
 
+            $resepBerjalan = collect();
+
             // 1. Cek Rawat Inap Aktif
             $rawatInapAktif = \App\Models\RawatInap::with(['kamar', 'dokter', 'billing.details'])
                 ->where('pasien_id', $pasien->id)
@@ -267,10 +270,17 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
                         ])->toArray(),
                     ]);
                 }
+
+                // Ambil resep berjalan untuk rawat inap
+                $resepRawatInap = \App\Models\Resep::where('rawat_inap_id', $rawatInapAktif->id)
+                    ->whereIn('status', ['Menunggu', 'Diproses', 'Selesai'])
+                    ->with(['details.obat', 'dokter'])
+                    ->get();
+                $resepBerjalan = $resepBerjalan->concat($resepRawatInap);
             }
 
             // 2. Cek Pelayanan Klinik Aktif (Rawat Jalan / Outpatient) yang belum dibayar
-            $billingRawatJalan = \App\Models\Billing::with(['rekamMedis.dokter', 'details'])
+            $billingRawatJalan = \App\Models\Billing::with(['rekamMedis.dokter.user', 'rekamMedis.resep.details.obat', 'details'])
                 ->where('pasien_id', $pasien->id)
                 ->where('status', 'Belum Bayar')
                 ->whereNull('rawat_inap_id')
@@ -300,10 +310,20 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
                         'subtotal' => $d->subtotal,
                     ])->toArray(),
                 ]);
+
+                // Ambil resep berjalan untuk rawat jalan (dari billing yang belum lunas)
+                if ($bj->rekamMedis && $bj->rekamMedis->resep) {
+                    $resepRJ = $bj->rekamMedis->resep;
+                    if (in_array($resepRJ->status, ['Menunggu', 'Diproses', 'Selesai'])) {
+                        // Load relations to make sure details and obat are eager loaded
+                        $resepRJ->load(['details.obat', 'dokter']);
+                        $resepBerjalan->push($resepRJ);
+                    }
+                }
             }
         }
 
-        return view('dashboard_pasien', compact('user', 'pasien', 'antrianAktif', 'totalAntrianHariIni', 'antrianSelesai', 'antrianMenunggu', 'antrianDilayani', 'antrianPasienMenunggu', 'pasienSelesaiHariIni', 'riwayatAntrian', 'biayaBerlangsung'));
+        return view('dashboard_pasien', compact('user', 'pasien', 'antrianAktif', 'totalAntrianHariIni', 'antrianSelesai', 'antrianMenunggu', 'antrianDilayani', 'antrianPasienMenunggu', 'pasienSelesaiHariIni', 'riwayatAntrian', 'biayaBerlangsung', 'resepBerjalan'));
     })->name('pasien.portal');
 
     Route::post('/dashboard-pasien/antrian', [AntrianController::class, 'storePasien'])->name('pasien.antrian.store');

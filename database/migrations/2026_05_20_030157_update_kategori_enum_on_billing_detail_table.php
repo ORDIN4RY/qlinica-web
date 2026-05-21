@@ -12,7 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE billing_detail MODIFY COLUMN kategori ENUM('Registrasi', 'Tindakan', 'Obat', 'Kamar')");
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE billing_detail MODIFY COLUMN kategori ENUM('Registrasi', 'Tindakan', 'Obat', 'Kamar')");
+        }
     }
 
     /**
