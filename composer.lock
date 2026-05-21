@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d3c16cb86c42230c6c023d9a5d9bcf42",
+    "content-hash": "854c90502b4da71452ebe9a2297ef94a",
     "packages": [
         {
             "name": "brick/math",
@@ -1052,6 +1052,46 @@
                 }
             ],
             "time": "2025-08-22T14:27:06+00:00"
+        },
+        {
+            "name": "indravscode/bridging-bpjs",
+            "version": "v1.3.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/indravscode/bridging-bpjs.git",
+                "reference": "d386355eaaf98a53b3d42575f0f09932c5104eef"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/indravscode/bridging-bpjs/zipball/d386355eaaf98a53b3d42575f0f09932c5104eef",
+                "reference": "d386355eaaf98a53b3d42575f0f09932c5104eef",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": ">=6.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Bridging\\Bpjs\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Indra Adnyana",
+                    "email": "gdindra13@gmail.com"
+                }
+            ],
+            "description": "Package wrapper untuk bridging BPJS (VClaim, Aplicare, PCare dan i-Care)",
+            "support": {
+                "issues": "https://github.com/indravscode/bridging-bpjs/issues",
+                "source": "https://github.com/indravscode/bridging-bpjs/tree/v1.3.2"
+            },
+            "time": "2026-03-11T08:23:56+00:00"
         },
         {
             "name": "laravel/framework",

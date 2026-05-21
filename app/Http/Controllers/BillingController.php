@@ -139,8 +139,10 @@ class BillingController extends Controller
         $jenisPeserta = 'PBI (Penerima Bantuan Iuran)';
 
         // 1. Integrasi PCare BPJS
+        // Hanya aktif jika BPJS_MODE=production DAN package tersedia DAN CONSID terisi
+        $bpjsModeProduction = strtolower(env('BPJS_MODE', 'sandbox')) === 'production';
         try {
-            if (class_exists('\Bridging\Bpjs\PCare\Peserta') && env('BPJS_PCARE_CONSID')) {
+            if ($bpjsModeProduction && class_exists('\Bridging\Bpjs\PCare\Peserta') && env('BPJS_PCARE_CONSID')) {
                 $config = [
                     'cons_id'      => env('BPJS_PCARE_CONSID'),
                     'secret_key'   => env('BPJS_PCARE_SECRET_KEY'),

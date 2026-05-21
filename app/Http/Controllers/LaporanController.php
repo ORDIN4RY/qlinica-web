@@ -19,28 +19,30 @@ class LaporanController extends Controller
         $tgl_akhir = $request->get('tgl_akhir');
 
         if ($periode) {
-            $now = Carbon::now();
             switch ($periode) {
                 case 'hari':
-                    $query->whereDate('tanggal_periksa', $now->toDateString());
+                    $query->whereDate('tanggal_periksa', Carbon::today()->toDateString());
                     break;
                 case 'minggu':
-                    $query->whereBetween('tanggal_periksa', [$now->startOfWeek()->toDateString(), $now->endOfWeek()->toDateString()]);
+                    $query->whereBetween('tanggal_periksa', [
+                        Carbon::now()->startOfWeek()->toDateTimeString(),
+                        Carbon::now()->endOfWeek()->toDateTimeString()
+                    ]);
                     break;
                 case 'bulan':
-                    $query->whereMonth('tanggal_periksa', $now->month)
-                          ->whereYear('tanggal_periksa', $now->year);
+                    $query->whereMonth('tanggal_periksa', Carbon::now()->month)
+                          ->whereYear('tanggal_periksa', Carbon::now()->year);
                     break;
                 case 'tahun':
-                    $query->whereYear('tanggal_periksa', $now->year);
+                    $query->whereYear('tanggal_periksa', Carbon::now()->year);
                     break;
                 case 'custom':
                     if ($tgl_awal && $tgl_akhir) {
-                        $query->whereBetween('tanggal_periksa', [$tgl_awal, $tgl_akhir]);
+                        $query->whereBetween('tanggal_periksa', [$tgl_awal . ' 00:00:00', $tgl_akhir . ' 23:59:59']);
                     } elseif ($tgl_awal) {
-                        $query->whereDate('tanggal_periksa', '>=', $tgl_awal);
+                        $query->where('tanggal_periksa', '>=', $tgl_awal . ' 00:00:00');
                     } elseif ($tgl_akhir) {
-                        $query->whereDate('tanggal_periksa', '<=', $tgl_akhir);
+                        $query->where('tanggal_periksa', '<=', $tgl_akhir . ' 23:59:59');
                     }
                     break;
             }
@@ -61,12 +63,23 @@ class LaporanController extends Controller
             $query->where('keadaan_keluar', $request->get('keadaan_keluar'));
         }
 
-        // 5. PENCARIAN (RM / Nama Pasien)
+        // 5. PENCARIAN (RM, Nama Pasien, Dokter, ICDX, Tindakan, Pengobatan)
         if ($request->filled('search')) {
             $search = $request->get('search');
-            $query->whereHas('pasien', function ($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('no_rm', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('pasien', function ($q2) use ($search) {
+                    $q2->where('nama', 'like', "%{$search}%")
+                      ->orWhere('no_rm', 'like', "%{$search}%");
+                })
+                ->orWhereHas('dokter', function ($q2) use ($search) {
+                    $q2->where('nama', 'like', "%{$search}%");
+                })
+                ->orWhereHas('diagnosa.icdx', function ($q2) use ($search) {
+                    $q2->where('kode', 'like', "%{$search}%")
+                      ->orWhere('nama', 'like', "%{$search}%");
+                })
+                ->orWhere('tindakan', 'like', "%{$search}%")
+                ->orWhere('pengobatan', 'like', "%{$search}%");
             });
         }
 
@@ -74,15 +87,14 @@ class LaporanController extends Controller
         $laporans = $query->orderBy('tanggal_periksa', 'desc')->paginate(15)->withQueryString();
 
         // Data untuk Dropdown Filter
-        $dokters = Pegawai::whereHas('user', function($q) {
+        $dokters = Pegawai::whereHas('jabatan', function($q) {
+            $q->where('nama_jabatan', 'Dokter');
+        })->orWhereHas('user', function($q) {
             $q->where('role', 'dokter');
         })->get();
 
-        $keadaan_keluars = RekamMedis::select('keadaan_keluar')
-            ->whereNotNull('keadaan_keluar')
-            ->where('keadaan_keluar', '!=', '')
-            ->distinct()
-            ->pluck('keadaan_keluar');
+        // Menyediakan keadaan keluar standar untuk dropdown filter
+        $keadaan_keluars = ['Sembuh', 'Membaik', 'Belum Sembuh', 'Meninggal'];
 
         return view('admin.laporan_penanganan', compact('laporans', 'dokters', 'keadaan_keluars'));
     }

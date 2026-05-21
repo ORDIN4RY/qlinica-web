@@ -66,9 +66,19 @@
               @csrf
               <input type="hidden" name="pasien_id" value="{{ $rm->pasien_id }}">
               <input type="hidden" name="dokter_id" value="{{ $rm->dokter_id }}">
-              <input type="hidden" name="jenis_penjamin" value="Umum">
-              <input type="hidden" name="no_sep" value="">
               <input type="hidden" name="tgl_masuk" value="{{ now()->format('Y-m-d\TH:i') }}">
+
+              <div class="w-full md:w-36">
+                <select name="jenis_penjamin" onchange="document.getElementById('sep_container_{{ $rm->pasien_id }}').style.display = this.value === 'BPJS KESEHATAN' ? 'block' : 'none'" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" required>
+                  <option value="Umum">Umum</option>
+                  <option value="BPJS KESEHATAN">BPJS KESEHATAN</option>
+                  <option value="Asuransi Lain">Asuransi Lain</option>
+                </select>
+              </div>
+
+              <div class="w-full md:w-44" id="sep_container_{{ $rm->pasien_id }}" style="display: none;">
+                <input type="text" name="no_sep" placeholder="No. SEP (Auto jika kosong)" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm">
+              </div>
               
               <div class="w-full md:w-40">
                 <select class="pilih-kelas w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" data-target="kamar_select_{{ $rm->pasien_id }}" required>
