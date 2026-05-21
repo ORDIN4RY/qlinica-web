@@ -29,6 +29,8 @@ class KamarController extends Controller
             'kelas' => 'required|in:VIP,Kelas 1,Kelas 2,Kelas 3',
             'tarif_per_malam' => 'required|numeric|min:0',
             'status' => 'required|in:Tersedia,Terisi,Perbaikan',
+            'kapasitas' => 'required|integer|min:1',
+            'terisi' => 'nullable|integer|min:0',
         ]);
 
         Kamar::create($validated);
@@ -46,6 +48,8 @@ class KamarController extends Controller
             'kelas' => 'required|in:VIP,Kelas 1,Kelas 2,Kelas 3',
             'tarif_per_malam' => 'required|numeric|min:0',
             'status' => 'required|in:Tersedia,Terisi,Perbaikan',
+            'kapasitas' => 'required|integer|min:1',
+            'terisi' => 'nullable|integer|min:0',
         ]);
 
         $kamar->update($validated);

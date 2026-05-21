@@ -31,6 +31,7 @@
           <th class="px-6 py-4">Nama Kamar</th>
           <th class="px-6 py-4">Kelas</th>
           <th class="px-6 py-4">Tarif per Malam</th>
+          <th class="px-6 py-4 text-center">Kapasitas</th>
           <th class="px-6 py-4 text-center">Status</th>
           @if (auth()->user()->hasMenuAccess('kamar', 'edit') || auth()->user()->hasMenuAccess('kamar', 'hapus'))
           <th class="px-6 py-4 text-right">Aksi</th>
@@ -47,10 +48,15 @@
             </td>
             <td class="px-6 py-4 font-medium text-gray-900">Rp {{ number_format($k->tarif_per_malam, 0, ',', '.') }}</td>
             <td class="px-6 py-4 text-center">
-              @if($k->status === 'Tersedia')
-                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold"><i class="fas fa-check-circle mr-1"></i> Tersedia</span>
+              <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-bold">{{ $k->terisi ?? 0 }} / {{ $k->kapasitas ?? 1 }}</span>
+            </td>
+            <td class="px-6 py-4 text-center">
+              @if($k->status === 'Tersedia' && !$k->isFull())
+                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold"><i class="fas fa-check-circle mr-1"></i> Tersedia ({{ $k->availableBeds() }} kosong)</span>
+              @elseif($k->status === 'Tersedia' && $k->isFull())
+                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold"><i class="fas fa-bed mr-1"></i> Penuh</span>
               @elseif($k->status === 'Terisi')
-                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold"><i class="fas fa-bed mr-1"></i> Terisi</span>
+                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold"><i class="fas fa-bed mr-1"></i> Terisi Penuh</span>
               @else
                 <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold"><i class="fas fa-wrench mr-1"></i> Perbaikan</span>
               @endif
@@ -131,9 +137,15 @@
             </select>
           </div>
         </div>
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-1">Tarif Sewa per Malam (Rp)</label>
-          <input type="number" name="tarif_per_malam" id="tarif_per_malam" min="0" required class="w-full border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-sm font-mono font-bold text-green-700">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Tarif Sewa per Malam (Rp)</label>
+            <input type="number" name="tarif_per_malam" id="tarif_per_malam" min="0" required class="w-full border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-sm font-mono font-bold text-green-700">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Kapasitas (Kasur)</label>
+            <input type="number" name="kapasitas" id="kapasitas" min="1" value="1" required class="w-full border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-sm">
+          </div>
         </div>
       </div>
       <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
@@ -157,6 +169,7 @@
     document.getElementById('kode_kamar').value = '';
     document.getElementById('nama_kamar').value = '';
     document.getElementById('tarif_per_malam').value = '';
+    document.getElementById('kapasitas').value = '1';
   }
 
   function closeModal(id) {
@@ -175,6 +188,7 @@
     document.getElementById('kelas').value = kamar.kelas;
     document.getElementById('status').value = kamar.status;
     document.getElementById('tarif_per_malam').value = kamar.tarif_per_malam;
+    document.getElementById('kapasitas').value = kamar.kapasitas || 1;
   }
 </script>
 @endpush

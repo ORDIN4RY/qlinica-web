@@ -367,12 +367,29 @@
 
         <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-200">
           <label class="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" name="is_rekomendasi_rawat_inap" value="1" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300" {{ old('is_rekomendasi_rawat_inap', $antrian->rekamMedis?->is_rekomendasi_rawat_inap) ? 'checked' : '' }}>
+            <input type="checkbox" name="is_rekomendasi_rawat_inap" value="1" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300" {{ old('is_rekomendasi_rawat_inap', $antrian->rekamMedis?->is_rekomendasi_rawat_inap) ? 'checked' : '' }} onchange="toggleRekomendasi(this)">
             <div>
               <span class="block font-bold text-blue-900 text-sm">Rekomendasikan Rawat Inap</span>
               <span class="block text-xs text-blue-600">Centang jika pasien ini membutuhkan layanan mondok/rawat inap.</span>
             </div>
           </label>
+          <!-- Rekomendasi Kelas (hidden by default) -->
+          <div id="rekomendasiKelasDiv" class="mt-2 {{ old('is_rekomendasi_rawat_inap', $antrian->rekamMedis?->is_rekomendasi_rawat_inap) ? '' : 'hidden' }}">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Informasi Kamar Tersedia:</label>
+            <div class="flex flex-wrap gap-2">
+              @php
+                  $availableClasses = App\Models\Kamar::where('status','Tersedia')->whereRaw('terisi < kapasitas')->select('kelas')->distinct()->pluck('kelas');
+              @endphp
+              @if($availableClasses->isEmpty())
+                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">Saat ini tidak ada kamar kosong.</span>
+              @else
+                @foreach($availableClasses as $kelas)
+                  <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">{{ $kelas }}</span>
+                @endforeach
+              @endif
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Silakan sampaikan kepada keluarga pasien untuk menentukan kelas kamar di bagian resepsionis.</p>
+          </div>
         </div>
 
         <div>
@@ -611,6 +628,15 @@ function removeObat(button) {
 
   if (items.length > 1) {
     item.remove();
+  }
+}
+
+function toggleRekomendasi(checkbox) {
+  const div = document.getElementById('rekomendasiKelasDiv');
+  if (checkbox.checked) {
+    div.classList.remove('hidden');
+  } else {
+    div.classList.add('hidden');
   }
 }
 
