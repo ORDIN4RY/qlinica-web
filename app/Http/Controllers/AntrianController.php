@@ -127,6 +127,22 @@ class AntrianController extends Controller
             'keluhan' => 'nullable|string|max:1000',
         ]);
 
+        // Cegah jika pasien masih terdaftar dalam perawatan aktif (Rawat Inap atau Billing Belum Lunas)
+        $rawatInapAktif = \App\Models\RawatInap::where('pasien_id', $pasien->id)
+            ->where('status', 'Aktif')
+            ->exists();
+
+        $billingBelumLunas = \App\Models\Billing::where('pasien_id', $pasien->id)
+            ->where('status', 'Belum Bayar')
+            ->exists();
+
+        if ($rawatInapAktif || $billingBelumLunas) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda masih terdaftar dalam pelayanan/perawatan aktif di klinik. Selesaikan administrasi terlebih dahulu.',
+            ], 422);
+        }
+
         // Cegah duplikat antrian aktif pada hari yang sama
         $sudahAda = Antrian::where('pasien_id', $pasien->id)
             ->where('tanggal', now()->toDateString())
