@@ -15,7 +15,7 @@ class ResepController extends Controller
         $search = $request->query('search');
 
         $resepQuery = Resep::with(['rekamMedis.pasien', 'dokter.user', 'apoteker.user', 'details.obat'])
-            ->orderByRaw("FIELD(status, 'Menunggu', 'Diproses', 'Selesai', 'Dibatalkan')")
+            ->orderByRaw("FIELD(status, 'Menunggu', 'Menunggu Pembayaran', 'Sudah Dibayar', 'Selesai', 'Dibatalkan')")
             ->orderByDesc('created_at');
 
         if ($status && $status !== 'Semua') {
@@ -44,7 +44,7 @@ class ResepController extends Controller
     public function update(Request $request, Resep $resep)
     {
         $request->validate([
-            'action' => 'required|in:proses,selesai_racik,selesai,kembalikan',
+            'action' => 'required|in:proses,selesai,kembalikan',
             'catatan_apoteker' => 'nullable|string|max:500',
         ]);
 
@@ -73,15 +73,9 @@ class ResepController extends Controller
             }
         }
 
-        if ($action === 'selesai_racik') {
-            if ($resep->status !== 'Diproses') {
-                return redirect()->route('apoteker.resep')->with('error', 'Resep hanya bisa diselesaikan peracikannya jika sedang diproses.');
-            }
-        }
-
         if ($action === 'selesai') {
-            if (!in_array($resep->status, ['Diproses', 'Sudah Dibayar', 'Menunggu Pembayaran'])) {
-                return redirect()->route('apoteker.resep')->with('error', 'Resep hanya bisa diselesaikan jika sedang diproses atau sudah dibayar.');
+            if ($resep->status !== 'Sudah Dibayar') {
+                return redirect()->route('apoteker.resep')->with('error', 'Obat hanya dapat diserahkan jika resep sudah dibayar.');
             }
 
             // Validasi apakah tagihan pasien sudah dibayar
@@ -112,15 +106,6 @@ class ResepController extends Controller
         try {
             DB::transaction(function () use ($resep, $action, $apoteker, $request, $oldStatus) {
                 if ($action === 'proses') {
-                    $resep->update([
-                        'status' => 'Diproses',
-                        'apoteker_id' => $apoteker->id,
-                        'diproses_at' => now(),
-                        'catatan_apoteker' => $request->input('catatan_apoteker'),
-                    ]);
-                }
-
-                if ($action === 'selesai_racik') {
                     $totalHargaObat = 0;
 
                     // Cari atau buat billing untuk rekam medis ini
@@ -170,6 +155,9 @@ class ResepController extends Controller
 
                     $resep->update([
                         'status' => 'Menunggu Pembayaran',
+                        'apoteker_id' => $apoteker->id,
+                        'diproses_at' => now(),
+                        'catatan_apoteker' => $request->input('catatan_apoteker'),
                     ]);
                 }
 
@@ -222,8 +210,7 @@ class ResepController extends Controller
         }
 
         $message = match ($action) {
-            'proses' => 'Resep sedang diproses (Tahap Peracikan).',
-            'selesai_racik' => 'Resep berhasil dikalkulasi harganya dan dikirim ke Kasir untuk pembayaran.',
+            'proses' => 'Resep berhasil dikalkulasi harganya dan dikirim ke Kasir untuk pembayaran.',
             'selesai' => 'Resep selesai dan stok obat diperbarui.',
             'kembalikan' => 'Resep berhasil dikembalikan dan ditarik dari billing kasir.',
         };

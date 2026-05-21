@@ -20,7 +20,7 @@
     <form method="GET" action="{{ route('apoteker.resep') }}" class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
       <input name="search" value="{{ old('search', $search) }}" type="text" placeholder="Cari pasien / no resep..." class="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-green-600 text-sm">
       <select name="status" class="px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-green-600 text-sm">
-        @foreach(['Semua','Menunggu','Diproses','Menunggu Pembayaran','Selesai','Dibatalkan'] as $option)
+        @foreach(['Semua','Menunggu','Menunggu Pembayaran','Sudah Dibayar','Selesai','Dibatalkan'] as $option)
           <option value="{{ $option }}" @selected($status === $option)>{{ $option }}</option>
         @endforeach
       </select>
@@ -40,7 +40,6 @@
         @php
           $statusClasses = [
             'Menunggu' => 'bg-yellow-50 text-yellow-700 border-yellow-200',
-            'Diproses' => 'bg-blue-50 text-blue-700 border-blue-200',
             'Menunggu Pembayaran' => 'bg-amber-50 text-amber-700 border-amber-200',
             'Sudah Dibayar' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
             'Selesai' => 'bg-green-100 text-green-800 border-green-200',
@@ -146,22 +145,6 @@
                   Batalkan & Tarik Tagihan
                 </button>
               </form>
-
-            @elseif($resep->status === 'Diproses')
-              
-              <form action="{{ route('apoteker.resep.update', $resep) }}" method="POST" class="inline-block">
-                @csrf
-                @method('PATCH')
-                <input type="hidden" name="action" value="selesai_racik">
-                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-sm flex items-center gap-1.5">
-                  <i class="fas fa-mortar-pestle"></i> Selesai Racik & Kirim ke Kasir
-                </button>
-              </form>
-
-              {{-- CETAK ETIKET --}}
-              <button type="button" onclick="printEtiket('{{ $resep->id }}', '{{ addslashes($resep->rekamMedis?->pasien?->nama) }}', '{{ $resep->rekamMedis?->pasien?->no_rm }}', '{{ optional($resep->rekamMedis?->tanggal_periksa)->format('d/m/Y') }}', {{ json_encode($resep->details->map(function($d) { return ['nama' => $d->obat?->nama, 'kategori' => $d->obat?->kategori, 'jumlah' => $d->jumlah, 'dosis' => $d->dosis, 'aturan_pakai' => $d->aturan_pakai]; })) }})" class="px-5 py-2.5 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold rounded-xl hover:bg-blue-100 transition flex items-center gap-1.5">
-                <i class="fas fa-print"></i> Cetak Etiket Obat
-              </button>
 
             @elseif($resep->status === 'Sudah Dibayar')
               

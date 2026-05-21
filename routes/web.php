@@ -205,6 +205,7 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
         $antrianPasienMenunggu = collect();
 
         $pasienSelesaiHariIni = false;
+        $biayaBerlangsung = collect();
 
         if ($pasien) {
             $antrianAktif = \App\Models\Antrian::where('pasien_id', $pasien->id)
@@ -232,9 +233,77 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
                 ->orderBy('tanggal', 'desc')
                 ->orderBy('created_at', 'desc')
                 ->get();
+
+            // 1. Cek Rawat Inap Aktif
+            $rawatInapAktif = \App\Models\RawatInap::with(['kamar', 'dokter', 'billing.details'])
+                ->where('pasien_id', $pasien->id)
+                ->where('status', 'Aktif')
+                ->first();
+
+            if ($rawatInapAktif) {
+                $billing = $rawatInapAktif->billing;
+                if ($billing) {
+                    $billing->recalculateTotals();
+                    $biayaBerlangsung->push([
+                        'tipe' => 'Rawat Inap',
+                        'no_invoice' => $billing->no_invoice,
+                        'grand_total' => $billing->grand_total,
+                        'tgl_mulai' => $rawatInapAktif->tgl_masuk->format('Y-m-d H:i:s'),
+                        'kamar' => $rawatInapAktif->kamar ? ($rawatInapAktif->kamar->kode_bed . ' (' . $rawatInapAktif->kamar->kelas . ')') : '-',
+                        'status' => 'Dirawat',
+                        'biaya_registrasi' => $billing->biaya_registrasi,
+                        'biaya_kamar' => $billing->biaya_kamar,
+                        'biaya_tindakan' => $billing->biaya_tindakan,
+                        'biaya_obat' => $billing->biaya_obat,
+                        'potongan_bpjs' => $billing->potongan_bpjs,
+                        'no_bpjs' => $billing->no_bpjs,
+                        'jenis_penjamin' => $rawatInapAktif->jenis_penjamin,
+                        'details' => $billing->details->map(fn($d) => [
+                            'nama_item' => $d->nama_item,
+                            'kategori' => $d->kategori,
+                            'jumlah' => $d->jumlah,
+                            'harga_satuan' => $d->harga_satuan,
+                            'subtotal' => $d->subtotal,
+                        ])->toArray(),
+                    ]);
+                }
+            }
+
+            // 2. Cek Pelayanan Klinik Aktif (Rawat Jalan / Outpatient) yang belum dibayar
+            $billingRawatJalan = \App\Models\Billing::with(['rekamMedis.dokter', 'details'])
+                ->where('pasien_id', $pasien->id)
+                ->where('status', 'Belum Bayar')
+                ->whereNull('rawat_inap_id')
+                ->get();
+
+            foreach ($billingRawatJalan as $bj) {
+                $bj->recalculateTotals();
+                $biayaBerlangsung->push([
+                    'tipe' => 'Rawat Jalan',
+                    'no_invoice' => $bj->no_invoice,
+                    'grand_total' => $bj->grand_total,
+                    'tgl_mulai' => $bj->rekamMedis ? $bj->rekamMedis->tanggal_periksa->format('Y-m-d H:i:s') : $bj->created_at->format('Y-m-d H:i:s'),
+                    'kamar' => null,
+                    'status' => 'Pelayanan',
+                    'biaya_registrasi' => $bj->biaya_registrasi,
+                    'biaya_kamar' => $bj->biaya_kamar,
+                    'biaya_tindakan' => $bj->biaya_tindakan,
+                    'biaya_obat' => $bj->biaya_obat,
+                    'potongan_bpjs' => $bj->potongan_bpjs,
+                    'no_bpjs' => $bj->no_bpjs,
+                    'jenis_penjamin' => $bj->no_bpjs ? 'BPJS KESEHATAN' : 'Umum',
+                    'details' => $bj->details->map(fn($d) => [
+                        'nama_item' => $d->nama_item,
+                        'kategori' => $d->kategori,
+                        'jumlah' => $d->jumlah,
+                        'harga_satuan' => $d->harga_satuan,
+                        'subtotal' => $d->subtotal,
+                    ])->toArray(),
+                ]);
+            }
         }
 
-        return view('dashboard_pasien', compact('user', 'pasien', 'antrianAktif', 'totalAntrianHariIni', 'antrianSelesai', 'antrianMenunggu', 'antrianDilayani', 'antrianPasienMenunggu', 'pasienSelesaiHariIni', 'riwayatAntrian'));
+        return view('dashboard_pasien', compact('user', 'pasien', 'antrianAktif', 'totalAntrianHariIni', 'antrianSelesai', 'antrianMenunggu', 'antrianDilayani', 'antrianPasienMenunggu', 'pasienSelesaiHariIni', 'riwayatAntrian', 'biayaBerlangsung'));
     })->name('pasien.portal');
 
     Route::post('/dashboard-pasien/antrian', [AntrianController::class, 'storePasien'])->name('pasien.antrian.store');

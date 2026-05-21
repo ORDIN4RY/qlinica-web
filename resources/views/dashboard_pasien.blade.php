@@ -152,23 +152,78 @@
             </h3>
 
             <div id="formAntrian" class="space-y-6 {{ $antrianAktif ? 'hidden' : '' }}">
-              <div class="bg-blue-50/50 border border-blue-100 rounded-2xl p-5 text-sm text-blue-900">
-                <div class="flex items-start gap-3">
-                  <div class="w-8 h-8 bg-blue-100 text-blue-900 rounded-lg flex items-center justify-center text-sm shrink-0">
-                    <i class="fas fa-info-circle"></i>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-gray-800">Alur Antrian Cepat</h4>
-                    <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                      Anda hanya perlu mengklik tombol di bawah ini untuk mengambil nomor antrian. Layanan kesehatan (poliklinik) dan dokter tujuan akan ditentukan oleh Resepsionis saat Anda melakukan pemeriksaan awal di klinik.
-                    </p>
+              @if(isset($biayaBerlangsung) && $biayaBerlangsung->count() > 0)
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-sm text-amber-900">
+                  <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 bg-amber-100 text-amber-800 rounded-lg flex items-center justify-center text-sm shrink-0">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div>
+                      <h4 class="font-bold text-gray-800">Pelayanan Sedang Berjalan</h4>
+                      <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+                        Anda tidak dapat mengambil antrian baru karena masih terdaftar dalam perawatan aktif di klinik.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <button onclick="openModalAmbil()" class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-4 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-900/20 transition-all duration-300">
-                <i class="fas fa-ticket-alt text-lg animate-pulse"></i> Ambil Nomor Antrian
-              </button>
+                <!-- Mini Ongoing Cost Widget -->
+                @foreach($biayaBerlangsung as $tagihan)
+                  @php
+                    $isRI = $tagihan['tipe'] === 'Rawat Inap';
+                    $accent = $isRI ? 'indigo' : 'emerald';
+                  @endphp
+                  <div class="bg-gradient-to-br from-slate-50 to-slate-100/50 border border-slate-200 rounded-2xl p-5 relative overflow-hidden group shadow-sm">
+                    <div class="absolute top-0 left-0 bottom-0 w-1 bg-{{ $accent }}-500"></div>
+                    <div class="flex justify-between items-start mb-3">
+                      <div>
+                        <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Estimasi Biaya Berjalan</span>
+                        <h4 class="font-bold text-gray-800 text-sm mt-0.5">{{ $tagihan['tipe'] }} - {{ $tagihan['status'] }}</h4>
+                      </div>
+                      <span class="text-xs font-mono text-gray-400">#{{ $tagihan['no_invoice'] }}</span>
+                    </div>
+
+                    @if($isRI)
+                      <div class="mb-3 text-xs text-gray-600 flex items-center gap-1.5">
+                        <i class="fas fa-bed text-gray-400"></i> Kamar: <span class="font-bold text-gray-700">{{ $tagihan['kamar'] }}</span>
+                      </div>
+                    @endif
+
+                    <div class="flex justify-between items-center pt-3 border-t border-dashed border-slate-200">
+                      <div>
+                        <div class="text-[10px] text-gray-400">Total Biaya Sementara</div>
+                        <div class="text-lg font-black text-{{ $accent }}-750">Rp {{ number_format($tagihan['grand_total'], 0, ',', '.') }}</div>
+                      </div>
+                      <button onclick="openModalDetailTagihan({{ json_encode($tagihan) }})" 
+                              class="bg-white hover:bg-{{ $accent }}-600 text-{{ $accent }}-700 hover:text-white border border-{{ $accent }}-200 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1">
+                        <i class="fas fa-search-dollar"></i> Rincian
+                      </button>
+                    </div>
+                  </div>
+                @endforeach
+
+                <button disabled class="w-full bg-gray-200 text-gray-400 py-4 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 cursor-not-allowed border border-gray-300/40">
+                  <i class="fas fa-ban text-lg"></i> Antrian Dikunci (Masih Dirawat)
+                </button>
+              @else
+                <div class="bg-blue-50/50 border border-blue-100 rounded-2xl p-5 text-sm text-blue-900">
+                  <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 bg-blue-100 text-blue-900 rounded-lg flex items-center justify-center text-sm shrink-0">
+                      <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div>
+                      <h4 class="font-bold text-gray-800">Alur Antrian Cepat</h4>
+                      <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">
+                        Anda hanya perlu mengklik tombol di bawah ini untuk mengambil nomor antrian. Layanan kesehatan (poliklinik) dan dokter tujuan akan ditentukan oleh Resepsionis saat Anda melakukan pemeriksaan awal di klinik.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <button onclick="openModalAmbil()" class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-4 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-900/20 transition-all duration-300">
+                  <i class="fas fa-ticket-alt text-lg animate-pulse"></i> Ambil Nomor Antrian
+                </button>
+              @endif
             </div>
 
             <!-- Hasil antrian -->
@@ -414,6 +469,8 @@
             <div class="p-4 text-center text-sm text-gray-400" id="riwayatEmpty" style="display:none">Tidak ada riwayat kunjungan</div>
           </div>
         </div>
+
+
       </div>
     </section>
 
@@ -668,6 +725,106 @@
             <i class="fas fa-check-circle"></i> Konfirmasi Ambil Antrian
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detail Tagihan Aktif -->
+  <div id="modalDetailTagihan" class="fixed inset-0 z-[60] hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 relative flex flex-col max-h-[85vh]" id="modalDetailTagihanContent">
+      <!-- Accent header stripe -->
+      <div id="modalTagihanAccent" class="h-2 w-full bg-indigo-600"></div>
+
+      <!-- Close Button -->
+      <button onclick="closeModalDetailTagihan()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 transition p-2 hover:bg-gray-100 rounded-full">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-8 overflow-y-auto flex-1">
+        <!-- Header Info -->
+        <div class="text-center mb-6 border-b border-gray-100 pb-6">
+          <div id="modalTagihanIcon" class="w-16 h-16 bg-indigo-50 text-indigo-700 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl border border-indigo-100/50">
+            <i class="fas fa-file-invoice-dollar"></i>
+          </div>
+          <h3 class="text-2xl font-bold text-gray-800">Rincian Estimasi Biaya</h3>
+          <p class="text-sm text-gray-400 mt-1" id="modalTagihanNoInvoice">#INV-00000</p>
+          <div class="mt-2 inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1 rounded-full text-xs font-semibold">
+            <span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span> Estimasi Sementara
+          </div>
+        </div>
+
+        <!-- Meta info grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-slate-50/70 border border-slate-100 p-5 rounded-2xl text-sm">
+          <div class="space-y-2">
+            <div>
+              <span class="text-gray-400 text-xs uppercase tracking-wider block">Tipe Pelayanan</span>
+              <span class="font-bold text-gray-700" id="modalTagihanTipe">-</span>
+            </div>
+            <div>
+              <span class="text-gray-400 text-xs uppercase tracking-wider block">Tanggal Masuk</span>
+              <span class="font-bold text-gray-700" id="modalTagihanTglMulai">-</span>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div id="modalTagihanKamarContainer">
+              <span class="text-gray-400 text-xs uppercase tracking-wider block">Kamar / Bed</span>
+              <span class="font-bold text-gray-700" id="modalTagihanKamar">-</span>
+            </div>
+            <div>
+              <span class="text-gray-400 text-xs uppercase tracking-wider block">Penjamin / Jaminan</span>
+              <span class="font-bold text-gray-700" id="modalTagihanPenjamin">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detail Table -->
+        <div class="mb-6">
+          <h4 class="font-bold text-gray-800 mb-3 text-sm tracking-wide uppercase">Rincian Item Biaya</h4>
+          <div class="border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="bg-gray-50 border-b border-gray-100 text-gray-500 text-xs font-bold uppercase">
+                  <th class="py-3.5 px-4">Item Pelayanan / Obat</th>
+                  <th class="py-3.5 px-4 text-center">Qty</th>
+                  <th class="py-3.5 px-4 text-right">Harga Satuan</th>
+                  <th class="py-3.5 px-4 text-right">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody id="modalTagihanItems" class="divide-y divide-gray-100 text-gray-700">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Summary Totals -->
+        <div class="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-3">
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-500">Subtotal Biaya Pelayanan:</span>
+            <span class="font-semibold text-gray-800" id="modalTagihanSubtotal">Rp 0</span>
+          </div>
+          
+          <div id="modalTagihanBpjsRow" class="flex justify-between items-center text-sm text-green-700 bg-green-50 border border-green-100/50 p-2.5 rounded-xl">
+            <span class="flex items-center gap-1.5"><i class="fas fa-shield-alt text-green-600"></i> Ditanggung BPJS:</span>
+            <span class="font-bold" id="modalTagihanBpjs">Rp 0</span>
+          </div>
+          
+          <div class="pt-3 border-t border-dashed border-gray-200 flex justify-between items-center">
+            <div>
+              <span class="font-bold text-gray-800 text-base">Total yang Harus Dibayar:</span>
+              <p class="text-[10px] text-gray-400 mt-0.5">*Estimasi akhir dapat berubah saat penyelesaian administrasi.</p>
+            </div>
+            <span class="text-2xl font-black text-indigo-700" id="modalTagihanGrandTotal">Rp 0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="bg-gray-50 border-t border-gray-100 px-8 py-5 flex justify-end gap-3">
+        <button onclick="closeModalDetailTagihan()" class="bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 px-6 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-200">
+          Tutup
+        </button>
       </div>
     </div>
   </div>
@@ -949,7 +1106,13 @@
     // ================================================================
     let antrianAktif = {!! json_encode($antrianAktif ? ['id' => $antrianAktif->id, 'nomor' => str_pad($antrianAktif->no_antrian, 3, '0', STR_PAD_LEFT), 'layanan' => $antrianAktif->jenis] : null) !!};
 
+    const hasBiayaBerlangsung = {{ (isset($biayaBerlangsung) && $biayaBerlangsung->count() > 0) ? 'true' : 'false' }};
+
     function openModalAmbil() {
+      if (hasBiayaBerlangsung) {
+        showToast('Anda masih terdaftar dalam perawatan aktif/pelayanan yang belum selesai.', 'red');
+        return;
+      }
       const modal = document.getElementById('modalAmbilAntrianOnline');
       if (modal) {
         modal.classList.remove('hidden');
@@ -964,6 +1127,122 @@
         modal.classList.add('opacity-0');
         setTimeout(() => { modal.classList.add('hidden'); }, 300);
       }
+    }
+
+    // ================================================================
+    // BIAYA BERJALAN DETAIL MODAL
+    // ================================================================
+    function openModalDetailTagihan(data) {
+      const modal = document.getElementById('modalDetailTagihan');
+      const content = document.getElementById('modalDetailTagihanContent');
+      if (!modal || !content) return;
+
+      // Color/accent configuration based on type
+      const isRawatInap = data.tipe === 'Rawat Inap';
+      const accent = document.getElementById('modalTagihanAccent');
+      const icon = document.getElementById('modalTagihanIcon');
+      const grandTotalText = document.getElementById('modalTagihanGrandTotal');
+
+      if (isRawatInap) {
+        accent.className = 'h-2 w-full bg-indigo-650';
+        icon.className = 'w-16 h-16 bg-indigo-50 text-indigo-700 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl border border-indigo-100/50';
+        grandTotalText.className = 'text-2xl font-black text-indigo-700';
+      } else {
+        accent.className = 'h-2 w-full bg-emerald-650';
+        icon.className = 'w-16 h-16 bg-emerald-50 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl border border-emerald-100/50';
+        grandTotalText.className = 'text-2xl font-black text-emerald-700';
+      }
+
+      // Populate text fields
+      document.getElementById('modalTagihanNoInvoice').textContent = '#' + data.no_invoice;
+      document.getElementById('modalTagihanTipe').textContent = data.tipe;
+      
+      // Date format
+      const tglMulai = new Date(data.tgl_mulai);
+      const options = { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+      document.getElementById('modalTagihanTglMulai').textContent = tglMulai.toLocaleDateString('id-ID', options);
+
+      // Kamar
+      const kamarContainer = document.getElementById('modalTagihanKamarContainer');
+      if (isRawatInap) {
+        kamarContainer.style.display = 'block';
+        document.getElementById('modalTagihanKamar').textContent = data.kamar;
+      } else {
+        kamarContainer.style.display = 'none';
+      }
+
+      document.getElementById('modalTagihanPenjamin').textContent = data.jenis_penjamin;
+
+      // Populate Items Table
+      const itemsContainer = document.getElementById('modalTagihanItems');
+      itemsContainer.innerHTML = '';
+
+      if (data.details && data.details.length > 0) {
+        data.details.forEach(item => {
+          const row = document.createElement('tr');
+          row.className = 'hover:bg-gray-50/50 transition-colors';
+          
+          // Format category badge
+          let badgeColor = 'bg-gray-100 text-gray-700';
+          if (item.kategori === 'Kamar') badgeColor = 'bg-indigo-50 text-indigo-750 border-indigo-100';
+          else if (item.kategori === 'Tindakan') badgeColor = 'bg-blue-50 text-blue-750 border-blue-100';
+          else if (item.kategori === 'Obat') badgeColor = 'bg-emerald-50 text-emerald-750 border-emerald-100';
+          else if (item.kategori === 'Registrasi') badgeColor = 'bg-amber-50 text-amber-750 border-amber-100';
+
+          row.innerHTML = `
+            <td class="py-4 px-4">
+              <div class="font-semibold text-gray-800 text-left">${item.nama_item}</div>
+              <span class="inline-block px-2 py-0.5 mt-1 text-[10px] font-bold uppercase tracking-wider rounded-md border ${badgeColor}">${item.kategori}</span>
+            </td>
+            <td class="py-4 px-4 text-center font-semibold text-gray-600">${item.jumlah}</td>
+            <td class="py-4 px-4 text-right text-gray-500 font-medium">Rp ${formatRupiah(item.harga_satuan)}</td>
+            <td class="py-4 px-4 text-right font-bold text-gray-800">Rp ${formatRupiah(item.subtotal)}</td>
+          `;
+          itemsContainer.appendChild(row);
+        });
+      } else {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td colspan="4" class="py-8 text-center text-gray-400">Tidak ada rincian item biaya</td>`;
+        itemsContainer.appendChild(row);
+      }
+
+      // Calculate subtotal from details
+      const subtotalVal = data.details.reduce((sum, item) => sum + parseInt(item.subtotal), 0);
+      document.getElementById('modalTagihanSubtotal').textContent = 'Rp ' + formatRupiah(subtotalVal);
+
+      // BPJS row
+      const bpjsRow = document.getElementById('modalTagihanBpjsRow');
+      if (parseInt(data.potongan_bpjs) > 0) {
+        bpjsRow.style.display = 'flex';
+        document.getElementById('modalTagihanBpjs').textContent = '-Rp ' + formatRupiah(data.potongan_bpjs);
+      } else {
+        bpjsRow.style.display = 'none';
+      }
+
+      // Grand Total
+      document.getElementById('modalTagihanGrandTotal').textContent = 'Rp ' + formatRupiah(data.grand_total);
+
+      // Animate Modal Open
+      modal.classList.remove('hidden');
+      void modal.offsetWidth;
+      modal.classList.remove('opacity-0');
+      content.classList.remove('scale-95');
+      content.classList.add('scale-100');
+    }
+
+    function closeModalDetailTagihan() {
+      const modal = document.getElementById('modalDetailTagihan');
+      const content = document.getElementById('modalDetailTagihanContent');
+      if (!modal || !content) return;
+      
+      modal.classList.add('opacity-0');
+      content.classList.remove('scale-100');
+      content.classList.add('scale-95');
+      setTimeout(() => { modal.classList.add('hidden'); }, 300);
+    }
+
+    function formatRupiah(val) {
+      return new Intl.NumberFormat('id-ID').format(val);
     }
 
     async function confirmAmbilAntrian() {
