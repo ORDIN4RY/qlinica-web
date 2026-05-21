@@ -369,10 +369,10 @@
                     <button type="button" class="btn-ttv" onclick="openPanggil({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Pemeriksaan Awal TTV">
                       <i class="fas fa-notes-medical text-xs"></i> Pemeriksaan Awal
                     </button>
+                    <button type="button" class="btn-panggil" onclick="panggilStatusLangsung({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Panggil Ulang Pasien">
+                      <i class="fas fa-redo text-xs"></i> Panggil Ulang
+                    </button>
                   @endif
-                  <button type="button" class="btn-panggil" onclick="panggilStatusLangsung({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Panggil Ulang Pasien">
-                    <i class="fas fa-redo text-xs"></i> Panggil Ulang
-                  </button>
                 @endif
                 @if(!in_array($st, ['selesai','batal']))
                   <button class="btn-batal" onclick="openBatal({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Batalkan">
@@ -622,7 +622,43 @@
   </div>
 </div>
 
+{{-- ── CUSTOM ALERT MODAL ── --}}
+<div class="modal-overlay" id="customAlertModal">
+  <div class="bg-white rounded-2xl p-8 w-full max-w-sm mx-4 text-center shadow-2xl" style="animation:modalIn .22s ease">
+    <div class="confirm-icon bg-blue-50 text-blue-500 mb-4 mx-auto w-12 h-12 rounded-full flex items-center justify-center">
+      <i id="customAlertIcon" class="fas fa-info-circle text-xl text-blue-500"></i>
+    </div>
+    <h3 class="text-base font-bold text-gray-800 mb-2" id="customAlertTitle">Informasi</h3>
+    <p class="text-sm text-gray-500 mb-6" id="customAlertMessage">Pesan informasi.</p>
+    <div class="flex justify-center">
+      <button id="customAlertBtn"
+        class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition">
+        OK
+      </button>
+    </div>
+  </div>
+</div>
 
+{{-- ── CUSTOM CONFIRM MODAL ── --}}
+<div class="modal-overlay" id="customConfirmModal">
+  <div class="bg-white rounded-2xl p-8 w-full max-w-sm mx-4 text-center shadow-2xl" style="animation:modalIn .22s ease">
+    <div id="customConfirmIconContainer" class="confirm-icon bg-blue-50 text-blue-500 mb-4 mx-auto w-12 h-12 rounded-full flex items-center justify-center">
+      <i id="customConfirmIcon" class="fas fa-question-circle text-xl text-blue-500"></i>
+    </div>
+    <h3 class="text-base font-bold text-gray-800 mb-2" id="customConfirmTitle">Konfirmasi</h3>
+    <p class="text-sm text-gray-500 mb-6" id="customConfirmMessage">Apakah Anda yakin?</p>
+    <div class="flex justify-center gap-3">
+      <button id="customConfirmNoBtn"
+        class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">
+        Batal
+      </button>
+      <button id="customConfirmYesBtn"
+        class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition">
+        Ya
+      </button>
+    </div>
+  </div>
+</div>
 
 @endsection
 
@@ -750,11 +786,120 @@
     if (!searchPasienInput.contains(e.target)) suggestBox.innerHTML = '';
   });
 
+  /* ── CUSTOM ALERT / CONFIRM UTILITIES ── */
+  function showCustomAlert(title, message, type = 'info') {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('customAlertModal');
+      const titleEl = document.getElementById('customAlertTitle');
+      const messageEl = document.getElementById('customAlertMessage');
+      const iconEl = document.getElementById('customAlertIcon');
+      const btnEl = document.getElementById('customAlertBtn');
+      const iconContainer = iconEl.parentElement;
+
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+
+      if (type === 'danger' || type === 'error') {
+        iconContainer.className = "confirm-icon bg-red-50 text-red-500 mb-4 mx-auto w-12 h-12 rounded-full flex items-center justify-center";
+        iconEl.className = "fas fa-exclamation-circle text-xl text-red-500";
+        btnEl.className = "px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition shadow-md hover:shadow-lg";
+      } else {
+        iconContainer.className = "confirm-icon bg-blue-50 text-blue-500 mb-4 mx-auto w-12 h-12 rounded-full flex items-center justify-center";
+        iconEl.className = "fas fa-info-circle text-xl text-blue-500";
+        btnEl.className = "px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition shadow-md hover:shadow-lg";
+      }
+
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+
+      const handleClose = () => {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+        btnEl.removeEventListener('click', handleClose);
+        resolve();
+      };
+      btnEl.addEventListener('click', handleClose);
+    });
+  }
+
+  function showCustomConfirm(title, message, options = {}) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('customConfirmModal');
+      const titleEl = document.getElementById('customConfirmTitle');
+      const messageEl = document.getElementById('customConfirmMessage');
+      const iconContainer = document.getElementById('customConfirmIconContainer');
+      const iconEl = document.getElementById('customConfirmIcon');
+      const btnYes = document.getElementById('customConfirmYesBtn');
+      const btnNo = document.getElementById('customConfirmNoBtn');
+
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+
+      btnYes.textContent = options.yesText || 'Ya';
+      btnNo.textContent = options.noText || 'Batal';
+
+      if (options.type === 'danger') {
+        iconContainer.className = "confirm-icon bg-red-50 text-red-500 mb-4 mx-auto w-12 h-12 rounded-full flex items-center justify-center";
+        iconEl.className = "fas fa-exclamation-triangle text-xl text-red-500";
+        btnYes.className = "px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition shadow-md hover:shadow-lg";
+      } else {
+        iconContainer.className = "confirm-icon bg-blue-50 text-blue-500 mb-4 mx-auto w-12 h-12 rounded-full flex items-center justify-center";
+        iconEl.className = "fas fa-question-circle text-xl text-blue-500";
+        btnYes.className = "px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition shadow-md hover:shadow-lg";
+      }
+
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+
+      const cleanup = (result) => {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+        btnYes.removeEventListener('click', handleYes);
+        btnNo.removeEventListener('click', handleNo);
+        resolve(result);
+      };
+
+      const handleYes = () => cleanup(true);
+      const handleNo = () => cleanup(false);
+
+      btnYes.addEventListener('click', handleYes);
+      btnNo.addEventListener('click', handleNo);
+    });
+  }
+
+  function closeCustomAlert() {
+    const modal = document.getElementById('customAlertModal');
+    if (modal && modal.classList.contains('open')) {
+      const btnEl = document.getElementById('customAlertBtn');
+      if (btnEl) btnEl.click();
+    }
+  }
+
+  function closeCustomConfirm() {
+    const modal = document.getElementById('customConfirmModal');
+    if (modal && modal.classList.contains('open')) {
+      const btnNo = document.getElementById('customConfirmNoBtn');
+      if (btnNo) btnNo.click();
+    }
+  }
+
+  /* ── ESCAPE ── */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeModalAntrian();
+      closeBatal();
+      closePanggil();
+      closeCustomAlert();
+      closeCustomConfirm();
+    }
+  });
+
   document.querySelector('#modalAntrian form').addEventListener('submit', function(e) {
     if (!selectedId.value) {
       e.preventDefault();
-      alert('Silakan pilih pasien dari daftar sebelum menyimpan antrian.');
-      searchPasienInput.focus();
+      showCustomAlert('Pasien Belum Dipilih', 'Silakan pilih pasien dari daftar sebelum menyimpan antrian.', 'error').then(() => {
+        searchPasienInput.focus();
+      });
     }
   });
 
@@ -797,7 +942,12 @@
   setInterval(loadRealtimeData, 5000); // 5000ms = 5 detik
 
   async function panggilStatusLangsung(id, nama) {
-    if (!confirm('Panggil pasien "' + nama + '"? Status antrian akan berubah menjadi Dipanggil.')) return;
+    const confirmed = await showCustomConfirm(
+      'Konfirmasi Panggilan',
+      'Panggil pasien "' + nama + '"? Status antrian akan berubah menjadi Dipanggil.',
+      { yesText: 'Ya, Panggil', noText: 'Batal' }
+    );
+    if (!confirmed) return;
     
     try {
       const response = await fetch(BASE_ANTRIAN + '/' + id + '/status', {
@@ -817,11 +967,11 @@
       if (data.success) {
         loadRealtimeData();
       } else {
-        alert(data.message || 'Gagal mengubah status antrian.');
+        showCustomAlert('Gagal', data.message || 'Gagal mengubah status antrian.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('Terjadi kesalahan saat menghubungi server.');
+      showCustomAlert('Kesalahan', 'Terjadi kesalahan saat menghubungi server.', 'error');
     }
   }
 </script>

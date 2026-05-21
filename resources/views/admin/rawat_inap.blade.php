@@ -4,6 +4,33 @@
 @section('page-title', 'Admisi Rawat Inap')
 @section('page-subtitle', 'Kelola pendaftaran mondok pasien dan pengalokasian kamar')
 
+@push('styles')
+<style>
+  /* ── MODAL ── */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55);
+    z-index:999; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+  .modal-overlay.open { display:flex; }
+  .modal-box { background:#fff; border-radius:20px; width:100%; max-width:480px;
+    box-shadow:0 32px 80px rgba(15,23,42,.22);
+    animation:modalIn .22s cubic-bezier(.4,0,.2,1); margin:16px; overflow:hidden; }
+  @keyframes modalIn { from{opacity:0;transform:scale(.96) translateY(10px)} to{opacity:1;transform:none} }
+  .modal-head { padding:22px 28px 18px; border-bottom:1px solid #fef3c7;
+    display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .modal-body { padding:22px 28px; }
+  .modal-foot { padding:16px 28px; border-top:1px solid #e5e7eb; display:flex; justify-content:flex-end; gap:10px; flex-shrink:0; }
+
+  /* ── FORM ── */
+  .form-group label { display:block; font-size:12px; font-weight:700;
+    color:#6b7280; text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
+  .form-input, .form-select {
+    width:100%; padding:9px 13px; border:1.5px solid #e5e7eb;
+    border-radius:10px; font-size:13.5px; color:#1e293b; background:#fff;
+    outline:none; transition:all .16s; box-sizing:border-box; font-family:inherit; }
+  .form-input:focus, .form-select:focus {
+    border-color:#d97706; box-shadow:0 0 0 3px rgba(217,119,6,.1); }
+</style>
+@endpush
+
 @section('content')
   <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
     <!-- Filter Status -->
@@ -121,11 +148,15 @@
               </td>
               @if (auth()->user()->hasMenuAccess('Rawat Inap', 'edit') || auth()->user()->hasMenuAccess('Rawat Inap', 'hapus'))
               <td class="px-6 py-4 text-right space-x-1">
-                @if($ri->status === 'Aktif' && auth()->user()->hasMenuAccess('Rawat Inap  ', 'edit'))
+                @if($ri->status === 'Aktif' && auth()->user()->hasMenuAccess('Rawat Inap', 'edit'))
+                  <button onclick="openPindahModal({{ $ri->id }}, '{{ $ri->pasien->nama }}', {{ $ri->kamar_id }}, '{{ $ri->kamar->kelas }}')"
+                    class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
+                    <i class="fas fa-exchange-alt mr-1"></i> Pindah
+                  </button>
                   <button onclick="openCheckoutModal({{ $ri->id }}, '{{ $ri->pasien->nama }}')"
                     class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition shadow-sm">
                     <i class="fas fa-sign-out-alt mr-1"></i> Pulang
-                </button>
+                  </button>
                 @endif
                 @if($ri->billing)
                   <a href="{{ route('admin.billing.show', $ri->billing->id) }}"
@@ -158,40 +189,117 @@
   <!-- Check-in Modal Removed -->
 
   <!-- Modal Check-Out -->
-  <div id="checkOutModal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden fade-in-up">
-      <div class="px-6 py-4 border-b border-amber-100 flex justify-between items-center bg-amber-50">
+  <div id="checkOutModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-head bg-amber-50/50">
         <h3 class="font-bold text-lg text-amber-900">Check-Out Pasien</h3>
-        <button onclick="closeModal('checkOutModal')" class="text-gray-400 hover:text-red-500 transition">
-          <i class="fas fa-times text-xl"></i>
+        <button onclick="closeModal('checkOutModal')" class="w-9 h-9 rounded-xl bg-amber-100/50 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition text-amber-800">
+          <i class="fas fa-times text-sm"></i>
         </button>
       </div>
       <form id="checkOutForm" method="POST">
         @csrf
-        <div class="p-6 space-y-4">
-          <div class="bg-amber-50 text-amber-800 p-3 rounded-lg text-sm mb-4 border border-amber-200">
-            Pasien: <span id="co_nama_pasien" class="font-bold"></span>
+        <div class="modal-body space-y-4">
+          <div class="bg-amber-50 text-amber-800 p-4 rounded-xl text-sm border border-amber-200 flex items-center gap-3">
+            <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 flex-shrink-0">
+              <i class="fas fa-user-injured text-lg"></i>
+            </div>
+            <div>
+              <div class="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Nama Pasien</div>
+              <span id="co_nama_pasien" class="font-bold text-base text-amber-900"></span>
+            </div>
           </div>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Tanggal & Jam Keluar</label>
-            <input type="datetime-local" name="tgl_keluar" value="{{ now()->format('Y-m-d\TH:i') }}" required
-              class="w-full border-gray-300 rounded-xl focus:ring-amber-500 focus:border-amber-500 text-sm">
+          <div class="form-group">
+            <label>Tanggal & Jam Keluar <span class="text-red-500 normal-case font-normal">*</span></label>
+            <input type="datetime-local" name="tgl_keluar" value="{{ now()->format('Y-m-d\TH:i') }}" required class="form-input">
           </div>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Catatan Kepulangan (Opsional)</label>
-            <textarea name="catatan_keluar" rows="2"
-              class="w-full border-gray-300 rounded-xl focus:ring-amber-500 focus:border-amber-500 text-sm"
-              placeholder="Misal: Sembuh, Rujuk ke RSUD..."></textarea>
+          <div class="form-group">
+            <label>Catatan Kepulangan (Opsional)</label>
+            <textarea name="catatan_keluar" rows="2" class="form-input" placeholder="Misal: Sembuh, Rujuk ke RSUD..."></textarea>
           </div>
-          <p class="text-xs text-gray-500 mt-2"><i class="fas fa-info-circle"></i> Biaya rawat inap akan otomatis
-            dikalkulasi ke tagihan kasir setelah proses check-out.</p>
+          <div class="bg-blue-50 border border-blue-100 text-blue-800 p-3.5 rounded-xl text-xs flex gap-2.5 items-start">
+            <i class="fas fa-info-circle text-blue-500 mt-0.5 text-sm"></i>
+            <p class="leading-relaxed">Biaya rawat inap akan otomatis dikalkulasi ke tagihan kasir setelah proses check-out.</p>
+          </div>
         </div>
-        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
-          <button type="button" onclick="closeModal('checkOutModal')"
-            class="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-xl font-medium transition text-sm">Batal</button>
-          <button type="submit"
-            class="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium transition shadow-sm text-sm">Selesaikan
-            Perawatan</button>
+        <div class="modal-foot bg-gray-50/50">
+          <button type="button" onclick="closeModal('checkOutModal')" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">
+            Batal
+          </button>
+          <button type="submit" class="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-sm shadow-md transition">
+            Selesaikan Perawatan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Pindah Kamar -->
+  <div id="pindahKamarModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-head bg-indigo-50/50">
+        <h3 class="font-bold text-lg text-indigo-900">Pindah Kamar Pasien</h3>
+        <button onclick="closeModal('pindahKamarModal')" class="w-9 h-9 rounded-xl bg-indigo-100/50 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition text-indigo-800">
+          <i class="fas fa-times text-sm"></i>
+        </button>
+      </div>
+      <form id="pindahKamarForm" method="POST">
+        @csrf
+        <div class="modal-body space-y-4">
+          <div class="bg-indigo-50 text-indigo-800 p-4 rounded-xl text-sm border border-indigo-200 flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 flex-shrink-0">
+              <i class="fas fa-user-injured text-lg"></i>
+            </div>
+            <div>
+              <div class="text-[10px] text-indigo-500 font-bold uppercase tracking-wider">Nama Pasien</div>
+              <span id="pindah_nama_pasien" class="font-bold text-base text-indigo-900"></span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Tanggal & Jam Pindah <span class="text-red-500 normal-case font-normal">*</span></label>
+            <input type="datetime-local" name="tgl_pindah" value="{{ now()->format('Y-m-d\TH:i') }}" required class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label>Pilih Kelas Kamar Baru <span class="text-red-500 normal-case font-normal">*</span></label>
+            <select id="pindah_kelas_select" class="form-select" required>
+              <option value="">-- Pilih Kelas --</option>
+              @php
+                  $availableClasses = $kamarsTersedia->filter(function($k) { return $k->terisi < $k->kapasitas; })->pluck('kelas')->unique();
+              @endphp
+              @foreach($availableClasses as $kelas)
+                <option value="{{ $kelas }}">{{ $kelas }}</option>
+              @endforeach
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Pilih Kamar Baru <span class="text-red-500 normal-case font-normal">*</span></label>
+            <select name="kamar_id" id="pindah_kamar_select" class="form-select" required>
+              <option value="">-- Pilih Kamar --</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2.5 py-1">
+            <input type="checkbox" name="sertakan_biaya_lama" id="sertakan_biaya_lama" value="1" checked class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+            <label for="sertakan_biaya_lama" class="text-xs font-semibold text-gray-700 select-none cursor-pointer">
+              Sertakan/Tagih biaya kamar sebelumnya
+            </label>
+          </div>
+
+          <div class="bg-blue-50 border border-blue-100 text-blue-800 p-3.5 rounded-xl text-xs flex gap-2.5 items-start">
+            <i class="fas fa-info-circle text-blue-500 mt-0.5 text-sm"></i>
+            <p class="leading-relaxed">Jika "Sertakan/Tagih biaya kamar sebelumnya" dicentang, kamar lama tetap ditagih sesuai durasi huni (minimal 1 malam jika hari yang sama). Jika tidak dicentang, kamar lama dibebaskan (gratis) dan kamar baru akan dihitung sejak awal segmen kamar lama.</p>
+          </div>
+        </div>
+        <div class="modal-foot bg-gray-50/50">
+          <button type="button" onclick="closeModal('pindahKamarModal')" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">
+            Batal
+          </button>
+          <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm shadow-md transition">
+            Proses Pindah Kamar
+          </button>
         </div>
       </form>
     </div>
@@ -227,19 +335,70 @@
     });
 
     function openModal(id) {
-      document.getElementById(id).classList.remove('hidden');
-      document.getElementById(id).classList.add('flex');
+      document.getElementById(id).classList.add('open');
+      document.body.style.overflow = 'hidden';
     }
 
     function closeModal(id) {
-      document.getElementById(id).classList.add('hidden');
-      document.getElementById(id).classList.remove('flex');
+      document.getElementById(id).classList.remove('open');
+      document.body.style.overflow = '';
     }
+
+    // Close modal on clicking overlay
+    document.getElementById('checkOutModal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal('checkOutModal');
+    });
+    document.getElementById('pindahKamarModal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal('pindahKamarModal');
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeModal('checkOutModal');
+        closeModal('pindahKamarModal');
+      }
+    });
 
     function openCheckoutModal(id, namaPasien) {
       document.getElementById('co_nama_pasien').innerText = namaPasien;
       document.getElementById('checkOutForm').action = `/admin/rawat_inap/${id}/checkout`;
       openModal('checkOutModal');
     }
+
+    function openPindahModal(id, namaPasien, currentKamarId, currentKelas) {
+      document.getElementById('pindah_nama_pasien').innerText = namaPasien;
+      document.getElementById('pindahKamarForm').action = `/admin/rawat_inap/${id}/pindah`;
+      
+      const kelasSelect = document.getElementById('pindah_kelas_select');
+      kelasSelect.setAttribute('data-current-kamar', currentKamarId);
+      kelasSelect.value = '';
+      
+      document.getElementById('pindah_kamar_select').innerHTML = '<option value="">-- Pilih Kamar --</option>';
+      
+      openModal('pindahKamarModal');
+    }
+
+    document.getElementById('pindah_kelas_select').addEventListener('change', function() {
+      const targetSelect = document.getElementById('pindah_kamar_select');
+      const kelas = this.value;
+      
+      targetSelect.innerHTML = '<option value="">-- Pilih Kamar --</option>';
+      
+      if (kelas) {
+        const currentKamarId = parseInt(this.getAttribute('data-current-kamar') || 0);
+        const filteredKamars = kamarsTersedia.filter(k => k.kelas === kelas && k.id !== currentKamarId);
+        filteredKamars.forEach(k => {
+          const option = document.createElement('option');
+          option.value = k.id;
+          option.text = `${k.nama_kamar} - Rp ${parseInt(k.tarif_per_malam).toLocaleString('id-ID')}/malam`;
+          targetSelect.appendChild(option);
+        });
+        
+        if (filteredKamars.length > 0) {
+          targetSelect.value = filteredKamars[0].id;
+        }
+      }
+    });
   </script>
 @endpush

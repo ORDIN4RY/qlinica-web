@@ -7,6 +7,7 @@ use App\Models\Kamar;
 use App\Models\Pasien;
 use App\Models\Pegawai;
 use App\Models\Billing;
+use App\Models\RawatInapKamarHistory;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -66,6 +67,15 @@ class RawatInapController extends Controller
                 $kamar->update(['status' => 'Terisi']);
             }
 
+            // Create initial room history record
+            RawatInapKamarHistory::create([
+                'rawat_inap_id' => $rawatInap->id,
+                'kamar_id' => $rawatInap->kamar_id,
+                'tarif_per_malam' => $kamar->tarif_per_malam,
+                'tgl_mulai' => $rawatInap->tgl_masuk,
+                'tgl_selesai' => null,
+            ]);
+
             // Hapus/konsumsi flag rekomendasi rawat inap agar tidak muncul lagi di dropdown
             \App\Models\RekamMedis::where('pasien_id', $validated['pasien_id'])
                 ->where('is_rekomendasi_rawat_inap', true)
@@ -121,18 +131,17 @@ class RawatInapController extends Controller
             $tglKeluar = Carbon::parse($validated['tgl_keluar']);
             $tglMasuk = Carbon::parse($rawatInap->tgl_masuk);
             
-            // Hitung durasi hari
-            $durasiHari = $tglMasuk->startOfDay()->diffInDays($tglKeluar->startOfDay());
-            if ($durasiHari == 0) {
-                $durasiHari = 1; // Minimal 1 hari
-            }
-
-            // Hitung biaya kamar
-            $biayaKamar = $durasiHari * $rawatInap->kamar->tarif_per_malam;
-
             // Update status kamar jadi Tersedia & kurangi kapasitas
             $rawatInap->kamar->decrement('terisi');
             $rawatInap->kamar->update(['status' => 'Tersedia']);
+
+            // Close the active room history record
+            $activeHistory = $rawatInap->kamarHistories()->whereNull('tgl_selesai')->first();
+            if ($activeHistory) {
+                $activeHistory->update([
+                    'tgl_selesai' => $tglKeluar,
+                ]);
+            }
 
             // Update Rawat Inap
             $rawatInap->update([
@@ -151,5 +160,131 @@ class RawatInapController extends Controller
         });
 
         return redirect()->back()->with('success', 'Pasien berhasil di-Check-Out. Tagihan kamar telah masuk ke sistem Kasir.');
+    }
+
+    public function pindahKamar(Request $request, $id)
+    {
+        $rawatInap = RawatInap::findOrFail($id);
+
+        if ($rawatInap->status !== 'Aktif') {
+            return redirect()->back()->with('error', 'Pasien ini sudah tidak aktif dirawat.');
+        }
+
+        $activeHistory = $rawatInap->kamarHistories()->whereNull('tgl_selesai')->first();
+        $minDate = $activeHistory ? Carbon::parse($activeHistory->tgl_mulai) : $rawatInap->tgl_masuk;
+
+        $validated = $request->validate([
+            'kamar_id' => 'required|exists:kamar,id',
+            'tgl_pindah' => 'required|date|after_or_equal:' . $minDate->format('Y-m-d\TH:i'),
+            'sertakan_biaya_lama' => 'nullable|boolean',
+        ]);
+
+        $newKamarId = $validated['kamar_id'];
+        $tglPindah = Carbon::parse($validated['tgl_pindah']);
+        $sertakanBiayaLama = $request->boolean('sertakan_biaya_lama');
+
+        // Check if the new room is available
+        $newKamar = Kamar::findOrFail($newKamarId);
+        if ($newKamar->id === $rawatInap->kamar_id) {
+            return redirect()->back()->with('error', 'Kamar baru tidak boleh sama dengan kamar saat ini.');
+        }
+        if ($newKamar->isFull()) {
+            return redirect()->back()->with('error', 'Kamar baru sudah terisi penuh.');
+        }
+
+        \DB::transaction(function() use ($rawatInap, $newKamar, $tglPindah, $activeHistory, $sertakanBiayaLama) {
+            if ($activeHistory) {
+                if ($sertakanBiayaLama) {
+                    // Close the old segment, and create a new segment
+                    $activeHistory->update([
+                        'tgl_selesai' => $tglPindah,
+                    ]);
+
+                    // Release old room
+                    $oldKamar = Kamar::find($activeHistory->kamar_id);
+                    if ($oldKamar) {
+                        $oldKamar->decrement('terisi');
+                        if ($oldKamar->status === 'Terisi') {
+                            $oldKamar->update(['status' => 'Tersedia']);
+                        }
+                    }
+
+                    // Assign new room to rawat_inap
+                    $rawatInap->update([
+                        'kamar_id' => $newKamar->id,
+                    ]);
+
+                    // Occupy new room
+                    $newKamar->increment('terisi');
+                    if ($newKamar->isFull()) {
+                        $newKamar->update(['status' => 'Terisi']);
+                    }
+
+                    // Create new active history record
+                    RawatInapKamarHistory::create([
+                        'rawat_inap_id' => $rawatInap->id,
+                        'kamar_id' => $newKamar->id,
+                        'tarif_per_malam' => $newKamar->tarif_per_malam,
+                        'tgl_mulai' => $tglPindah,
+                        'tgl_selesai' => null,
+                    ]);
+                } else {
+                    // Release old room
+                    $oldKamar = Kamar::find($activeHistory->kamar_id);
+                    if ($oldKamar) {
+                        $oldKamar->decrement('terisi');
+                        if ($oldKamar->status === 'Terisi') {
+                            $oldKamar->update(['status' => 'Tersedia']);
+                        }
+                    }
+
+                    // Occupy new room
+                    $newKamar->increment('terisi');
+                    if ($newKamar->isFull()) {
+                        $newKamar->update(['status' => 'Terisi']);
+                    }
+
+                    // Update existing history record directly (retaining tgl_mulai)
+                    $activeHistory->update([
+                        'kamar_id' => $newKamar->id,
+                        'tarif_per_malam' => $newKamar->tarif_per_malam,
+                        // tgl_mulai remains unchanged!
+                    ]);
+
+                    // Assign new room to rawat_inap
+                    $rawatInap->update([
+                        'kamar_id' => $newKamar->id,
+                    ]);
+                }
+            } else {
+                // Fallback: If no history was found, just assign and create one
+                // Assign new room to rawat_inap
+                $rawatInap->update([
+                    'kamar_id' => $newKamar->id,
+                ]);
+
+                // Occupy new room
+                $newKamar->increment('terisi');
+                if ($newKamar->isFull()) {
+                    $newKamar->update(['status' => 'Terisi']);
+                }
+
+                RawatInapKamarHistory::create([
+                    'rawat_inap_id' => $rawatInap->id,
+                    'kamar_id' => $newKamar->id,
+                    'tarif_per_malam' => $newKamar->tarif_per_malam,
+                    'tgl_mulai' => $tglPindah,
+                    'tgl_selesai' => null,
+                ]);
+            }
+
+            // Recalculate totals in real-time if billing exists
+            if ($rawatInap->billing) {
+                $rawatInap->billing->recalculateTotals();
+                $rawatInap->billing->save();
+            }
+        });
+
+        return redirect()->back()->with('success', 'Kamar pasien berhasil dipindahkan.');
     }
 }

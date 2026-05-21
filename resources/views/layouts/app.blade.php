@@ -26,7 +26,7 @@
       to   { opacity:1; transform:translateY(0); }
     }
     .fade-in-up { animation: fadeInUp 0.5s ease forwards; }
-    
+
     /* Custom Scrollbar untuk Navigasi Sidebar */
     .sidebar-scroll::-webkit-scrollbar { width: 5px; }
     .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -72,26 +72,26 @@
 
         // 1. Check Route Active States
         $isDashboardActive = request()->routeIs('beranda_admin*') || request()->routeIs('apoteker.dashboard*') || request()->routeIs('dokter.dashboard*');
-        
+
         $isMedisActive = request()->routeIs('admin.pemesanan*') || request()->routeIs('dokter.antrian*') || request()->routeIs('dokter.pasien*') || request()->routeIs('admin.pasien*') || request()->routeIs('admin.rawat_inap*') || request()->routeIs('admin.billing*');
-        
+
         $isApotekActive = request()->routeIs('apoteker.resep*') || request()->routeIs('apoteker.obat*');
-        
+
         $isMasterActive = request()->routeIs('admin.kamar*') || request()->routeIs('admin.icdx*');
-        
+
         $isSdmActive = request()->routeIs('admin.pegawai*') || request()->routeIs('admin.presensi*') || request()->routeIs('admin.jabatan*');
-        
+
         $isLaporanActive = request()->routeIs('admin.laporan.penanganan*') || request()->routeIs('admin.laporan.keuangan*') || request()->routeIs('apoteker.laporan*');
 
         // 2. Check Access Permissions
         $hasMedisAccess = $u && ($u->hasMenuAccess('Antrian Pemesanan') || $u->hasMenuAccess('Antrian Pemeriksaan') || $u->hasMenuAccess('Rekam Medis') || $u->hasMenuAccess('Pasien') || $u->hasMenuAccess('Rawat Inap') || $u->hasMenuAccess('Billing'));
-        
+
         $hasApotekAccess = $u && ($u->hasMenuAccess('Resep') || $u->hasMenuAccess('Obat'));
-        
+
         $hasMasterAccess = $u && ($u->hasMenuAccess('Kamar') || $u->hasMenuAccess('ICDX'));
-        
+
         $hasSdmAccess = $u && ($u->hasMenuAccess('Pegawai') || $u->hasMenuAccess('Presensi') || $u->hasMenuAccess('Jabatan'));
-        
+
         $hasLaporanAccess = $u && $u->hasMenuAccess('Laporan') && (
             $u->hasMenuAccess('Laporan', 'penanganan') ||
             $u->hasMenuAccess('Laporan', 'keuangan') ||
@@ -138,12 +138,12 @@
           @endif
         @else
           @php
-             $dashboardRoute = $u->hasMenuAccess('Dashboard', 'admin_dashboard') 
-                 ? route('beranda_admin') 
-                 : ($u->hasMenuAccess('Dashboard', 'dokter_dashboard') 
-                     ? route('dokter.dashboard') 
-                     : ($u->hasMenuAccess('Dashboard', 'apoteker_dashboard') 
-                         ? route('apoteker.dashboard') 
+             $dashboardRoute = $u->hasMenuAccess('Dashboard', 'admin_dashboard')
+                 ? route('beranda_admin')
+                 : ($u->hasMenuAccess('Dashboard', 'dokter_dashboard')
+                     ? route('dokter.dashboard')
+                     : ($u->hasMenuAccess('Dashboard', 'apoteker_dashboard')
+                         ? route('apoteker.dashboard')
                          : route('beranda_admin')));
              $isDashboardActive = request()->routeIs('beranda_admin') || request()->routeIs('dokter.dashboard') || request()->routeIs('apoteker.dashboard');
           @endphp
@@ -157,8 +157,8 @@
       <!-- ================= LAYANAN MEDIS ================= -->
       @if($hasMedisAccess)
       <div class="space-y-1 pt-2">
-        <button type="button" 
-                onclick="toggleSidebarGroup('medis-group')" 
+        <button type="button"
+                onclick="toggleSidebarGroup('medis-group')"
                 class="w-full sidebar-group-btn flex items-center justify-between px-4 py-3 rounded-xl text-white/90 transition font-medium">
           <div class="flex items-center gap-3">
             <i class="fas fa-briefcase-medical w-5 text-center text-white/60"></i>
@@ -215,8 +215,8 @@
       <!-- ================= FARMASI & OBAT ================= -->
       @if($hasApotekAccess)
       <div class="space-y-1 pt-1">
-        <button type="button" 
-                onclick="toggleSidebarGroup('apotek-group')" 
+        <button type="button"
+                onclick="toggleSidebarGroup('apotek-group')"
                 class="w-full sidebar-group-btn flex items-center justify-between px-4 py-3 rounded-xl text-white/90 transition font-medium">
           <div class="flex items-center gap-3">
             <i class="fas fa-prescription-bottle-alt w-5 text-center text-white/60"></i>
@@ -245,8 +245,8 @@
       <!-- ================= MASTER DATA ================= -->
       @if($hasMasterAccess)
       <div class="space-y-1 pt-1">
-        <button type="button" 
-                onclick="toggleSidebarGroup('master-group')" 
+        <button type="button"
+                onclick="toggleSidebarGroup('master-group')"
                 class="w-full sidebar-group-btn flex items-center justify-between px-4 py-3 rounded-xl text-white/90 transition font-medium">
           <div class="flex items-center gap-3">
             <i class="fas fa-database w-5 text-center text-white/60"></i>
@@ -275,8 +275,8 @@
       <!-- ================= KEPEGAWAIAN & SDM ================= -->
       @if($hasSdmAccess)
       <div class="space-y-1 pt-1">
-        <button type="button" 
-                onclick="toggleSidebarGroup('sdm-group')" 
+        <button type="button"
+                onclick="toggleSidebarGroup('sdm-group')"
                 class="w-full sidebar-group-btn flex items-center justify-between px-4 py-3 rounded-xl text-white/90 transition font-medium">
           <div class="flex items-center gap-3">
             <i class="fas fa-users w-5 text-center text-white/60"></i>
@@ -312,8 +312,8 @@
       <!-- ================= LAPORAN & ANALISIS ================= -->
       @if($hasLaporanAccess)
       <div class="space-y-1 pt-1">
-        <button type="button" 
-                onclick="toggleSidebarGroup('laporan-group')" 
+        <button type="button"
+                onclick="toggleSidebarGroup('laporan-group')"
                 class="w-full sidebar-group-btn flex items-center justify-between px-4 py-3 rounded-xl text-white/90 transition font-medium">
           <div class="flex items-center gap-3">
             <i class="fas fa-chart-bar w-5 text-center text-white/60"></i>
@@ -328,14 +328,14 @@
             <i class="fas fa-notes-medical w-4 text-center text-white/50"></i> Laporan Penanganan
           </a>
           @endif
-          
+
           @if($u->hasMenuAccess('Laporan', 'keuangan'))
           <a href="{{ route('admin.laporan.keuangan') }}"
              class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('admin.laporan.keuangan') ? 'active' : '' }}">
-            <i class="fas fa-sack-dollar w-4 text-center text-white/50"></i> Laporan Keuangan
+            <i class="fas fa-file-invoice-dollar w-4 text-center text-white/50"></i> Laporan Keuangan
           </a>
           @endif
-          
+
           @if($u->hasMenuAccess('Laporan', 'apotek'))
           <a href="{{ route('apoteker.laporan') }}"
              class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white text-sm font-medium {{ request()->routeIs('apoteker.laporan*') ? 'active' : '' }}">

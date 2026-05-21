@@ -17,10 +17,12 @@ class AntrianController extends Controller
             ->where('tanggal', now()->toDateString())
             ->orderByRaw("
                 CASE
-                  WHEN LOWER(status) = 'dipanggil' THEN 0
-                  WHEN LOWER(status) = 'menunggu'  THEN 1
-                  WHEN LOWER(status) IN ('selesai','batal') THEN 3
-                  ELSE 2
+                  WHEN LOWER(status) = 'dipanggil' AND NOT EXISTS (SELECT 1 FROM rekam_medis WHERE rekam_medis.antrian_id = antrian.id AND rekam_medis.deleted_at IS NULL) THEN 0
+                  WHEN LOWER(status) = 'menunggu' THEN 1
+                  WHEN LOWER(status) = 'dipanggil' AND EXISTS (SELECT 1 FROM rekam_medis WHERE rekam_medis.antrian_id = antrian.id AND rekam_medis.deleted_at IS NULL) THEN 2
+                  WHEN LOWER(status) = 'dilayani' THEN 3
+                  WHEN LOWER(status) IN ('selesai','batal') THEN 4
+                  ELSE 5
                 END ASC
             ")
             ->orderBy('no_antrian')
@@ -261,10 +263,12 @@ class AntrianController extends Controller
             ->where('tanggal', now()->toDateString())
             ->orderByRaw("
                 CASE
-                  WHEN LOWER(status) = 'dipanggil' THEN 0
-                  WHEN LOWER(status) = 'menunggu'  THEN 1
-                  WHEN LOWER(status) IN ('selesai','batal') THEN 3
-                  ELSE 2
+                  WHEN LOWER(status) = 'dipanggil' AND NOT EXISTS (SELECT 1 FROM rekam_medis WHERE rekam_medis.antrian_id = antrian.id AND rekam_medis.deleted_at IS NULL) THEN 0
+                  WHEN LOWER(status) = 'menunggu' THEN 1
+                  WHEN LOWER(status) = 'dipanggil' AND EXISTS (SELECT 1 FROM rekam_medis WHERE rekam_medis.antrian_id = antrian.id AND rekam_medis.deleted_at IS NULL) THEN 2
+                  WHEN LOWER(status) = 'dilayani' THEN 3
+                  WHEN LOWER(status) IN ('selesai','batal') THEN 4
+                  ELSE 5
                 END ASC
             ")
             ->orderBy('no_antrian')
@@ -310,8 +314,8 @@ class AntrianController extends Controller
                 } elseif ($st === 'dipanggil') {
                     if (!$a->rekamMedis) {
                         $buttonsHtml .= '<button type="button" class="btn-ttv" onclick="openPanggil(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Pemeriksaan Awal TTV"><i class="fas fa-notes-medical text-xs"></i> Pemeriksaan Awal</button>';
+                        $buttonsHtml .= '<button type="button" class="btn-panggil" onclick="panggilStatusLangsung(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Panggil Ulang Pasien"><i class="fas fa-redo text-xs"></i> Panggil Ulang</button>';
                     }
-                    $buttonsHtml .= '<button type="button" class="btn-panggil" onclick="panggilStatusLangsung(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Panggil Ulang Pasien"><i class="fas fa-redo text-xs"></i> Panggil Ulang</button>';
                 }
                 if (!in_array($st, ['selesai', 'batal'])) {
                     $buttonsHtml .= '<button class="btn-batal" onclick="openBatal(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Batalkan"><i class="fas fa-times text-xs"></i></button>';

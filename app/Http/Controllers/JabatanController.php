@@ -85,7 +85,7 @@ class JabatanController extends Controller
             'Laporan' => [
                 'view'      => ['label' => 'Lihat Laporan',     'icon' => 'fa-eye',        'desc' => 'Akses halaman laporan'],
                 'penanganan'=> ['label' => 'Lap. Penanganan',   'icon' => 'fa-notes-medical','desc' => 'Laporan data penanganan pasien'],
-                'keuangan'  => ['label' => 'Lap. Keuangan',     'icon' => 'fa-sack-dollar', 'desc' => 'Laporan keuangan dan pembayaran kasir'],
+                'keuangan'  => ['label' => 'Lap. Keuangan',     'icon' => 'fa-file-invoice-dollar', 'desc' => 'Laporan keuangan dan pembayaran kasir'],
                 'apotek'    => ['label' => 'Lap. Apotek',       'icon' => 'fa-prescription-bottle-alt', 'desc' => 'Laporan resep & stok obat'],
                 'export'    => ['label' => 'Export Data',       'icon' => 'fa-file-export', 'desc' => 'Export laporan ke PDF/Excel'],
             ],

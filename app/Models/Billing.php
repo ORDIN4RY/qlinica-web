@@ -63,40 +63,114 @@ class Billing extends Model
     public function recalculateTotals()
     {
         // 0. Update kalkulasi dinamis untuk Kamar jika terikat Rawat Inap
-        if ($this->rawatInap && $this->rawatInap->kamar) {
-            $tglMasuk = \Carbon\Carbon::parse($this->rawatInap->tgl_masuk);
-            $tglKeluar = $this->rawatInap->status === 'Selesai' && $this->rawatInap->tgl_keluar 
-                ? \Carbon\Carbon::parse($this->rawatInap->tgl_keluar) 
-                : now();
+        if ($this->rawatInap) {
+            // Dapatkan semua riwayat kamar
+            $histories = $this->rawatInap->kamarHistories()->with('kamar')->orderBy('tgl_mulai', 'asc')->get();
+            
+            // Jika kosong (fallback), kita buat default
+            if ($histories->isEmpty()) {
+                $tglMasuk = \Carbon\Carbon::parse($this->rawatInap->tgl_masuk);
+                $tglKeluar = $this->rawatInap->status === 'Selesai' && $this->rawatInap->tgl_keluar 
+                    ? \Carbon\Carbon::parse($this->rawatInap->tgl_keluar) 
+                    : now();
+                $durasiHari = $tglMasuk->startOfDay()->diffInDays($tglKeluar->startOfDay());
+                if ($durasiHari == 0) $durasiHari = 1;
                 
-            $durasiHari = $tglMasuk->startOfDay()->diffInDays($tglKeluar->startOfDay());
-            if ($durasiHari == 0) $durasiHari = 1; // Minimal 1 hari
-            
-            $this->biaya_kamar = $durasiHari * $this->rawatInap->kamar->tarif_per_malam;
-            
-            // Sync/Update rincian item BillingDetail secara otomatis
-            if ($this->id) {
-                $kamarDetail = \App\Models\BillingDetail::where('billing_id', $this->id)
-                    ->where('kategori', 'Kamar')
-                    ->first();
+                $this->biaya_kamar = $durasiHari * ($this->rawatInap->kamar->tarif_per_malam ?? 0);
+                
+                if ($this->id) {
+                    \App\Models\BillingDetail::where('billing_id', $this->id)
+                        ->where('kategori', 'Kamar')
+                        ->delete();
                     
-                $deskripsi = 'Sewa Kamar Inap: ' . $this->rawatInap->kamar->kode_bed . ' (' . $durasiHari . ' malam)';
-                
-                if ($kamarDetail) {
-                    $kamarDetail->update([
-                        'nama_item' => $deskripsi,
-                        'jumlah' => $durasiHari,
-                        'subtotal' => $this->biaya_kamar,
-                    ]);
-                } else {
+                    $deskripsi = 'Sewa Kamar Inap: ' . ($this->rawatInap->kamar->nama_kamar ?? '-') . ' (' . $durasiHari . ' malam)';
                     \App\Models\BillingDetail::create([
                         'billing_id' => $this->id,
                         'nama_item' => $deskripsi,
                         'kategori' => 'Kamar',
                         'jumlah' => $durasiHari,
-                        'harga_satuan' => $this->rawatInap->kamar->tarif_per_malam,
+                        'harga_satuan' => $this->rawatInap->kamar->tarif_per_malam ?? 0,
                         'subtotal' => $this->biaya_kamar,
                     ]);
+                }
+            } else {
+                $totalBiayaKamar = 0;
+                $detailsToInsert = [];
+                $totalNights = 0;
+                $activeHistory = null;
+                
+                foreach ($histories as $history) {
+                    $start = \Carbon\Carbon::parse($history->tgl_mulai);
+                    if (is_null($history->tgl_selesai)) {
+                        $end = $this->rawatInap->status === 'Selesai' && $this->rawatInap->tgl_keluar 
+                            ? \Carbon\Carbon::parse($this->rawatInap->tgl_keluar) 
+                            : now();
+                        $activeHistory = $history;
+                    } else {
+                        $end = \Carbon\Carbon::parse($history->tgl_selesai);
+                    }
+                    
+                    $nights = $start->startOfDay()->diffInDays($end->startOfDay());
+                    
+                    // If a segment is closed (tgl_selesai is not null) but nights is 0,
+                    // we default it to 1 night to ensure it gets charged/included in the bill.
+                    if ($nights == 0 && !is_null($history->tgl_selesai)) {
+                        $nights = 1;
+                    }
+                    
+                    if ($nights > 0) {
+                        $subtotal = $nights * $history->tarif_per_malam;
+                        $totalBiayaKamar += $subtotal;
+                        $totalNights += $nights;
+                        
+                        $detailsToInsert[] = [
+                            'nama_item' => 'Sewa Kamar Inap: ' . ($history->kamar->nama_kamar ?? '-') . ' (' . ($history->kamar->kelas ?? '-') . ') (' . $nights . ' malam)',
+                            'kategori' => 'Kamar',
+                            'jumlah' => $nights,
+                            'harga_satuan' => $history->tarif_per_malam,
+                            'subtotal' => $subtotal,
+                        ];
+                    }
+                }
+                
+                // Jika total_nights == 0, minimal di-charge 1 malam untuk kamar aktif/terakhir
+                if ($totalNights == 0) {
+                    $targetHistory = $activeHistory ?? $histories->last();
+                    if ($targetHistory) {
+                        $nights = 1;
+                        $subtotal = $nights * $targetHistory->tarif_per_malam;
+                        $totalBiayaKamar += $subtotal;
+                        
+                        $detailsToInsert[] = [
+                            'nama_item' => 'Sewa Kamar Inap: ' . ($targetHistory->kamar->nama_kamar ?? '-') . ' (' . ($targetHistory->kamar->kelas ?? '-') . ') (' . $nights . ' malam)',
+                            'kategori' => 'Kamar',
+                            'jumlah' => $nights,
+                            'harga_satuan' => $targetHistory->tarif_per_malam,
+                            'subtotal' => $subtotal,
+                        ];
+                    }
+                }
+                
+                $this->biaya_kamar = $totalBiayaKamar;
+                
+                // Sync/Update rincian item BillingDetail secara otomatis
+                if ($this->id) {
+                    // Hapus data Kamar lama
+                    \App\Models\BillingDetail::where('billing_id', $this->id)
+                        ->where('kategori', 'Kamar')
+                        ->delete();
+                    
+                    // Masukkan data Kamar baru
+                    foreach ($detailsToInsert as $detail) {
+                        \App\Models\BillingDetail::create([
+                            'billing_id' => $this->id,
+                            'nama_item' => $detail['nama_item'],
+                            'kategori' => 'Kamar',
+                            'jumlah' => $detail['jumlah'],
+                            'harga_satuan' => $detail['harga_satuan'],
+                            'subtotal' => $detail['subtotal'],
+                        ]);
+                    }
                 }
             }
         }

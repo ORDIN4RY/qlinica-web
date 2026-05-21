@@ -44,4 +44,10 @@ class RawatInap extends Model
     {
         return $this->hasOne(Billing::class, 'rawat_inap_id');
     }
+
+    public function kamarHistories()
+    {
+        return $this->hasMany(RawatInapKamarHistory::class, 'rawat_inap_id');
+    }
 }
+

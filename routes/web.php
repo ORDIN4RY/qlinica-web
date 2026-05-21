@@ -173,6 +173,7 @@ Route::middleware(['auth', 'menu:Rawat Inap'])->group(function () {
     Route::get('/admin/rawat_inap', [RawatInapController::class, 'index'])->name('admin.rawat_inap');
     Route::post('/admin/rawat_inap', [RawatInapController::class, 'store'])->name('admin.rawat_inap.store')->middleware('menu:Rawat Inap,tambah');
     Route::post('/admin/rawat_inap/{id}/checkout', [RawatInapController::class, 'checkout'])->name('admin.rawat_inap.checkout')->middleware('menu:Rawat Inap,edit');
+    Route::post('/admin/rawat_inap/{id}/pindah', [RawatInapController::class, 'pindahKamar'])->name('admin.rawat_inap.pindah')->middleware('menu:Rawat Inap,edit');
 });
 
 // ── Komentar ──
