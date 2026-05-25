@@ -75,4 +75,9 @@ class RekamMedis extends Model
     {
         return $this->hasOne(RekamMedisDiagnosa::class, 'rekam_medis_id')->where('is_primer', true);
     }
+
+    public function feedback()
+    {
+        return $this->hasOne(Feedback::class, 'rekam_medis_id');
+    }
 }

@@ -189,8 +189,8 @@
             
             <!-- quick stat - center on mobile -->
             <div class="flex items-center gap-8 pt-8 text-gray-600 hero-stats justify-center md:justify-start">
-              <div class="flex items-center gap-2"><i class="fas fa-user-md text-blue-900 text-xl"></i> <span>12+ dokter ahli</span></div>
-              <div class="flex items-center gap-2"><i class="fas fa-hand-holding-heart text-blue-900 text-xl"></i> <span>2000+ pasien</span></div>
+              <div class="flex items-center gap-2"><i class="fas fa-user-md text-blue-900 text-xl"></i> <span>{{ $jumlahDokter }}+ dokter ahli</span></div>
+              <div class="flex items-center gap-2"><i class="fas fa-hand-holding-heart text-blue-900 text-xl"></i> <span>{{ $jumlahPasien }}+ pasien</span></div>
             </div>
           </div>
           
@@ -215,77 +215,15 @@
 
         <!-- Grid 1 kolom di mobile, 2 di tablet, 3 di desktop -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          <!-- card 1 -->
-          <div class="service-card bg-white border border-blue-900/20 rounded-3xl p-8 shadow-sm" data-aos="fade-up" data-aos-delay="100">
-            <div class="w-16 h-16 bg-blue-100 text-blue-900 rounded-2xl flex items-center justify-center mb-6">
-              <i class="fas fa-stethoscope text-3xl"></i>
+          @foreach($layanan as $i => $l)
+          <div class="service-card bg-white border border-blue-900/20 rounded-3xl p-8 shadow-sm" data-aos="fade-up" data-aos-delay="{{ ($i%3+1)*100 }}">
+            <div class="w-16 h-16 bg-{{ $l['warna'] }}-100 text-{{ $l['warna'] }}-{{ $l['warna'] === 'blue' ? 900 : ($l['warna'] === 'green' ? 700 : ($l['warna'] === 'pink' ? 600 : ($l['warna'] === 'red' ? 600 : ($l['warna'] === 'purple' ? 700 : 700)))) }} rounded-2xl flex items-center justify-center mb-6">
+              <i class="fas {{ $l['icon'] }} text-3xl"></i>
             </div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Poli Umum</h3>
-            <p class="text-gray-600 leading-relaxed">Pemeriksaan kesehatan umum dan konsultasi medis privat oleh dokter berpengalaman.</p>
-            <a href="#" class="inline-flex items-center mt-4 text-blue-900 hover:text-blue-800 font-medium gap-1 group">
-              Selengkapnya <i class="fas fa-arrow-right text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
-            </a>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ $l['nama'] }}</h3>
+            <p class="text-gray-600 leading-relaxed">{{ $l['desc'] }}</p>
           </div>
-          
-          <!-- card 2 -->
-          <div class="service-card bg-white border border-blue-900/20 rounded-3xl p-8 shadow-sm" data-aos="fade-up" data-aos-delay="200">
-            <div class="w-16 h-16 bg-green-100 text-green-700 rounded-2xl flex items-center justify-center mb-6">
-              <i class="fas fa-tooth text-3xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Poli Gigi</h3>
-            <p class="text-gray-600 leading-relaxed">Perawatan kesehatan gigi, mulut, dan ortodonti dengan teknologi medis terbaru.</p>
-            <a href="#" class="inline-flex items-center mt-4 text-blue-900 hover:text-blue-800 font-medium gap-1 group">
-              Selengkapnya <i class="fas fa-arrow-right text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
-            </a>
-          </div>
-          
-          <!-- card 3 -->
-          <div class="service-card bg-white border border-blue-900/20 rounded-3xl p-8 shadow-sm" data-aos="fade-up" data-aos-delay="300">
-            <div class="w-16 h-16 bg-pink-100 text-pink-600 rounded-2xl flex items-center justify-center mb-6">
-              <i class="fas fa-baby text-3xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Poli KIA</h3>
-            <p class="text-gray-600 leading-relaxed">Kesehatan Ibu dan Anak, KB, vaksinasi balita, serta konsultasi kehamilan menyeluruh.</p>
-            <a href="#" class="inline-flex items-center mt-4 text-blue-900 hover:text-blue-800 font-medium gap-1 group">
-              Selengkapnya <i class="fas fa-arrow-right text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
-            </a>
-          </div>
-
-          <!-- card 4 -->
-          <div class="service-card bg-white border border-blue-900/20 rounded-3xl p-8 shadow-sm" data-aos="fade-up" data-aos-delay="400">
-            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mb-6">
-              <i class="fas fa-truck-medical text-3xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">UGD</h3>
-            <p class="text-gray-600 leading-relaxed">Unit Gawat Darurat yang bersiaga penuh untuk memberikan tindakan pertolongan pertama.</p>
-            <a href="#" class="inline-flex items-center mt-4 text-blue-900 hover:text-blue-800 font-medium gap-1 group">
-              Selengkapnya <i class="fas fa-arrow-right text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
-            </a>
-          </div>
-
-          <!-- card 5 -->
-          <div class="service-card bg-white border border-blue-900/20 rounded-3xl p-8 shadow-sm" data-aos="fade-up" data-aos-delay="500">
-            <div class="w-16 h-16 bg-purple-100 text-purple-700 rounded-2xl flex items-center justify-center mb-6">
-              <i class="fas fa-flask text-3xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Laboratorium</h3>
-            <p class="text-gray-600 leading-relaxed">Pemeriksaan darah, urine, dan tes laboratorium cepat, steril, serta akurat.</p>
-            <a href="#" class="inline-flex items-center mt-4 text-blue-900 hover:text-blue-800 font-medium gap-1 group">
-              Selengkapnya <i class="fas fa-arrow-right text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
-            </a>
-          </div>
-
-          <!-- card 6 -->
-          <div class="service-card bg-white border border-blue-900/20 rounded-3xl p-8 shadow-sm" data-aos="fade-up" data-aos-delay="600">
-            <div class="w-16 h-16 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mb-6">
-              <i class="fas fa-spa text-3xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Baby Spa</h3>
-            <p class="text-gray-600 leading-relaxed">Pijat, spa, dan terapi stimulasi tumbuh kembang bayi yang menenangkan dan aman.</p>
-            <a href="#" class="inline-flex items-center mt-4 text-blue-900 hover:text-blue-800 font-medium gap-1 group">
-              Selengkapnya <i class="fas fa-arrow-right text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
-            </a>
-          </div>
+          @endforeach
         </div>
       </div>
     </section>
@@ -301,7 +239,7 @@
                 <div class="bg-white p-6 rounded-3xl shadow-md border border-blue-900/20 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                   <i class="fas fa-user-nurse text-blue-900 text-3xl mb-3"></i>
                   <h5 class="font-semibold">Perawat ramah</h5>
-                  <p class="text-sm text-gray-500">15+ perawat profesional</p>
+                  <p class="text-sm text-gray-500">{{ $jumlahPegawai }}+ tenaga profesional</p>
                 </div>
                 <div class="bg-white p-6 rounded-3xl shadow-md border border-blue-900/20 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                   <i class="fas fa-syringe text-blue-900 text-3xl mb-3"></i>
@@ -335,41 +273,65 @@
             </p>
             <div class="flex gap-5 mt-8 justify-center md:justify-start">
               <div><span class="font-bold text-3xl text-blue-900">8+</span> <span class="text-gray-500">tahun</span></div>
-              <div><span class="font-bold text-3xl text-blue-900">25+</span> <span class="text-gray-500">tenaga medis</span></div>
-              <div><span class="font-bold text-3xl text-blue-900">4.9</span> <span class="text-gray-500">rating</span></div>
+              <div><span class="font-bold text-3xl text-blue-900">{{ $jumlahPegawai }}+</span> <span class="text-gray-500">tenaga medis</span></div>
+              <div><span class="font-bold text-3xl text-blue-900">{{ $ratingRatata }}</span> <span class="text-gray-500">rating</span></div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ===== TESTIMONI ===== dengan grid responsive ===== -->
-    <section class="py-16 bg-white">
-      <div class="max-w-5xl mx-auto px-4 text-center">
-        <h2 class="text-3xl font-bold text-gray-800" data-aos="fade-down">Apa kata <span class="text-blue-900">pasien</span>?</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
-          <!-- testimoni 1 -->
-          <div class="testimonial-card bg-blue-50/60 p-8 rounded-3xl border border-blue-900/20 text-left relative" data-aos="flip-left" data-aos-delay="100">
-            <i class="fas fa-quote-left text-blue-900/20 text-3xl absolute top-4 right-6"></i>
-            <p class="text-gray-700 relative z-10">"Ruangan putih bersih, wangi, dan dokternya sangat komunikatif. Suasananya bikin nyaman, tidak seperti di klinik biasa."</p>
-            <div class="flex items-center gap-4 mt-6">
-              <div class="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center text-blue-900 font-bold">AN</div>
-              <div><h5 class="font-semibold">Andini Putri</h5><span class="text-sm text-gray-500">Pasien Umum</span></div>
+    <!-- ===== TESTIMONI ===== dengan grid responsive hingga 10 kartu ===== -->
+    @if($testimoni->isNotEmpty())
+    <section class="py-16 bg-white" id="testimoni">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <span class="text-blue-900 font-semibold tracking-wider uppercase text-sm" data-aos="fade-up">Ulasan Pasien</span>
+        <h2 class="text-3xl font-bold text-gray-800 mt-2" data-aos="fade-down">Apa kata <span class="text-blue-900">pasien</span>?</h2>
+        <p class="text-gray-500 mt-3 max-w-xl mx-auto" data-aos="fade-up" data-aos-delay="100">{{ $testimoni->count() }} ulasan terbaru dari pasien kami</p>
+
+        <!-- Grid: 1 kolom mobile, 2 tablet, 3 desktop -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+          @foreach($testimoni as $i => $testi)
+          <div class="testimonial-card bg-blue-50/60 p-6 rounded-3xl border border-blue-900/20 text-left relative flex flex-col"
+               data-aos="fade-up" data-aos-delay="{{ min($i * 60, 400) }}">
+
+            {{-- Bintang penilaian --}}
+            <div class="flex items-center gap-1 mb-3">
+              @for($s = 1; $s <= 5; $s++)
+                @if($s <= $testi['penilaian'])
+                  <i class="fas fa-star text-amber-400 text-sm"></i>
+                @else
+                  <i class="far fa-star text-gray-300 text-sm"></i>
+                @endif
+              @endfor
+              <span class="text-xs text-gray-400 ml-1">{{ $testi['penilaian'] }}/5</span>
+            </div>
+
+            {{-- Teks ulasan — opsional, hanya tampil jika ada --}}
+            @if($testi['ulasan'])
+              <i class="fas fa-quote-left text-blue-900/20 text-3xl absolute top-4 right-5"></i>
+              <p class="text-gray-700 text-sm leading-relaxed relative z-10 flex-1">"{{ $testi['ulasan'] }}"</p>
+            @else
+              <p class="text-gray-400 text-sm italic flex-1">Pasien memberikan penilaian tanpa komentar.</p>
+            @endif
+
+            {{-- Profil pasien --}}
+            <div class="flex items-center gap-3 mt-5 pt-4 border-t border-blue-900/10">
+              <div class="w-10 h-10 bg-blue-200 rounded-full flex items-center justify-center text-blue-900 font-bold text-sm flex-shrink-0">
+                {{ $testi['inisial'] }}
+              </div>
+              <div>
+                <h5 class="font-semibold text-gray-800 text-sm">{{ $testi['nama'] }}</h5>
+                <span class="text-xs text-gray-500">{{ $testi['tipe'] }}</span>
+              </div>
             </div>
           </div>
-          
-          <!-- testimoni 2 -->
-          <div class="testimonial-card bg-blue-50/60 p-8 rounded-3xl border border-blue-900/20 text-left relative" data-aos="flip-right" data-aos-delay="200">
-            <i class="fas fa-quote-left text-blue-900/20 text-3xl absolute top-4 right-6"></i>
-            <p class="text-gray-700 relative z-10">"Saya datang karena gigi berlubang, pelayanannya cepat, ruang perawatan modern dan bersih. Definitely coming back!"</p>
-            <div class="flex items-center gap-4 mt-6">
-              <div class="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center text-blue-900 font-bold">RS</div>
-              <div><h5 class="font-semibold">Rama Saputra</h5><span class="text-sm text-gray-500">Pasien Gigi</span></div>
-            </div>
-          </div>
+          @endforeach
         </div>
       </div>
     </section>
+    @endif
+
 
     <!-- ===== KONTAK ===== dengan padding responsive ===== -->
     <section id="kontak" class="py-20 bg-blue-50/80">
@@ -381,10 +343,10 @@
           
           <!-- tombol stack di mobile, row di desktop -->
           <div class="flex flex-col sm:flex-row gap-4 justify-center mt-10">
-            <a href="#" class="btn-subtle bg-blue-900 hover:bg-blue-800 text-white px-6 sm:px-8 py-4 rounded-2xl font-semibold shadow-md flex items-center justify-center gap-3 text-base sm:text-lg">
+            <a href="#" id="buatJanjiBtn" class="btn-subtle bg-blue-900 hover:bg-blue-800 text-white px-6 sm:px-8 py-4 rounded-2xl font-semibold shadow-md flex items-center justify-center gap-3 text-base sm:text-lg">
               <i class="fas fa-calendar-week"></i> Buat janji online
             </a>
-            <a href="#" class="btn-subtle bg-white border-2 border-blue-900/30 hover:border-blue-900 text-blue-900 px-6 sm:px-8 py-4 rounded-2xl font-semibold flex items-center justify-center gap-3 text-base sm:text-lg">
+            <a href="https://wa.me/6282131927337" target="_blank" rel="noopener noreferrer" class="btn-subtle bg-white border-2 border-blue-900/30 hover:border-blue-900 text-blue-900 px-6 sm:px-8 py-4 rounded-2xl font-semibold flex items-center justify-center gap-3 text-base sm:text-lg">
               <i class="fab fa-whatsapp"></i> WhatsApp
             </a>
           </div>
@@ -476,13 +438,17 @@
     // ===== MODAL LOGIN ONLY =====
     const loginModal = document.getElementById('loginModal');
     const loginBtn = document.getElementById('loginBtn');
+    const buatJanjiBtn = document.getElementById('buatJanjiBtn');
     const closeButtons = document.querySelectorAll('.close-modal');
 
     // Open Login Modal
-    loginBtn.addEventListener('click', (e) => {
+    const openLogin = (e) => {
       e.preventDefault();
       loginModal.classList.add('show');
-    });
+    };
+
+    if (loginBtn) loginBtn.addEventListener('click', openLogin);
+    if (buatJanjiBtn) buatJanjiBtn.addEventListener('click', openLogin);
 
 
     // Close modals with close button

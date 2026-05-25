@@ -7,6 +7,7 @@ use App\Models\Billing;
 use App\Models\Resep;
 use App\Models\Pegawai;
 use Illuminate\Support\Facades\DB;
+use App\Services\MidtransService;
 
 class BillingController extends Controller
 {
@@ -84,6 +85,7 @@ class BillingController extends Controller
     {
         $request->validate([
             'metode_pembayaran' => 'required|string|in:Tunai,Debit,QRIS,Asuransi',
+            'jumlah_dibayar' => 'nullable|numeric|min:0',
         ]);
 
         if ($billing->status === 'Lunas') {
@@ -94,13 +96,31 @@ class BillingController extends Controller
         $user = auth()->user();
         $pegawai = $user->pegawai; // Dapatkan data pegawai dari user kasir yang login
 
-        DB::transaction(function () use ($billing, $request, $pegawai) {
+        // Jika metode adalah Tunai, pastikan jumlah_dibayar cukup
+        $jumlahDibayar = $request->input('jumlah_dibayar') !== null ? floatval($request->input('jumlah_dibayar')) : null;
+        if ($request->input('metode_pembayaran') === 'Tunai') {
+            if (is_null($jumlahDibayar) || $jumlahDibayar < floatval($billing->grand_total)) {
+                return redirect()->route('admin.billing.show', $billing)
+                    ->with('error', 'Jumlah dibayar kurang dari total. Mohon masukkan jumlah tunai yang cukup.');
+            }
+        }
+
+        DB::transaction(function () use ($billing, $request, $pegawai, $jumlahDibayar) {
+            // Hitung kembalian jika ada
+            $kembalian = null;
+            if ($request->input('metode_pembayaran') === 'Tunai') {
+                $kembalian = $jumlahDibayar - floatval($billing->grand_total);
+                if ($kembalian < 0) $kembalian = 0;
+            }
+
             // Update status billing menjadi Lunas
             $billing->update([
                 'status' => 'Lunas',
                 'metode_pembayaran' => $request->metode_pembayaran,
                 'kasir_id' => $pegawai ? $pegawai->id : null,
                 'paid_at' => now(),
+                'jumlah_dibayar' => $jumlahDibayar,
+                'kembalian' => $kembalian,
             ]);
 
             // Hubungkan dengan Resep jika ada
@@ -117,7 +137,46 @@ class BillingController extends Controller
         });
 
         return redirect()->route('admin.billing.show', $billing)
-            ->with('success', 'Pembayaran berhasil diselesaikan. Kuitansi siap dicetak.');
+            ->with('success', 'Pembayaran berhasil diselesaikan. Kuitansi siap dicetak.')
+            ->with('print_kuitansi', true);
+    }
+
+    /**
+     * Generate QRIS QR Code via Midtrans untuk billing tertentu.
+     */
+    public function generateQris(Request $request, Billing $billing)
+    {
+        if ($billing->status === 'Lunas') {
+            return response()->json(['success' => false, 'message' => 'Tagihan ini sudah lunas.']);
+        }
+
+        $midtrans = new MidtransService();
+        $result   = $midtrans->chargeQris($billing);
+
+        return response()->json($result, $result['success'] ? 200 : 422);
+    }
+
+    /**
+     * Cek status pembayaran QRIS dari Midtrans (dipakai untuk polling dari frontend).
+     */
+    public function checkQrisStatus(Billing $billing)
+    {
+        $billing->refresh();
+
+        // Jika sudah lunas di DB (misal diupdate oleh webhook), langsung return
+        if ($billing->status === 'Lunas') {
+            return response()->json(['status' => 'settlement', 'message' => 'Pembayaran sudah diterima!']);
+        }
+
+        $midtrans = new MidtransService();
+        $result   = $midtrans->checkStatus($billing);
+
+        // Jika settlement, reload billing agar data kasir/paid_at ikut
+        if ($result['status'] === 'settlement') {
+            $billing->refresh();
+        }
+
+        return response()->json($result);
     }
 
     /**

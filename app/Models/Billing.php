@@ -22,12 +22,21 @@ class Billing extends Model
         'grand_total',
         'status',
         'metode_pembayaran',
+        'jumlah_dibayar',
+        'kembalian',
         'kasir_id',
         'paid_at',
+        // Midtrans QRIS
+        'midtrans_order_id',
+        'midtrans_transaction_id',
+        'midtrans_qr_url',
+        'midtrans_status',
+        'midtrans_qr_generated_at',
     ];
 
     protected $casts = [
-        'paid_at' => 'datetime',
+        'paid_at'                  => 'datetime',
+        'midtrans_qr_generated_at' => 'datetime',
     ];
 
     public function rekamMedis()

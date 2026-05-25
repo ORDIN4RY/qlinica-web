@@ -48,7 +48,7 @@ class PoliRoutingTest extends TestCase
         ]);
 
         $response->assertRedirect(route('admin.pegawai'));
-        $this->assertDatabaseHas('pegawais', [
+        $this->assertDatabaseHas('pegawai', [
             'nama' => 'dr. Gigi Indah',
             'poli' => 'Poli Gigi',
         ]);
@@ -69,7 +69,7 @@ class PoliRoutingTest extends TestCase
         ]);
 
         $response->assertRedirect(route('admin.pegawai'));
-        $this->assertDatabaseHas('pegawais', [
+        $this->assertDatabaseHas('pegawai', [
             'id' => $pegawai->id,
             'poli' => 'Poli Umum',
         ]);
@@ -131,8 +131,16 @@ class PoliRoutingTest extends TestCase
             ],
         ]);
 
+        $pasienUser = User::create([
+            'name' => 'Siti Aminah',
+            'email' => 'siti@sahaduta.com',
+            'password' => bcrypt('password'),
+            'role' => 'pasien',
+        ]);
+
         // Create a Patient
         $pasien = Pasien::create([
+            'user_id' => $pasienUser->id,
             'nama' => 'Siti Aminah',
             'no_rm' => 'RM-002',
             'tgl_lahir' => '1995-05-05',
@@ -147,7 +155,7 @@ class PoliRoutingTest extends TestCase
             'pasien_id' => $pasien->id,
             'jenis' => 'Offline',
             'keluhan' => 'Sakit gigi geraham belakang',
-            'status' => 'Menunggu TTV', // Initial state
+            'status' => 'Menunggu', // Initial state
             'tanggal' => now()->toDateString(),
         ]);
 

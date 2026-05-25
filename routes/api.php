@@ -6,6 +6,11 @@ use App\Http\Controllers\IcdxController;
 use App\Http\Controllers\Api\MobileAuthController;
 use App\Http\Controllers\Api\MobilePresensiController;
 use App\Http\Controllers\Api\MobileCutiController;
+use App\Http\Controllers\MidtransWebhookController;
+
+// ── Midtrans Webhook (tanpa auth — dipanggil dari server Midtrans) ──
+Route::post('/midtrans/webhook', [MidtransWebhookController::class, 'handle'])
+    ->name('midtrans.webhook');
 
 Route::get('/user', function (Request $request) {
     return $request->user();

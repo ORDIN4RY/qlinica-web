@@ -243,8 +243,8 @@
             </div>
           </div>
           <div class="form-group">
-            <label>Tanggal & Jam Keluar <span class="text-red-500 normal-case font-normal">*</span></label>
-            <input type="datetime-local" name="tgl_keluar" value="{{ now()->format('Y-m-d\TH:i') }}" required class="form-input">
+            <label>Tanggal & Jam Keluar</label>
+            <input type="datetime-local" name="tgl_keluar" value="{{ now()->format('Y-m-d\TH:i') }}" readonly class="form-input bg-gray-50 text-gray-500 cursor-not-allowed border-gray-200">
           </div>
           <div class="form-group">
             <label>Catatan Kepulangan (Opsional)</label>
@@ -290,8 +290,8 @@
           </div>
           
           <div class="form-group">
-            <label>Tanggal & Jam Pindah <span class="text-red-500 normal-case font-normal">*</span></label>
-            <input type="datetime-local" name="tgl_pindah" value="{{ now()->format('Y-m-d\TH:i') }}" required class="form-input">
+            <label>Tanggal & Jam Pindah</label>
+            <input type="datetime-local" name="tgl_pindah" value="{{ now()->format('Y-m-d\TH:i') }}" readonly class="form-input bg-gray-50 text-gray-500 cursor-not-allowed border-gray-200">
           </div>
 
           <div class="form-group">

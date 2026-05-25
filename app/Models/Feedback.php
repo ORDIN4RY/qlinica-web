@@ -11,8 +11,7 @@ class Feedback extends Model
     protected $fillable = [
         'pasien_id',
         'rekam_medis_id',
-        'kritik',
-        'saran',
+        'ulasan',
         'penilaian',
     ];
 

@@ -123,11 +123,11 @@
               <div class="text-2xl font-bold text-amber-700" id="estimasi">~{{ max(0, $antrianMenunggu * 5) }} mnt</div>
               <div class="text-xs text-gray-500 mt-0.5">Estimasi Tunggu</div>
             </div>
-            <div class="card-hover bg-white p-5 rounded-3xl shadow-md border border-blue-900/15">
+              <div class="card-hover bg-white p-5 rounded-3xl shadow-md border border-blue-900/15">
               <div class="w-11 h-11 bg-purple-100 text-purple-700 rounded-2xl flex items-center justify-center mb-3 text-xl">
                 <i class="fas fa-calendar-check"></i>
               </div>
-              <div class="text-2xl font-bold text-purple-700" id="totalKunjungan">5</div>
+              <div class="text-2xl font-bold text-purple-700" id="totalKunjungan">{{ $totalKunjungan }}</div>
               <div class="text-xs text-gray-500 mt-0.5">Total Kunjungan</div>
             </div>
           </div>
@@ -333,15 +333,17 @@
                 id="btnBatalAntrian"
                 onclick="batalAntrian()"
                 class="mt-4 w-full border border-red-300 text-red-600 hover:bg-red-50 py-2.5 rounded-xl text-sm font-semibold transition"
-                @if($antrianAktif && strtolower($antrianAktif->status) === 'dipanggil')
+                @if($antrianAktif && strtolower($antrianAktif->status) !== 'menunggu')
                   disabled
-                  title="Antrian Anda sedang dipanggil, tidak dapat dibatalkan"
+                  title="Antrian Anda sedang diproses atau dilayani, tidak dapat dibatalkan"
                   style="opacity:0.45; cursor:not-allowed; pointer-events:none;"
                 @endif
               >
                 <i class="fas fa-times"></i>
                 @if($antrianAktif && strtolower($antrianAktif->status) === 'dipanggil')
                   Sedang Dipanggil...
+                @elseif($antrianAktif && strtolower($antrianAktif->status) === 'dilayani')
+                  Sedang Dilayani...
                 @else
                   Batalkan Antrian
                 @endif
@@ -551,8 +553,57 @@
                 <input type="text" id="searchRiwayat" placeholder="Cari layanan, diagnosa..." class="bg-transparent text-sm outline-none w-44">
               </div>
             </div>
-            <div class="divide-y divide-gray-100" id="listRiwayat"></div>
-            <div class="p-4 text-center text-sm text-gray-400" id="riwayatEmpty" style="display:none">Tidak ada riwayat kunjungan</div>
+            <div class="divide-y divide-gray-100" id="listRiwayat">
+              @forelse($riwayatDetail as $riwayat)
+                <div class="p-5 hover:bg-blue-50/40 transition-colors duration-200 riwayat-item" data-tanggal="{{ $riwayat['tanggal'] }}" data-dokter="{{ $riwayat['dokter'] }}" data-diagnosa="{{ $riwayat['diagnosa'] }}">
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2 mb-2">
+                        <div class="w-8 h-8 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm shrink-0">
+                          <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div>
+                          <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">{{ $riwayat['tanggal'] }}</div>
+                          <div class="text-sm font-semibold text-gray-800">Kunjungan Medis</div>
+                        </div>
+                      </div>
+                      
+                      <div class="ml-10 space-y-2">
+                        <div class="text-sm">
+                          <span class="text-gray-500">Dokter:</span>
+                          <span class="font-semibold text-gray-800">Dr. {{ $riwayat['dokter'] }}</span>
+                        </div>
+                        <div class="text-sm">
+                          <span class="text-gray-500">Keluhan:</span>
+                          <span class="font-semibold text-gray-800">{{ $riwayat['keluhan'] }}</span>
+                        </div>
+                        <div class="text-sm">
+                          <span class="text-gray-500">Diagnosa:</span>
+                          <span class="font-semibold text-gray-800">{{ $riwayat['diagnosa'] }}</span>
+                        </div>
+                        @if($riwayat['resep'] === 'Ada Resep')
+                          <div class="inline-flex items-center gap-1.5 mt-2 bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold px-2 py-1 rounded-full">
+                            <i class="fas fa-pills text-xs"></i> {{ $riwayat['resep'] }}
+                          </div>
+                        @endif
+                      </div>
+                    </div>
+                    <button class="btn-anim bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 px-3 py-2 rounded-xl text-xs font-semibold shrink-0">
+                      <i class="fas fa-eye"></i> Lihat
+                    </button>
+                  </div>
+                </div>
+              @empty
+                <div class="p-8 text-center text-gray-400">
+                  <i class="fas fa-history text-3xl mb-2 block text-gray-300"></i>
+                  <p class="text-sm">Tidak ada riwayat kunjungan</p>
+                </div>
+              @endforelse
+            </div>
+            <div class="p-8 text-center text-gray-400" id="riwayatEmpty" style="display:none">
+              <i class="fas fa-history text-3xl mb-2 block text-gray-300"></i>
+              <p class="text-sm">Tidak ada riwayat kunjungan</p>
+            </div>
           </div>
         </div>
 
@@ -568,16 +619,6 @@
           <h2 class="text-3xl font-bold text-gray-800 mt-2">Pilih <span class="text-blue-900">Layanan</span> Anda</h2>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          @php
-            $layanan = [
-              ['icon'=>'fa-stethoscope','warna'=>'blue','nama'=>'Poli Umum','desc'=>'Layanan pemeriksaan kesehatan umum dan konsultasi dokter umum.'],
-              ['icon'=>'fa-tooth','warna'=>'green','nama'=>'Poli Gigi','desc'=>'Pemeriksaan dan perawatan kesehatan gigi serta mulut modern.'],
-              ['icon'=>'fa-baby','warna'=>'pink','nama'=>'Poli KIA','desc'=>'Kesehatan Ibu & Anak, KB, Imunisasi, serta pemantauan tumbuh kembang anak.'],
-              ['icon'=>'fa-truck-medical','warna'=>'red','nama'=>'UGD','desc'=>'Unit Gawat Darurat yang siap melayani penanganan medis kritis dan mendadak.'],
-              ['icon'=>'fa-flask','warna'=>'purple','nama'=>'Laboratorium','desc'=>'Pengecekan sampel laboratorium medis yang steril, cepat, dan akurat.'],
-              ['icon'=>'fa-spa','warna'=>'amber','nama'=>'Baby Spa','desc'=>'Layanan spa bayi khusus untuk menstimulasi tumbuh kembang anak dengan rileks.'],
-            ];
-          @endphp
           @foreach($layanan as $i => $l)
           <div class="card-hover bg-white border border-blue-900/15 rounded-3xl p-7 shadow-sm cursor-pointer"
                data-aos="fade-up" data-aos-delay="{{ ($i%3+1)*100 }}"
@@ -596,12 +637,12 @@
       </div>
     </section>
 
-    <!-- ===== KRITIK & SARAN ===== -->
+    <!-- ===== ULASAN ===== -->
     {{-- <section id="feedback" class="py-16 bg-gradient-to-b from-white to-blue-50/30">
       <div class="max-w-3xl mx-auto px-4">
         <div class="text-center mb-10" data-aos="fade-up">
           <span class="text-blue-900 font-semibold tracking-wider uppercase text-xs">Ulasan Anda</span>
-          <h2 class="text-3xl font-bold text-gray-800 mt-2">Kritik & <span class="text-blue-900">Saran</span></h2>
+          <h2 class="text-3xl font-bold text-gray-800 mt-2">Ulasan <span class="text-blue-900">Pelayanan</span></h2>
           <p class="text-gray-500 mt-2 text-sm">Masukan Anda sangat berarti untuk peningkatan kualitas layanan kami.</p>
         </div>
 
@@ -635,8 +676,8 @@
           </div>
           
           <div class="mb-6">
-            <label class="block text-sm font-semibold text-gray-600 mb-2">Pesan, Kritik, atau Saran</label>
-            <textarea name="message" rows="4" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none" placeholder="Tuliskan pengalaman Anda atau saran untuk kami..."></textarea>
+            <label class="block text-sm font-semibold text-gray-600 mb-2">Pesan atau Ulasan</label>
+            <textarea name="message" rows="4" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none" placeholder="Tuliskan pengalaman Anda untuk kami..."></textarea>
           </div>
 
           <button type="submit" class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 shadow-md">
@@ -660,7 +701,7 @@
     </div>
   </footer>
 
-  <!-- Modal Kritik & Saran Selesai Periksa -->
+  <!-- Modal Ulasan Selesai Periksa -->
   <div id="modalFeedback" class="fixed inset-0 z-[60] hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
   <div class="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 relative" id="modalFeedbackContent">
     
@@ -670,7 +711,7 @@
 
     <div class="p-8">
       <div class="text-center mb-6">
-        <h3 class="text-2xl font-bold text-gray-800">Kritik & Saran</h3>
+        <h3 class="text-2xl font-bold text-gray-800">Ulasan Layanan</h3>
       </div>
 
       <form action="#" method="POST" id="formModalFeedback">
@@ -719,32 +760,18 @@
           </div>
         </div>
 
-        <!-- Kritik -->
-        <div class="mb-5">
-          <label class="block text-sm font-semibold text-gray-600 mb-2">
-            Kritik
-          </label>
-
-          <textarea 
-            name="kritik" 
-            rows="3" 
-            required
-            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none"
-            placeholder="Tuliskan kritik Anda..."
-          ></textarea>
-        </div>
-
-        <!-- Saran -->
+        <!-- Ulasan -->
         <div class="mb-6">
           <label class="block text-sm font-semibold text-gray-600 mb-2">
-            Saran
+            Ulasan Kunjungan
           </label>
 
           <textarea 
-            name="saran" 
-            rows="3"
+            name="ulasan" 
+            rows="4" 
+            required
             class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none"
-            placeholder="Tuliskan saran Anda..."
+            placeholder="Tuliskan ulasan Anda mengenai pelayanan kami..."
           ></textarea>
         </div>
 
@@ -1034,6 +1061,7 @@
             'vitalSign'        => $vitalSign,
             'resepObat'        => $resepObat,
             'hasRekamMedis'    => $rm !== null,
+            'hasFeedback'      => $rm && $rm->feedback !== null,
         ];
     })) !!};
 
@@ -1052,8 +1080,12 @@
         (r.keluhan && r.keluhan.toLowerCase().includes(q)) ||
         (r.diagnosa && r.diagnosa.some(d => d.nama.toLowerCase().includes(q) || d.kode.toLowerCase().includes(q)))
       );
-      if (!items.length) { list.innerHTML=''; empty.style.display='block'; return; }
-      empty.style.display='none';
+      if (!items.length) { 
+        list.innerHTML=''; 
+        if (empty) empty.style.display='block'; 
+        return; 
+      }
+      if (empty) empty.style.display='none';
 
       const statusCls = { selesai:'status-selesai', batal:'status-batal', menunggu:'status-menunggu' };
       const statusLbl = { selesai:'Selesai', batal:'Batal', menunggu:'Menunggu' };
@@ -1084,7 +1116,13 @@
             <div class="flex flex-col items-end gap-2.5 flex-shrink-0">
               <span class="text-xs font-bold px-3 py-1.5 rounded-full ${statusCls[r.status]}">${statusLbl[r.status]}</span>
               <div class="flex gap-2">
-                ${r.status === 'selesai' ? `<button onclick="event.stopPropagation(); showModalFeedback(${r.id})" class="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1.5 font-semibold transition bg-blue-50 hover:bg-blue-100 border border-blue-100 px-2.5 py-1.5 rounded-lg"><i class="fas fa-star text-yellow-400"></i> Beri Ulasan</button>` : ''}
+                ${r.status === 'selesai' ? (
+                  r.hasFeedback ? `
+                    <span class="text-green-600 bg-green-50 border border-green-100 text-xs flex items-center gap-1.5 font-semibold px-2.5 py-1.5 rounded-lg"><i class="fas fa-check-circle"></i> Sudah Diulas</span>
+                  ` : `
+                    <button onclick="event.stopPropagation(); showModalFeedback(${r.id})" class="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1.5 font-semibold transition bg-blue-50 hover:bg-blue-100 border border-blue-100 px-2.5 py-1.5 rounded-lg"><i class="fas fa-star text-yellow-400"></i> Beri Ulasan</button>
+                  `
+                ) : ''}
                 <button class="text-blue-900 bg-blue-50 group-hover:bg-blue-900 group-hover:text-white border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all"><i class="fas fa-eye"></i> Detail</button>
               </div>
             </div>
@@ -1138,8 +1176,7 @@
     async function submitModalFeedback() {
       const antrianId = document.getElementById('feedbackAntrianId').value;
       const rating = document.querySelector('#formModalFeedback input[name="rating"]:checked')?.value;
-      const kritik = document.querySelector('#formModalFeedback textarea[name="kritik"]')?.value ?? '';
-      const saran  = document.querySelector('#formModalFeedback textarea[name="saran"]')?.value ?? '';
+      const ulasan = document.querySelector('#formModalFeedback textarea[name="ulasan"]')?.value ?? '';
 
       if (!antrianId) {
         showToast('Terjadi kesalahan, antrian tidak valid!', 'red');
@@ -1165,8 +1202,7 @@
           body: JSON.stringify({
             antrian_id: antrianId,
             rating: parseInt(rating),
-            kritik: kritik,
-            saran: saran
+            ulasan: ulasan
           })
         });
 
@@ -1175,6 +1211,13 @@
         if (data.success) {
           showToast('Terima kasih atas ulasan Anda! 🎉', 'green');
           closeModalFeedback();
+          
+          // Update riwayatData secara dinamis & re-render
+          const item = riwayatData.find(r => r.id == antrianId);
+          if (item) {
+            item.hasFeedback = true;
+            renderRiwayat();
+          }
         } else {
           showToast(data.message || 'Gagal mengirim ulasan.', 'red');
         }
@@ -1434,8 +1477,8 @@
 
           // Reset UI — tampilkan form kembali
           document.getElementById('noAntrianKu').textContent = '—';
-          document.getElementById('jenisLayanan').value = '';
-          document.getElementById('keluhan').value = '';
+          const keluhanModal = document.getElementById('keluhanAwalModal');
+          if (keluhanModal) keluhanModal.value = '';
           document.getElementById('formAntrian').classList.remove('hidden');
           document.getElementById('hasilAntrian').classList.add('hidden');
 
@@ -1653,15 +1696,22 @@
         // — Disable/enable tombol Batalkan Antrian berdasarkan status —
         const btnBatal = document.getElementById('btnBatalAntrian');
         if (btnBatal) {
-          const statusAktif = data.antrian_aktif ? data.antrian_aktif.status : null;
-          const isDipanggil = statusAktif && statusAktif.toLowerCase() === 'dipanggil';
-          if (isDipanggil) {
+          const statusAktif = data.antrian_aktif ? data.antrian_aktif.status.toLowerCase() : null;
+          if (statusAktif && statusAktif !== 'menunggu') {
             btnBatal.disabled = true;
             btnBatal.style.opacity = '0.45';
             btnBatal.style.cursor  = 'not-allowed';
             btnBatal.style.pointerEvents = 'none';
-            btnBatal.title = 'Antrian Anda sedang dipanggil, tidak dapat dibatalkan';
-            btnBatal.innerHTML = '<i class="fas fa-bell fa-shake"></i> Sedang Dipanggil...';
+            if (statusAktif === 'dipanggil') {
+              btnBatal.title = 'Antrian Anda sedang dipanggil, tidak dapat dibatalkan';
+              btnBatal.innerHTML = '<i class="fas fa-bell fa-shake"></i> Sedang Dipanggil...';
+            } else if (statusAktif === 'dilayani') {
+              btnBatal.title = 'Antrian Anda sedang dilayani, tidak dapat dibatalkan';
+              btnBatal.innerHTML = '<i class="fas fa-user-md"></i> Sedang Dilayani...';
+            } else {
+              btnBatal.title = 'Antrian Anda sedang diproses, tidak dapat dibatalkan';
+              btnBatal.innerHTML = '<i class="fas fa-lock"></i> Sedang Diproses...';
+            }
           } else {
             btnBatal.disabled = false;
             btnBatal.style.opacity = '';
@@ -1669,7 +1719,7 @@
             btnBatal.style.pointerEvents = '';
             btnBatal.title = '';
             btnBatal.innerHTML = '<i class="fas fa-times"></i> Batalkan Antrian';
-            }
+          }
         }
         if (skrgEl) animateChange(skrgEl, newDisplay);
 

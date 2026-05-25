@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardPasienController;
+use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\PasienController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\AntrianController;
@@ -18,9 +20,10 @@ use App\Http\Controllers\ObatController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\KamarController;
 use App\Http\Controllers\RawatInapController;
+use App\Http\Controllers\MidtransWebhookController;
 
 // Public
-Route::get('/', [AuthController::class, 'showLogin'])->name('home');
+Route::get('/', [WelcomeController::class, 'index'])->name('home');
 
 // GET /login — redirect ke halaman sesuai menu akses user
 Route::get('/login', function () {
@@ -130,6 +133,9 @@ Route::middleware(['auth', 'menu:Billing'])->group(function () {
     Route::get('/admin/billing/{billing}', [BillingController::class, 'show'])->name('admin.billing.show');
     Route::post('/admin/billing/{billing}/bayar', [BillingController::class, 'bayar'])->name('admin.billing.bayar')->middleware('menu:Billing,bayar');
     Route::post('/admin/billing/{billing}/cek-bpjs', [BillingController::class, 'cekBpjs'])->name('admin.billing.cek-bpjs')->middleware('menu:Billing,bpjs');
+    // QRIS Midtrans
+    Route::post('/admin/billing/{billing}/generate-qris', [BillingController::class, 'generateQris'])->name('admin.billing.generate-qris')->middleware('menu:Billing,bayar');
+    Route::get('/admin/billing/{billing}/check-qris-status', [BillingController::class, 'checkQrisStatus'])->name('admin.billing.check-qris-status');
 });
 
 // ── Obat ──
@@ -194,137 +200,7 @@ Route::middleware(['auth', 'menu:Jabatan'])->group(function () {
 
 // ── Protected Routes Khusus Pasien ──
 Route::middleware(['auth', 'role:pasien'])->group(function () {
-    Route::get('/dashboard-pasien', function () {
-        $user   = auth()->user();
-        $pasien = $user->pasien ?? null;
-
-        $antrianAktif = null;
-        $totalAntrianHariIni = 0;
-        $antrianSelesai = 0;
-        $antrianMenunggu = 0;
-        $antrianDilayani = null;
-        $antrianPasienMenunggu = collect();
-
-        $pasienSelesaiHariIni = false;
-        $biayaBerlangsung = collect();
-
-        if ($pasien) {
-            $antrianAktif = \App\Models\Antrian::where('pasien_id', $pasien->id)
-                ->where('tanggal', now()->toDateString())
-                ->whereIn('status', ['Menunggu', 'Dipanggil'])
-                ->first();
-
-            $totalAntrianHariIni = \App\Models\Antrian::where('tanggal', now()->toDateString())->count();
-            $antrianSelesai = \App\Models\Antrian::where('tanggal', now()->toDateString())->where('status', 'Selesai')->count();
-            $antrianMenunggu = \App\Models\Antrian::where('tanggal', now()->toDateString())->whereIn('status', ['Menunggu', 'Dipanggil'])->count();
-            $antrianDilayani = \App\Models\Antrian::where('tanggal', now()->toDateString())->where('status', 'Dipanggil')->orderBy('updated_at', 'desc')->first();
-            $antrianPasienMenunggu = \App\Models\Antrian::with('pasien')->where('tanggal', now()->toDateString())->whereIn('status', ['Menunggu', 'Dipanggil'])->orderBy('no_antrian', 'asc')->get();
-            $pasienSelesaiHariIni = \App\Models\Antrian::where('pasien_id', $pasien->id)
-                ->where('tanggal', now()->toDateString())
-                ->where('status', 'Selesai')
-                ->exists();
-            
-            $riwayatAntrian = \App\Models\Antrian::with([
-                    'rekamMedis.dokter',
-                    'rekamMedis.diagnosa.icdx',
-                    'rekamMedis.resep.details.obat',
-                ])
-                ->where('pasien_id', $pasien->id)
-                ->where('status', 'Selesai')
-                ->orderBy('tanggal', 'desc')
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            $resepBerjalan = collect();
-
-            // 1. Cek Rawat Inap Aktif
-            $rawatInapAktif = \App\Models\RawatInap::with(['kamar', 'dokter', 'billing.details'])
-                ->where('pasien_id', $pasien->id)
-                ->where('status', 'Aktif')
-                ->first();
-
-            if ($rawatInapAktif) {
-                $billing = $rawatInapAktif->billing;
-                if ($billing) {
-                    $billing->recalculateTotals();
-                    $biayaBerlangsung->push([
-                        'tipe' => 'Rawat Inap',
-                        'no_invoice' => $billing->no_invoice,
-                        'grand_total' => $billing->grand_total,
-                        'tgl_mulai' => $rawatInapAktif->tgl_masuk->format('Y-m-d H:i:s'),
-                        'kamar' => $rawatInapAktif->kamar ? ($rawatInapAktif->kamar->kode_bed . ' (' . $rawatInapAktif->kamar->kelas . ')') : '-',
-                        'status' => 'Dirawat',
-                        'biaya_registrasi' => $billing->biaya_registrasi,
-                        'biaya_kamar' => $billing->biaya_kamar,
-                        'biaya_tindakan' => $billing->biaya_tindakan,
-                        'biaya_obat' => $billing->biaya_obat,
-                        'potongan_bpjs' => $billing->potongan_bpjs,
-                        'no_bpjs' => $billing->no_bpjs,
-                        'jenis_penjamin' => $rawatInapAktif->jenis_penjamin,
-                        'details' => $billing->details->map(fn($d) => [
-                            'nama_item' => $d->nama_item,
-                            'kategori' => $d->kategori,
-                            'jumlah' => $d->jumlah,
-                            'harga_satuan' => $d->harga_satuan,
-                            'subtotal' => $d->subtotal,
-                        ])->toArray(),
-                    ]);
-                }
-
-                // Ambil resep berjalan untuk rawat inap
-                $resepRawatInap = \App\Models\Resep::where('rawat_inap_id', $rawatInapAktif->id)
-                    ->whereIn('status', ['Menunggu', 'Diproses', 'Selesai'])
-                    ->with(['details.obat', 'dokter'])
-                    ->get();
-                $resepBerjalan = $resepBerjalan->concat($resepRawatInap);
-            }
-
-            // 2. Cek Pelayanan Klinik Aktif (Rawat Jalan / Outpatient) yang belum dibayar
-            $billingRawatJalan = \App\Models\Billing::with(['rekamMedis.dokter.user', 'rekamMedis.resep.details.obat', 'details'])
-                ->where('pasien_id', $pasien->id)
-                ->where('status', 'Belum Bayar')
-                ->whereNull('rawat_inap_id')
-                ->get();
-
-            foreach ($billingRawatJalan as $bj) {
-                $bj->recalculateTotals();
-                $biayaBerlangsung->push([
-                    'tipe' => 'Rawat Jalan',
-                    'no_invoice' => $bj->no_invoice,
-                    'grand_total' => $bj->grand_total,
-                    'tgl_mulai' => $bj->rekamMedis ? $bj->rekamMedis->tanggal_periksa->format('Y-m-d H:i:s') : $bj->created_at->format('Y-m-d H:i:s'),
-                    'kamar' => null,
-                    'status' => 'Pelayanan',
-                    'biaya_registrasi' => $bj->biaya_registrasi,
-                    'biaya_kamar' => $bj->biaya_kamar,
-                    'biaya_tindakan' => $bj->biaya_tindakan,
-                    'biaya_obat' => $bj->biaya_obat,
-                    'potongan_bpjs' => $bj->potongan_bpjs,
-                    'no_bpjs' => $bj->no_bpjs,
-                    'jenis_penjamin' => $bj->no_bpjs ? 'BPJS KESEHATAN' : 'Umum',
-                    'details' => $bj->details->map(fn($d) => [
-                        'nama_item' => $d->nama_item,
-                        'kategori' => $d->kategori,
-                        'jumlah' => $d->jumlah,
-                        'harga_satuan' => $d->harga_satuan,
-                        'subtotal' => $d->subtotal,
-                    ])->toArray(),
-                ]);
-
-                // Ambil resep berjalan untuk rawat jalan (dari billing yang belum lunas)
-                if ($bj->rekamMedis && $bj->rekamMedis->resep) {
-                    $resepRJ = $bj->rekamMedis->resep;
-                    if (in_array($resepRJ->status, ['Menunggu', 'Diproses', 'Selesai'])) {
-                        // Load relations to make sure details and obat are eager loaded
-                        $resepRJ->load(['details.obat', 'dokter']);
-                        $resepBerjalan->push($resepRJ);
-                    }
-                }
-            }
-        }
-
-        return view('dashboard_pasien', compact('user', 'pasien', 'antrianAktif', 'totalAntrianHariIni', 'antrianSelesai', 'antrianMenunggu', 'antrianDilayani', 'antrianPasienMenunggu', 'pasienSelesaiHariIni', 'riwayatAntrian', 'biayaBerlangsung', 'resepBerjalan'));
-    })->name('pasien.portal');
+    Route::get('/dashboard-pasien', [DashboardPasienController::class, 'portal'])->name('pasien.portal');
 
     Route::post('/dashboard-pasien/antrian', [AntrianController::class, 'storePasien'])->name('pasien.antrian.store');
     Route::post('/dashboard-pasien/antrian/{id}/cancel', [AntrianController::class, 'cancelPasien'])->name('pasien.antrian.cancel');
@@ -404,7 +280,7 @@ Route::middleware(['auth', 'role:pasien'])->group(function () {
         if ($pasien) {
             $aktif = \App\Models\Antrian::where('pasien_id', $pasien->id)
                 ->where('tanggal', $today)
-                ->whereIn('status', ['Menunggu', 'Dipanggil'])
+                ->whereIn('status', ['Menunggu', 'Dipanggil', 'Dilayani'])
                 ->first();
             if ($aktif) {
                 $antrianAktif = [
