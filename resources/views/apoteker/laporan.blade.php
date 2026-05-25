@@ -24,7 +24,7 @@
         </div>
       </div>
       <div class="flex gap-2 pt-1">
-        <button type="submit" class="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-semibold">Tampilkan Laporan</button>
+        <button type="submit" class="flex-1 px-4 py-2.5 bg-[#1e3a8a] text-white rounded-lg hover:bg-[#274cb4] transition text-sm font-semibold">Tampilkan Laporan</button>
         @if($tglAwal || $tglAkhir)
           <a href="{{ route('apoteker.laporan') }}" class="px-4 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-semibold flex items-center">Reset</a>
         @endif

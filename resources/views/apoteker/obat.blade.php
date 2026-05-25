@@ -37,7 +37,7 @@
 <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6 shadow-sm">
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-5 gap-3">
     <h2 class="font-bold text-lg text-gray-800">Daftar Obat</h2>
-    <button onclick="openModal()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2 text-sm font-medium">
+    <button onclick="openModal()" class="px-4 py-2 bg-[#1e3a8a] text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2 text-sm font-medium">
       <i class="fas fa-plus"></i> Tambah Obat
     </button>
   </div>
@@ -104,7 +104,46 @@
               <span class="px-2 py-1 bg-green-100 text-green-700 font-medium text-xs rounded-full">Tersedia</span>
             @endif
           </td>
-          <td class="px-4 py-3 text-center whitespace-nowrap">
+          <td class="px-4 py-3 text-center whitespace-nowrap relative">
+  
+  <!-- Tombol Titik 3 -->
+  <button onclick="toggleDropdown(this)"
+    class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 transition">
+    <i class="fas fa-ellipsis-v text-gray-700"></i>
+  </button>
+
+  <!-- Dropdown Menu -->
+  <div
+    class="dropdown-menu hidden absolute right-4 mt-2 w-52 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+
+    <button onclick="openModalRestok({{ json_encode($obat) }})"
+      class="w-full flex items-center gap-2 px-4 py-3 text-sm text-indigo-700 hover:bg-indigo-50 transition">
+      <i class="fas fa-plus-circle"></i> Restok
+    </button>
+
+    <button onclick="openModalStokOpname({{ json_encode($obat) }})"
+      class="w-full flex items-center gap-2 px-4 py-3 text-sm text-amber-700 hover:bg-amber-50 transition">
+      <i class="fas fa-boxes"></i> Opname
+    </button>
+
+    <button onclick="openModalRiwayatStokOpname({{ $obat->id }}, '{{ addslashes($obat->nama) }}')"
+      class="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition">
+      <i class="fas fa-history"></i> Riwayat
+    </button>
+
+    <button onclick="openModal({{ json_encode($obat) }})"
+      class="w-full flex items-center gap-2 px-4 py-3 text-sm text-blue-700 hover:bg-blue-50 transition">
+      <i class="fas fa-edit"></i> Edit
+    </button>
+
+    <button onclick="confirmDelete({{ $obat->id }}, '{{ addslashes($obat->nama) }}')"
+      class="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition">
+      <i class="fas fa-trash"></i> Hapus
+    </button>
+
+  </div>
+</td>
+          {{-- <td class="px-4 py-3 text-center whitespace-nowrap">
             <button onclick="openModalRestok({{ json_encode($obat) }})"
               class="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition mr-1" title="Tambah Stok / Restok">
               <i class="fas fa-plus-circle"></i> Restok
@@ -125,7 +164,7 @@
               class="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition">
               <i class="fas fa-trash"></i> Hapus
             </button>
-          </td>
+          </td> --}}
         </tr>
         @empty
         <tr>
@@ -801,5 +840,27 @@ document.addEventListener('keydown', function(e) {
     closeModalRiwayatStokOpname();
   }
 });
+
+  //titik tiga
+ function toggleDropdown(button) {
+    // Tutup semua dropdown lain
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+      if (menu !== button.nextElementSibling) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    // Toggle dropdown yang dipilih
+    button.nextElementSibling.classList.toggle('hidden');
+  }
+
+  // Klik di luar dropdown = tutup
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('td')) {
+      document.querySelectorAll('.dropdown-menu').forEach(menu => {
+        menu.classList.add('hidden');
+      });
+    }
+  });
 </script>
 @endsection

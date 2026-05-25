@@ -32,7 +32,7 @@
 
   <!-- Ringkasan Informasi Pasien -->
   <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-    <div class="bg-slate-800 px-6 py-4 flex items-center justify-between">
+    <div class="bg-[#1e3a8a] px-6 py-4 flex items-center justify-between">
       <div class="flex items-center gap-4">
         <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white text-xl font-bold">
           {{ strtoupper(substr($antrian->pasien?->nama ?? '?', 0, 1)) }}
