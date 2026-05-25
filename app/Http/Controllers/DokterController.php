@@ -156,7 +156,7 @@ class DokterController extends Controller
         $sortBy = $request->query('sort', 'default');
 
         $query = Antrian::with(['pasien', 'rekamMedis'])
-            ->where('tanggal', now()->toDateString())
+            ->whereDate('tanggal', now()->toDateString())
             ->whereHas('rekamMedis');
 
         // Filter: hanya antrian yang ditugaskan ke dokter ini ATAU antrean poli dokter ini yang belum diklaim,

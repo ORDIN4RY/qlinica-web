@@ -222,9 +222,6 @@
             </div>
             <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ $l['nama'] }}</h3>
             <p class="text-gray-600 leading-relaxed">{{ $l['desc'] }}</p>
-            <a href="#" class="inline-flex items-center mt-4 text-blue-900 hover:text-blue-800 font-medium gap-1 group">
-              Selengkapnya <i class="fas fa-arrow-right text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
-            </a>
           </div>
           @endforeach
         </div>
@@ -346,10 +343,10 @@
           
           <!-- tombol stack di mobile, row di desktop -->
           <div class="flex flex-col sm:flex-row gap-4 justify-center mt-10">
-            <a href="#" class="btn-subtle bg-blue-900 hover:bg-blue-800 text-white px-6 sm:px-8 py-4 rounded-2xl font-semibold shadow-md flex items-center justify-center gap-3 text-base sm:text-lg">
+            <a href="#" id="buatJanjiBtn" class="btn-subtle bg-blue-900 hover:bg-blue-800 text-white px-6 sm:px-8 py-4 rounded-2xl font-semibold shadow-md flex items-center justify-center gap-3 text-base sm:text-lg">
               <i class="fas fa-calendar-week"></i> Buat janji online
             </a>
-            <a href="#" class="btn-subtle bg-white border-2 border-blue-900/30 hover:border-blue-900 text-blue-900 px-6 sm:px-8 py-4 rounded-2xl font-semibold flex items-center justify-center gap-3 text-base sm:text-lg">
+            <a href="https://wa.me/6282131927337" target="_blank" rel="noopener noreferrer" class="btn-subtle bg-white border-2 border-blue-900/30 hover:border-blue-900 text-blue-900 px-6 sm:px-8 py-4 rounded-2xl font-semibold flex items-center justify-center gap-3 text-base sm:text-lg">
               <i class="fab fa-whatsapp"></i> WhatsApp
             </a>
           </div>
@@ -441,13 +438,17 @@
     // ===== MODAL LOGIN ONLY =====
     const loginModal = document.getElementById('loginModal');
     const loginBtn = document.getElementById('loginBtn');
+    const buatJanjiBtn = document.getElementById('buatJanjiBtn');
     const closeButtons = document.querySelectorAll('.close-modal');
 
     // Open Login Modal
-    loginBtn.addEventListener('click', (e) => {
+    const openLogin = (e) => {
       e.preventDefault();
       loginModal.classList.add('show');
-    });
+    };
+
+    if (loginBtn) loginBtn.addEventListener('click', openLogin);
+    if (buatJanjiBtn) buatJanjiBtn.addEventListener('click', openLogin);
 
 
     // Close modals with close button

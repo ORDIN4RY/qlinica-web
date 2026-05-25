@@ -94,8 +94,9 @@ class RawatInapController extends Controller
             'dokter_id' => 'required|exists:pegawai,id',
             'jenis_penjamin' => 'required|in:Umum,BPJS KESEHATAN,Asuransi Lain',
             'no_sep' => 'nullable|string|max:50',
-            'tgl_masuk' => 'required|date',
         ]);
+
+        $validated['tgl_masuk'] = Carbon::now();
 
         \DB::transaction(function() use ($validated) {
             // Generate SEP if Penjamin is BPJS KESEHATAN and no_sep is empty
@@ -240,12 +241,15 @@ class RawatInapController extends Controller
         }
 
         $validated = $request->validate([
-            'tgl_keluar' => 'required|date|after_or_equal:' . $rawatInap->tgl_masuk->format('Y-m-d\TH:i'),
             'catatan_keluar' => 'nullable|string',
         ]);
 
-        \DB::transaction(function() use ($rawatInap, $validated) {
-            $tglKeluar = Carbon::parse($validated['tgl_keluar']);
+        $tglKeluar = Carbon::now();
+        if ($tglKeluar->lt($rawatInap->tgl_masuk)) {
+            $tglKeluar = Carbon::parse($rawatInap->tgl_masuk);
+        }
+
+        \DB::transaction(function() use ($rawatInap, $validated, $tglKeluar) {
             $tglMasuk = Carbon::parse($rawatInap->tgl_masuk);
             
             // Update status kamar jadi Tersedia & kurangi kapasitas
@@ -292,12 +296,14 @@ class RawatInapController extends Controller
 
         $validated = $request->validate([
             'kamar_id' => 'required|exists:kamar,id',
-            'tgl_pindah' => 'required|date|after_or_equal:' . $minDate->format('Y-m-d\TH:i'),
             'sertakan_biaya_lama' => 'nullable|boolean',
         ]);
 
         $newKamarId = $validated['kamar_id'];
-        $tglPindah = Carbon::parse($validated['tgl_pindah']);
+        $tglPindah = Carbon::now();
+        if ($tglPindah->lt($minDate)) {
+            $tglPindah = Carbon::parse($minDate);
+        }
         $sertakanBiayaLama = $request->boolean('sertakan_biaya_lama');
 
         // Check if the new room is available
