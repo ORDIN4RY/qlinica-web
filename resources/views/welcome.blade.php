@@ -344,7 +344,7 @@
           <!-- tombol stack di mobile, row di desktop -->
           <div class="flex flex-col sm:flex-row gap-4 justify-center mt-10">
             <a href="#" id="buatJanjiBtn" class="btn-subtle bg-blue-900 hover:bg-blue-800 text-white px-6 sm:px-8 py-4 rounded-2xl font-semibold shadow-md flex items-center justify-center gap-3 text-base sm:text-lg">
-              <i class="fas fa-calendar-week"></i> Buat janji online
+              <i class="fas fa-calendar-week"></i> Buat antrian online
             </a>
             <a href="https://wa.me/6282131927337" target="_blank" rel="noopener noreferrer" class="btn-subtle bg-white border-2 border-blue-900/30 hover:border-blue-900 text-blue-900 px-6 sm:px-8 py-4 rounded-2xl font-semibold flex items-center justify-center gap-3 text-base sm:text-lg">
               <i class="fab fa-whatsapp"></i> WhatsApp
