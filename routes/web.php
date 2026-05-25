@@ -25,6 +25,11 @@ use App\Http\Controllers\MidtransWebhookController;
 // Public
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 
+// ── Display Antrian Publik (tanpa login — untuk layar TV/monitor ruang tunggu) ──
+Route::get('/antrian/display', [AntrianController::class, 'displayPage'])->name('antrian.display');
+Route::get('/antrian/display/data', [AntrianController::class, 'displayData'])->name('antrian.display.data');
+
+
 // GET /login — redirect ke halaman sesuai menu akses user
 Route::get('/login', function () {
     if (auth()->check()) {
