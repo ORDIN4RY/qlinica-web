@@ -49,7 +49,7 @@ try {
     } else {
         DB::table('pasien')->insert([
             'user_id'       => $uid,
-            'no_rm'         => 'RM-20260319-9001',
+            'no_rm'         => 'RM-260525-001',
             'nama'          => 'Demo Pasien',
             'tgl_lahir'     => '1995-01-01',
             'jenis_kelamin' => 'L',
@@ -58,7 +58,62 @@ try {
         ]);
         echo "Record pasien dibuat. NoRM: RM-20260319-9001\n";
     }
-    echo "\nKREDENSIAL:\nNo RM   : RM-20260319-9001\nPassword: pasien123\n";
+    echo "\nKREDENSIAL:\nNo RM   : RM-260525-001\nPassword: pasien123\n";
+
+    echo "\n=== DETAIL RAWAT INAP & BILLING ===\n";
+    $pasiens = DB::table('pasien')->get();
+    foreach ($pasiens as $p) {
+        $rawatInapAktif = DB::table('rawat_inap')->where('pasien_id', $p->id)->whereNull('tgl_keluar')->get();
+        $billingBelumLunas = DB::table('billing')->where('pasien_id', $p->id)->where('status', 'Belum Bayar')->get();
+        
+        echo "Pasien ID: {$p->id}, Nama: {$p->nama}, NoRM: {$p->no_rm}\n";
+        echo "  - Rawat Inap Aktif: " . $rawatInapAktif->count() . "\n";
+        foreach ($rawatInapAktif as $ri) {
+            echo "    * ID: {$ri->id}, Status: " . ($ri->status ?? 'NULL') . ", Tgl Masuk: {$ri->tgl_masuk}\n";
+        }
+        echo "  - Billing Belum Lunas: " . $billingBelumLunas->count() . "\n";
+        foreach ($billingBelumLunas as $b) {
+            echo "    * Invoice: {$b->no_invoice}, Grand Total: {$b->grand_total}, Status: {$b->status}, Rawat Inap ID: " . ($b->rawat_inap_id ?? 'NULL') . "\n";
+        }
+    }
+    echo "\n=== DETAIL ANTRIAN PASIEN 1 ===\n";
+    $antrians = DB::table('antrian')->where('pasien_id', 1)->get();
+    echo "Total Antrian: " . $antrians->count() . "\n";
+    foreach ($antrians as $a) {
+        echo "  - ID: {$a->id}, No: {$a->no_antrian}, Tanggal: {$a->tanggal}, Status: {$a->status}, Jenis: {$a->jenis}\n";
+    }
+
+    echo "\n=== TESTING NEWLY CREATED ANTRIAN MODEL ===\n";
+    $antrian = \App\Models\Antrian::create([
+        'no_antrian' => 999,
+        'pasien_id'  => 1,
+        'jenis'      => 'Online',
+        'keluhan'    => 'Test',
+        'status'     => 'Menunggu',
+        'tanggal'    => now()->toDateString(),
+    ]);
+    echo "Is Carbon? " . ($antrian->tanggal instanceof \Carbon\Carbon ? 'YES' : 'NO') . "\n";
+    echo "Type of tanggal: " . (is_object($antrian->tanggal) ? get_class($antrian->tanggal) : gettype($antrian->tanggal)) . "\n";
+    try {
+        echo "Formatted: " . $antrian->tanggal->format('d M Y') . "\n";
+    } catch (\Error $e) {
+        echo "ERROR on format: " . $e->getMessage() . "\n";
+    }
+    $antrian->forceDelete();
+
+    echo "\n=== SIMULATING TAKE QUEUE FOR PASIEN 1 ===\n";
+    $pasien = \App\Models\Pasien::find(1);
+    $user = $pasien->user;
+    auth()->login($user);
+
+    $request = new \Illuminate\Http\Request();
+    $request->merge(['jenis' => 'Online', 'keluhan' => 'Demam']);
+
+    $controller = new \App\Http\Controllers\AntrianController();
+    $response = $controller->storePasien($request);
+    echo "Response status: " . $response->getStatusCode() . "\n";
+    echo "Response content: " . $response->getContent() . "\n";
+
 } catch (\Exception $e) {
     echo "ERROR: " . $e->getMessage() . "\n";
     echo "TRACE: " . $e->getFile() . ":" . $e->getLine() . "\n";

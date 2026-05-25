@@ -56,10 +56,16 @@
       <!-- Quick Action Feedback -->
       @if(strtolower($antrian->status) === 'selesai')
         <div class="flex items-center gap-2">
-          <span class="text-xs font-semibold text-slate-400">Punya ulasan untuk kunjungan ini?</span>
-          <button onclick="showModalFeedback({{ $antrian->id }})" class="btn-anim text-blue-900 bg-white hover:bg-blue-50 border border-blue-900/15 px-4.5 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-sm">
-            <i class="fas fa-star text-yellow-400"></i> Beri Ulasan
-          </button>
+          @if($antrian->rekamMedis && $antrian->rekamMedis->feedback)
+            <span class="text-xs font-semibold text-green-600 bg-green-50 border border-green-100 px-4.5 py-2.5 rounded-2xl flex items-center gap-1.5 shadow-sm">
+              <i class="fas fa-check-circle"></i> Sudah Diulas
+            </span>
+          @else
+            <span class="text-xs font-semibold text-slate-400">Punya ulasan untuk kunjungan ini?</span>
+            <button onclick="showModalFeedback({{ $antrian->id }})" class="btn-anim text-blue-900 bg-white hover:bg-blue-50 border border-blue-900/15 px-4.5 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-sm">
+              <i class="fas fa-star text-yellow-400"></i> Beri Ulasan
+            </button>
+          @endif
         </div>
       @endif
     </header>
@@ -157,7 +163,7 @@
               <div>
                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Identitas Pasien</div>
                 <div class="text-sm font-bold text-slate-700 mt-0.5">{{ $pasien->nama ?? '—' }}</div>
-                <div class="text-xs text-slate-400 mt-0.5">NIK: {{ $pasien->nik ?? '—' }} · No. RM: {{ $pasien->no_rekam_medis ?? '—' }}</div>
+                <div class="text-xs text-slate-400 mt-0.5">NIK: {{ $pasien->nik ?? '—' }} · No. RM: {{ $pasien->no_rm ?? '—' }}</div>
               </div>
             </div>
           </div>
@@ -529,7 +535,7 @@
         <!-- Comment -->
         <div class="mb-4">
           <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">Komentar &amp; Ulasan</label>
-          <textarea id="feedbackKomentar" name="komentar" rows="3" placeholder="Tuliskan ulasan Anda..." class="w-full border border-slate-200 rounded-xl px-4 py-3 text-xs focus:border-blue-900 outline-none resize-none bg-slate-50"></textarea>
+          <textarea id="feedbackUlasan" name="ulasan" rows="3" placeholder="Tuliskan ulasan Anda..." class="w-full border border-slate-200 rounded-xl px-4 py-3 text-xs focus:border-blue-900 outline-none resize-none bg-slate-50"></textarea>
         </div>
 
         <div class="flex justify-end gap-2.5">
@@ -557,7 +563,7 @@
     function showModalFeedback(id) {
       document.getElementById('feedbackAntrianId').value = id;
       setRating(0);
-      document.getElementById('feedbackKomentar').value = '';
+      document.getElementById('feedbackUlasan').value = '';
       
       const modal = document.getElementById('modalFeedback');
       modal.classList.remove('opacity-0', 'pointer-events-none');
@@ -605,7 +611,7 @@
       e.preventDefault();
       const id = document.getElementById('feedbackAntrianId').value;
       const rating = document.getElementById('ratingInput').value;
-      const komentar = document.getElementById('feedbackKomentar').value;
+      const ulasan = document.getElementById('feedbackUlasan').value;
 
       if (!rating || rating === '0') {
         showToast('Pilih bintang terlebih dahulu', true);
@@ -623,12 +629,23 @@
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
           },
-          body: JSON.stringify({ antrian_id: id, rating, komentar })
+          body: JSON.stringify({ antrian_id: id, rating, ulasan })
         });
         const data = await res.json();
         if (data.success) {
           showToast('Ulasan berhasil dikirim!');
           closeModalFeedback();
+          
+          // Ubah tombol di header secara langsung agar instan
+          const container = document.querySelector('header button[onclick^="showModalFeedback"]')?.parentElement;
+          if (container) {
+            container.innerHTML = `
+              <span class="text-xs font-semibold text-green-600 bg-green-50 border border-green-100 px-4.5 py-2.5 rounded-2xl flex items-center gap-1.5 shadow-sm">
+                <i class="fas fa-check-circle"></i> Sudah Diulas
+              </span>
+            `;
+          }
+
           setTimeout(() => {
             window.location.reload();
           }, 1000);

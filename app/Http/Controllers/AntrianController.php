@@ -148,7 +148,7 @@ class AntrianController extends Controller
         // Cegah duplikat antrian aktif pada hari yang sama
         $sudahAda = Antrian::where('pasien_id', $pasien->id)
             ->where('tanggal', now()->toDateString())
-            ->whereIn('status', ['Menunggu', 'Dipanggil'])
+            ->whereIn('status', ['Menunggu', 'Dipanggil', 'Dilayani'])
             ->whereNull('deleted_at')
             ->exists();
 
@@ -240,8 +240,7 @@ class AntrianController extends Controller
     {
         $request->validate([
             'rating' => 'required|integer|min:1|max:5',
-            'kritik' => 'nullable|string',
-            'saran' => 'nullable|string',
+            'ulasan' => 'nullable|string',
             'antrian_id' => 'required|exists:antrian,id',
         ]);
 
@@ -262,11 +261,18 @@ class AntrianController extends Controller
             $rekamMedisId = $antrian->rekamMedis->id;
         }
 
+        // Cegah duplikat ulasan
+        if ($rekamMedisId) {
+            $sudahDiulas = Feedback::where('rekam_medis_id', $rekamMedisId)->exists();
+            if ($sudahDiulas) {
+                return response()->json(['success' => false, 'message' => 'Anda sudah memberikan ulasan untuk kunjungan ini.'], 422);
+            }
+        }
+
         Feedback::create([
             'pasien_id' => $user->pasien->id,
             'rekam_medis_id' => $rekamMedisId,
-            'kritik' => $request->kritik,
-            'saran' => $request->saran,
+            'ulasan' => $request->ulasan,
             'penilaian' => $request->rating,
         ]);
 
@@ -417,7 +423,8 @@ class AntrianController extends Controller
             'rekamMedis.dokter',
             'rekamMedis.diagnosa.icdx',
             'rekamMedis.resep.details.obat',
-            'rekamMedis.billing.details'
+            'rekamMedis.billing.details',
+            'rekamMedis.feedback',
         ])->findOrFail($id);
 
         // Security check

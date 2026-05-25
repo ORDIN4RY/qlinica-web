@@ -227,8 +227,7 @@
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-32">No RM</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Pasien</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-36">Penilaian</th>
-          <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-44">Kritik</th>
-          <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-44">Saran</th>
+          <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Ulasan</th>
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-36">Tanggal</th>
           @if(auth()->user()->hasMenuAccess('Komentar', 'hapus'))
           <th class="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Aksi</th>
@@ -277,12 +276,8 @@
               @endif
             </td>
 
-            <td class="px-5 py-4 text-gray-500 text-xs note-cell" title="{{ $item->kritik ?: '—' }}">
-              {{ $item->kritik ?: '—' }}
-            </td>
-
-            <td class="px-5 py-4 text-gray-500 text-xs note-cell" title="{{ $item->saran ?: '—' }}">
-              {{ $item->saran ?: '—' }}
+            <td class="px-5 py-4 text-gray-500 text-xs" title="{{ $item->ulasan ?: '—' }}">
+              {{ $item->ulasan ?: '—' }}
             </td>
 
             <td class="px-5 py-4 text-gray-400 text-xs font-medium whitespace-nowrap">
