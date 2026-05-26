@@ -279,6 +279,63 @@ class AntrianController extends Controller
         return response()->json(['success' => true, 'message' => 'Feedback berhasil disimpan']);
     }
 
+    /**
+     * Halaman display antrian publik (tanpa login).
+     */
+    public function displayPage()
+    {
+        return view('antrian_display');
+    }
+
+    /**
+     * API data antrian untuk layar display publik (polling).
+     * Mengembalikan nomor yang sedang dipanggil, statistik, dan daftar menunggu.
+     */
+    public function displayData()
+    {
+        $today = now()->toDateString();
+
+        // Nomor antrian yang paling terakhir dipanggil (status Dipanggil)
+        $dipanggil = Antrian::with(['pasien', 'rekamMedis'])
+            ->where('tanggal', $today)
+            ->where('status', 'Dipanggil')
+            ->orderBy('updated_at', 'desc')
+            ->first();
+
+        $total    = Antrian::where('tanggal', $today)->count();
+        $selesai  = Antrian::where('tanggal', $today)->where('status', 'Selesai')->count();
+        $menunggu = Antrian::where('tanggal', $today)
+            ->whereIn('status', ['Menunggu', 'Dipanggil'])
+            ->count();
+
+        // Daftar antrian yang masih menunggu / baru dipanggil (sertakan poli jika ada)
+        $daftarMenunggu = Antrian::with(['pasien', 'rekamMedis'])
+            ->where('tanggal', $today)
+            ->whereIn('status', ['Menunggu', 'Dipanggil'])
+            ->orderByRaw("CASE WHEN LOWER(status)='dipanggil' THEN 0 ELSE 1 END")
+            ->orderBy('no_antrian', 'asc')
+            ->get()
+            ->map(fn($a) => [
+                'no_antrian' => str_pad($a->no_antrian, 3, '0', STR_PAD_LEFT),
+                'nama'       => $a->pasien->nama ?? '-',
+                'status'     => $a->status,
+                'poli'       => $a->rekamMedis->pelayanan_kesehatan ?? null,
+            ]);
+
+        return response()->json([
+            'dilayani'        => $dipanggil ? [
+                'no_antrian'  => str_pad($dipanggil->no_antrian, 3, '0', STR_PAD_LEFT),
+                'nama'        => $dipanggil->pasien->nama ?? '-',
+                'jenis'       => $dipanggil->jenis,
+                'poli'        => $dipanggil->rekamMedis->pelayanan_kesehatan ?? null,
+            ] : null,
+            'total'           => $total,
+            'selesai'         => $selesai,
+            'menunggu'        => $menunggu,
+            'daftar_menunggu' => $daftarMenunggu,
+        ]);
+    }
+
     public function realtimeData()
     {
         $antrians = Antrian::with(['pasien', 'rekamMedis'])
@@ -386,10 +443,10 @@ class AntrianController extends Controller
         ]);
     }
 
-    // Placeholder untuk update status
+    // Update status antrian
     public function updateStatus(Request $request, $id)
     {
-        $antrian = Antrian::findOrFail($id);
+        $antrian = Antrian::with(['pasien', 'rekamMedis'])->findOrFail($id);
 
         $request->validate([
             'status' => 'required|in:Menunggu,Terpanggil,Dipanggil,Dilayani,Selesai,Batal',
@@ -401,9 +458,12 @@ class AntrianController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'success' => true,
-                'message' => $message,
-                'antrian' => $antrian
+                'success'     => true,
+                'message'     => $message,
+                'no_antrian'  => str_pad($antrian->no_antrian, 3, '0', STR_PAD_LEFT),
+                'nama'        => $antrian->pasien->nama ?? '',
+                'poli'        => $antrian->rekamMedis->pelayanan_kesehatan ?? null,
+                'antrian'     => $antrian,
             ]);
         }
 

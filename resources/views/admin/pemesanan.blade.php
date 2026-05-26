@@ -255,6 +255,13 @@
     </button>
     @endif
 
+    {{-- Tombol Layar Display --}}
+    <a href="{{ route('antrian.display') }}" target="_blank" id="btnLayarDisplay"
+       title="Buka layar display antrian untuk ruang tunggu"
+       style="display:inline-flex;align-items:center;gap:8px;background:rgba(124,58,237,0.08);color:#7c3aed;font-size:13.5px;font-weight:700;padding:10px 18px;border-radius:12px;border:1.5px solid rgba(124,58,237,0.25);text-decoration:none;transition:all .2s;white-space:nowrap;">
+      <i class="fas fa-tv text-xs"></i> Layar Display
+    </a>
+
     {{-- Filter Status --}}
     <div class="flex items-center gap-2 flex-wrap">
       <button class="filter-chip active" data-filter="semua">Semua</button>
@@ -958,6 +965,114 @@
   // Polling Realtime Antrian (setiap 5 detik)
   setInterval(loadRealtimeData, 5000); // 5000ms = 5 detik
 
+  /* ══════════════════════════════════════════════
+     VOICE TTS — SUARA PEREMPUAN INSTANSI
+     (berjalan langsung di halaman ini, tanpa
+     perlu membuka layar Display terlebih dahulu)
+  ══════════════════════════════════════════════ */
+  const POLI_TTS_MAP_ADM = {
+    'Poli Umum'    : 'Poli Umum',
+    'Poli Gigi'    : 'Poli Gigi',
+    'Poli KIA'     : 'Poli K. I. A.',
+    'UGD'          : 'Unit Gawat Darurat',
+    'Laboratorium' : 'Laboratorium',
+    'Baby Spa'     : 'Baby Spa',
+  };
+
+  let _femaleVoiceAdm = null;
+
+  function _loadVoicesAdm() {
+    const voices = window.speechSynthesis.getVoices();
+    const candidates = [
+      voices.find(v => v.lang === 'id-ID' && /female|wanita|perempuan|woman/i.test(v.name)),
+      voices.find(v => v.lang.startsWith('id') && /female|woman/i.test(v.name)),
+      voices.find(v => v.lang === 'ms-MY' && /female|woman/i.test(v.name)),
+      voices.find(v => /google bahasa indonesia|google id/i.test(v.name)),
+      voices.find(v => /microsoft andi|zira|hazel|susan|karen|samantha|moira|fiona|tessa/i.test(v.name)),
+      voices.find(v => v.lang === 'id-ID'),
+      voices.find(v => v.lang.startsWith('id')),
+      voices.find(v => v.lang === 'ms-MY'),
+      voices.find(v => /female|woman|zira|hazel|susan|karen|samantha/i.test(v.name)),
+    ];
+    _femaleVoiceAdm = candidates.find(v => v !== undefined) || null;
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = _loadVoicesAdm;
+    setTimeout(_loadVoicesAdm, 300);
+  }
+
+  function _speakPanggil(noAntrian, nama, poli) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+
+    const poliText = poli ? (POLI_TTS_MAP_ADM[poli] || poli) : null;
+    const digitized = noAntrian.split('').join(', ');
+
+    const text =
+      'Perhatian. ' +
+      'Nomor antrian, ' + digitized + '. ' +
+      'Nomor antrian, ' + digitized + '. ' +
+      (poliText
+        ? 'Dimohon kepada pasien atas nama ' + (nama || 'yang bersangkutan') + ', harap segera menuju ' + poliText + '. '
+        : 'Dimohon kepada pasien atas nama ' + (nama || 'yang bersangkutan') + ', harap segera menuju loket pendaftaran. ') +
+      'Terima kasih.';
+
+    setTimeout(() => {
+      const utter  = new SpeechSynthesisUtterance(text);
+      utter.lang   = 'id-ID';
+      utter.rate   = 0.88;
+      utter.pitch  = 1.15;
+      utter.volume = 1;
+      if (_femaleVoiceAdm) utter.voice = _femaleVoiceAdm;
+      window.speechSynthesis.speak(utter);
+    }, 200);
+  }
+
+  /* ─── Toast notifikasi panggilan ─── */
+  (function _injectCallToast() {
+    if (document.getElementById('_admCallToast')) return;
+    const el = document.createElement('div');
+    el.id = '_admCallToast';
+    el.innerHTML = `
+      <div id="_admCallToastInner" style="
+        position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-100px);
+        z-index:9999; background:#1e3a8a; border:1px solid rgba(96,165,250,.35);
+        border-radius:20px; padding:14px 26px; display:flex; align-items:center; gap:14px;
+        box-shadow:0 16px 48px rgba(0,0,0,.2); min-width:300px;
+        opacity:0; transition:transform .45s cubic-bezier(.34,1.56,.64,1), opacity .3s;">
+        <div style="width:40px;height:40px;background:rgba(255,255,255,.12);border-radius:12px;
+          display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;flex-shrink:0;">
+          <i class="fas fa-bullhorn"></i>
+        </div>
+        <div>
+          <div id="_admToastNum"  style="font-family:'Sora',sans-serif;font-size:24px;font-weight:900;color:#bfdbfe;"></div>
+          <div id="_admToastSub"  style="font-size:11px;color:rgba(255,255,255,.7);font-weight:600;margin-top:2px;"></div>
+        </div>
+      </div>`;
+    document.body.appendChild(el);
+  })();
+
+  function _showCallToast(noAntrian, nama, poli) {
+    const inner = document.getElementById('_admCallToastInner');
+    if (!inner) return;
+    document.getElementById('_admToastNum').textContent = 'No. ' + noAntrian;
+    document.getElementById('_admToastSub').textContent = poli
+      ? 'Harap menuju ' + poli + ' — ' + (nama || '')
+      : 'Menuju loket pendaftaran — ' + (nama || '');
+    inner.style.transform = 'translateX(-50%) translateY(0)';
+    inner.style.opacity   = '1';
+    clearTimeout(inner._toastTimer);
+    inner._toastTimer = setTimeout(() => {
+      inner.style.transform = 'translateX(-50%) translateY(-100px)';
+      inner.style.opacity   = '0';
+    }, 6500);
+  }
+
+  /* ══════════════════════════════════════════════
+     PANGGIL STATUS LANGSUNG
+  ══════════════════════════════════════════════ */
   async function panggilStatusLangsung(id, nama) {
     const confirmed = await showCustomConfirm(
       'Konfirmasi Panggilan',
@@ -965,7 +1080,7 @@
       { yesText: 'Ya, Panggil', noText: 'Batal' }
     );
     if (!confirmed) return;
-    
+
     try {
       const response = await fetch(BASE_ANTRIAN + '/' + id + '/status', {
         method: 'POST',
@@ -974,14 +1089,14 @@
           'X-CSRF-TOKEN': '{{ csrf_token() }}',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({
-          _method: 'PATCH',
-          status: 'Dipanggil'
-        })
+        body: JSON.stringify({ _method: 'PATCH', status: 'Dipanggil' })
       });
-      
+
       const data = await response.json();
       if (data.success) {
+        // Langsung bunyikan suara & tampilkan toast — tanpa buka layar display
+        _speakPanggil(data.no_antrian, data.nama, data.poli);
+        _showCallToast(data.no_antrian, data.nama, data.poli);
         loadRealtimeData();
       } else {
         showCustomAlert('Gagal', data.message || 'Gagal mengubah status antrian.', 'error');
