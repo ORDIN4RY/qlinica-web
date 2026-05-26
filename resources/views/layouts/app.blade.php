@@ -2,6 +2,8 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>@yield('title', 'Dashboard') | QLINICA</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -59,8 +61,8 @@
   <aside id="sidebar" class="w-64 bg-blue-900 text-white flex flex-col fixed inset-y-0 left-0 z-40 shadow-2xl transition-transform duration-300 transform -translate-x-full md:translate-x-0">
     <!-- Logo (Fixed Top) -->
     <div class="flex items-center gap-3 px-6 py-5 border-b border-white/10 shrink-0">
-      <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
-        <i class="fas fa-clinic-medical text-white text-lg"></i>
+      <div class="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm p-1">
+        <img src="{{ asset('favicon.png') }}" alt="QLINICA" class="w-full h-full object-contain">
       </div>
       <span class="font-bold text-xl tracking-tight">QLINICA</span>
     </div>

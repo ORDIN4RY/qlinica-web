@@ -57,9 +57,7 @@
       <!-- Header Invoice (Kop Klinik) -->
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-100 pb-6">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 bg-blue-900 rounded-xl flex items-center justify-center">
-            <i class="fas fa-clinic-medical text-white text-2xl"></i>
-          </div>
+          <img src="{{ asset('favicon.png') }}" alt="QLINICA" class="w-12 h-12">
           <div>
             <h3 class="font-bold text-xl text-blue-900">QLINICA</h3>
             <p class="text-xs text-gray-500">Jl. Ahmad Yani No. 23</p>

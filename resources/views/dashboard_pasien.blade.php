@@ -2,6 +2,8 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sahaduta | Portal Pasien</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -41,9 +43,7 @@
       <div class="flex justify-between items-center h-16">
         <!-- Logo -->
         <div class="flex items-center space-x-2">
-          <div class="w-8 h-8 bg-blue-900 rounded-xl flex items-center justify-center">
-            <i class="fas fa-clinic-medical text-white"></i>
-          </div>
+          <img src="{{ asset('favicon.png') }}" alt="Sahaduta" class="w-8 h-8">
           <span class="font-semibold text-xl text-gray-800">Sahaduta</span>
         </div>
 
