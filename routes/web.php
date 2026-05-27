@@ -25,6 +25,19 @@ use App\Http\Controllers\MidtransWebhookController;
 // Public
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 
+Route::get('/clear-cache-all', function() {
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
+    \Illuminate\Support\Facades\Artisan::call('route:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    return 'Cache cleared successfully';
+});
+
+Route::get('/generate-key', function() {
+    \Illuminate\Support\Facades\Artisan::call('key:generate');
+    return 'Key berhasil dibuat! Silakan cek file .env Anda di cPanel.';
+});
+
 // ── Display Antrian Publik (tanpa login — untuk layar TV/monitor ruang tunggu) ──
 Route::get('/antrian/display', [AntrianController::class, 'displayPage'])->name('antrian.display');
 Route::get('/antrian/display/data', [AntrianController::class, 'displayData'])->name('antrian.display.data');
