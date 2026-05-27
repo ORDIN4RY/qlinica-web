@@ -26,12 +26,16 @@ Route::prefix('mobile')->group(function () {
 
     // Auth (tidak butuh token)
     Route::post('/login', [MobileAuthController::class, 'login']);
+    Route::post('/forgot-password', [MobileAuthController::class, 'forgotPassword']);
+    Route::post('/verify-otp', [MobileAuthController::class, 'verifyOtp']);
+    Route::post('/reset-password', [MobileAuthController::class, 'resetPassword']);
 
     // Routes yang butuh token Sanctum
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [MobileAuthController::class, 'logout']);
         Route::get('/me', [MobileAuthController::class, 'me']);
         Route::put('/profile', [MobileAuthController::class, 'updateProfile']);
+        Route::post('/update-foto', [MobileAuthController::class, 'updateFoto']);
         Route::post('/change-password', [MobileAuthController::class, 'changePassword']);
 
         // Presensi

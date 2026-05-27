@@ -7,6 +7,9 @@ use App\Models\Pegawai;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Carbon\Carbon;
 
 class MobileAuthController extends Controller
 {
@@ -72,6 +75,121 @@ class MobileAuthController extends Controller
                     'alamat'      => $pegawai->alamat,
                 ] : null,
             ],
+        ]);
+    }
+
+    /**
+     * Kirim OTP untuk reset password.
+     */
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ], [
+            'email.exists' => 'Email tidak terdaftar.'
+        ]);
+
+        $otp = sprintf("%06d", mt_rand(1, 999999));
+
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $request->email],
+            [
+                'token' => $otp,
+                'created_at' => Carbon::now()
+            ]
+        );
+
+        try {
+            Mail::raw("Kode OTP untuk reset password Anda adalah: {$otp}\n\nBerlaku selama 60 menit.", function ($message) use ($request) {
+                $message->to($request->email)
+                        ->subject('Kode OTP Reset Password');
+            });
+        } catch (\Exception $e) {
+            \Log::error('Gagal mengirim email OTP: ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kode OTP telah dikirim ke email Anda.',
+        ]);
+    }
+
+    /**
+     * Verifikasi OTP sebelum reset password.
+     */
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email|exists:users,email',
+            'token'    => 'required|string',
+        ]);
+
+        $reset = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('token', $request->token)
+            ->first();
+
+        if (!$reset) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode OTP tidak valid.'
+            ], 400);
+        }
+
+        if (Carbon::parse($reset->created_at)->addMinutes(60)->isPast()) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode OTP sudah kedaluwarsa.'
+            ], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kode OTP valid.',
+        ]);
+    }
+
+    /**
+     * Reset password menggunakan OTP.
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email|exists:users,email',
+            'token'    => 'required|string',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $reset = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('token', $request->token)
+            ->first();
+
+        if (!$reset) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode OTP tidak valid.'
+            ], 400);
+        }
+
+        if (Carbon::parse($reset->created_at)->addMinutes(60)->isPast()) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode OTP sudah kedaluwarsa.'
+            ], 400);
+        }
+
+        $user = User::where('email', $request->email)->first();
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password berhasil direset. Silakan login dengan password baru.',
         ]);
     }
 
@@ -149,6 +267,51 @@ class MobileAuthController extends Controller
             'message' => 'Profil berhasil diperbarui.',
             'user'    => $this->me($request)->original['user'],
         ]);
+    }
+
+    /**
+     * Update foto profil user dari mobile.
+     */
+    public function updateFoto(Request $request)
+    {
+        $user = $request->user();
+        
+        $request->validate([
+            'foto' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        if ($request->hasFile('foto')) {
+            // Delete old photo if it exists and is not the default
+            if ($user->foto && \Storage::disk('public')->exists($user->foto)) {
+                \Storage::disk('public')->delete($user->foto);
+            }
+
+            // Store new photo
+            $path = $request->file('foto')->store('profil', 'public');
+
+            // Update user
+            $user->update([
+                'foto' => $path,
+            ]);
+
+            // Update pegawai if exists
+            if ($user->pegawai) {
+                $user->pegawai->update([
+                    'foto' => $path,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto profil berhasil diperbarui.',
+                'user'    => $this->me($request)->original['user'],
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Tidak ada file gambar yang diunggah.',
+        ], 400);
     }
 
     /**

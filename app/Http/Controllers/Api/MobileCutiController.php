@@ -27,15 +27,21 @@ class MobileCutiController extends Controller
 
         $bulan = $request->get('bulan', now()->month);
         $tahun = $request->get('tahun', now()->year);
+        $jenis = $request->get('jenis'); // Filter opsional dari mobile
 
-        // Ambil data mentah (hanya yang memiliki batch_id agar tidak double/bingung)
-        $presensis = Presensi::where('pegawai_id', $pegawai->id)
-            ->whereIn('status', ['Cuti', 'Izin', 'Sakit'])
+        $query = Presensi::where('pegawai_id', $pegawai->id)
             ->whereNotNull('batch_id')
             ->whereMonth('tanggal', $bulan)
-            ->whereYear('tanggal', $tahun)
-            ->orderBy('tanggal', 'desc')
-            ->get();
+            ->whereYear('tanggal', $tahun);
+
+        if ($jenis) {
+            // Bisa menerima "sakit", "Izin", "CUTI" dll
+            $query->where('status', ucfirst(strtolower($jenis)));
+        } else {
+            $query->whereIn('status', ['Cuti', 'Izin', 'Sakit']);
+        }
+
+        $presensis = $query->orderBy('tanggal', 'desc')->get();
 
         // Kelompokkan berdasarkan batch_id
         $grouped = $presensis->groupBy('batch_id');
@@ -99,9 +105,16 @@ class MobileCutiController extends Controller
      */
     public function store(Request $request)
     {
+        // Pastikan jenis memiliki format yang benar (Cuti, Izin, Sakit)
+        if ($request->has('jenis')) {
+            $jenis = ucfirst(strtolower($request->jenis));
+            if ($jenis === 'Ijin') $jenis = 'Izin';
+            $request->merge(['jenis' => $jenis]);
+        }
+
         $request->validate([
             'jenis'           => 'required|in:Cuti,Izin,Sakit',
-            'tanggal_mulai'   => 'required|date|after_or_equal:today',
+            'tanggal_mulai'   => 'required|date', // Dihapus after_or_equal:today agar bisa izin/sakit untuk hari ini/kemarin
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'keterangan'      => 'required|string|max:500',
             'surat_dokter'    => 'nullable|image|max:2048',

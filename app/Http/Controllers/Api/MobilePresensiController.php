@@ -262,7 +262,8 @@ class MobilePresensiController extends Controller
         $keterangan    = 'Hadir tepat waktu (' . $jadwal->shift->nama_shift . ')';
 
         if ($sekarang->gt($jamMasukShift)) {
-            $telatMenit = $sekarang->diffInMinutes($jamMasukShift);
+            // Telat meskipun 1 detik, dihitung (pembulatan ke atas)
+            $telatMenit = (int) ceil($sekarang->diffInSeconds($jamMasukShift) / 60);
             $keterangan = "Telat {$telatMenit} menit pada {$jadwal->shift->nama_shift}";
         }
 
@@ -336,6 +337,31 @@ class MobilePresensiController extends Controller
                 'success' => false,
                 'message' => 'Anda sudah melakukan absen pulang hari ini.',
             ], 409);
+        }
+
+        // ★ Cek batasan waktu absen pulang (10 menit sebelum jam pulang)
+        $jadwal = \App\Models\JadwalShift::with('shift')
+            ->where('id', $presensi->jadwal_shift_id)
+            ->first();
+
+        if ($jadwal) {
+            $jamPulangShift = Carbon::parse($presensi->tanggal . ' ' . $jadwal->shift->jam_pulang);
+            
+            // Jika shift malam (pulang < masuk), tambah 1 hari ke jam pulang
+            if (Carbon::parse($jadwal->shift->jam_pulang)->lt(Carbon::parse($jadwal->shift->jam_masuk))) {
+                $jamPulangShift->addDay();
+            }
+
+            // Boleh pulang 10 menit sebelum jam pulang
+            $allowedClockOutTime = $jamPulangShift->copy()->subMinutes(10);
+            
+            if (now()->lt($allowedClockOutTime)) {
+                $waktuBuka = $allowedClockOutTime->format('H:i');
+                return response()->json([
+                    'success' => false,
+                    'message' => "Absen pulang belum dibuka. Anda baru bisa absen pulang pada pukul {$waktuBuka}.",
+                ], 403);
+            }
         }
 
         $presensi->update([
