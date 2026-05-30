@@ -50,11 +50,11 @@ class DashboardController extends Controller
         $month = (int) $request->input('month', Carbon::now()->month - 1); // 0-indexed untuk JS
 
         // ── KPI: Kunjungan per tahun ──────────────────────────────────
-        $visitsByYear = Antrian::selectRaw('
-                SUM(CASE WHEN p.jenis_kelamin = "L" THEN 1 ELSE 0 END) as laki,
-                SUM(CASE WHEN p.jenis_kelamin = "P" THEN 1 ELSE 0 END) as perempuan,
+        $visitsByYear = Antrian::selectRaw("
+                SUM(CASE WHEN p.jenis_kelamin = 'L' THEN 1 ELSE 0 END) as laki,
+                SUM(CASE WHEN p.jenis_kelamin = 'P' THEN 1 ELSE 0 END) as perempuan,
                 COUNT(*) as total
-            ')
+            ")
             ->join('pasien as p', 'p.id', '=', 'antrian.pasien_id')
             ->whereYear('antrian.tanggal', $year)
             ->whereNull('antrian.deleted_at')
@@ -65,11 +65,11 @@ class DashboardController extends Controller
         $perempuanTahun = $visitsByYear->perempuan ?? Pasien::where('jenis_kelamin', 'P')->count();
 
         // ── KPI: Kunjungan per bulan (12 bulan untuk chart) ──────────
-        $monthlyRaw = Antrian::selectRaw('
-                MONTH(tanggal) as bulan,
-                SUM(CASE WHEN p.jenis_kelamin = "L" THEN 1 ELSE 0 END) as laki,
-                SUM(CASE WHEN p.jenis_kelamin = "P" THEN 1 ELSE 0 END) as perempuan
-            ')
+        $monthlyRaw = Antrian::selectRaw("
+                EXTRACT(MONTH FROM tanggal)::int as bulan,
+                SUM(CASE WHEN p.jenis_kelamin = 'L' THEN 1 ELSE 0 END) as laki,
+                SUM(CASE WHEN p.jenis_kelamin = 'P' THEN 1 ELSE 0 END) as perempuan
+            ")
             ->join('pasien as p', 'p.id', '=', 'antrian.pasien_id')
             ->whereYear('antrian.tanggal', $year)
             ->whereNull('antrian.deleted_at')
@@ -158,7 +158,7 @@ class DashboardController extends Controller
 
 
         // ── Tahun tersedia (untuk date-picker) ───────────────────────
-        $tahunList = Antrian::selectRaw('YEAR(tanggal) as tahun')
+        $tahunList = Antrian::selectRaw('EXTRACT(YEAR FROM tanggal)::int as tahun')
             ->whereNull('deleted_at')
             ->groupBy('tahun')
             ->orderByDesc('tahun')

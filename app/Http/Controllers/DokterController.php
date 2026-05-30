@@ -231,7 +231,7 @@ class DokterController extends Controller
 
         // Tampilkan SEMUA pasien terdaftar (read-only untuk dokter)
         $query = \App\Models\Pasien::with(['agama', 'pendidikan', 'pekerjaan'])
-            ->selectRaw('pasien.*, TIMESTAMPDIFF(YEAR, tgl_lahir, CURDATE()) as umur')
+            ->selectRaw("pasien.*, EXTRACT(YEAR FROM AGE(CURRENT_DATE, tgl_lahir))::int as umur")
             ->orderBy('nama');
 
         if ($q) {

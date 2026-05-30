@@ -12,8 +12,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (DB::connection()->getDriverName() !== 'sqlite') {
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'mysql') {
             DB::statement("ALTER TABLE billing_detail MODIFY COLUMN kategori ENUM('Registrasi', 'Tindakan', 'Obat', 'Kamar')");
+        } elseif ($driver === 'pgsql') {
+            // PostgreSQL does not support MODIFY COLUMN / ENUM() syntax.
+            // We cast the column to VARCHAR first, then apply a CHECK constraint.
+            DB::statement("ALTER TABLE billing_detail ALTER COLUMN kategori TYPE VARCHAR(50) USING kategori::VARCHAR(50)");
+            DB::statement("ALTER TABLE billing_detail DROP CONSTRAINT IF EXISTS billing_detail_kategori_check");
+            DB::statement("ALTER TABLE billing_detail ADD CONSTRAINT billing_detail_kategori_check CHECK (kategori IN ('Registrasi', 'Tindakan', 'Obat', 'Kamar'))");
         }
     }
 
@@ -22,7 +30,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Reverting enum might be risky if there are 'Kamar' records, but here is the statement
-        // DB::statement("ALTER TABLE billing_detail MODIFY COLUMN kategori ENUM('Registrasi', 'Tindakan', 'Obat')");
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE billing_detail MODIFY COLUMN kategori ENUM('Registrasi', 'Tindakan', 'Obat')");
+        } elseif ($driver === 'pgsql') {
+            DB::statement("ALTER TABLE billing_detail DROP CONSTRAINT IF EXISTS billing_detail_kategori_check");
+            DB::statement("ALTER TABLE billing_detail ADD CONSTRAINT billing_detail_kategori_check CHECK (kategori IN ('Registrasi', 'Tindakan', 'Obat'))");
+        }
     }
 };
