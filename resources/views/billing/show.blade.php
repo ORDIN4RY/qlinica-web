@@ -165,9 +165,9 @@
               <span>Sub Biaya Kamar Inap:</span>
               <span class="font-mono">Rp {{ number_format($billing->biaya_kamar, 2, ',', '.') }}</span>
             </div>
-            @if($billing->potongan_bpjs > 0)
+            @if($billing->no_bpjs)
               <div class="flex justify-between text-emerald-600 font-semibold">
-                <span>Potongan BPJS ({{ $billing->no_bpjs }}):</span>
+                <span>Ditanggung BPJS ({{ $billing->no_bpjs }}):</span>
                 <span class="font-mono">-Rp {{ number_format($billing->potongan_bpjs, 2, ',', '.') }}</span>
               </div>
             @endif
@@ -239,22 +239,6 @@
               </label>
 
               <label class="border border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition group">
-                <input type="radio" name="metode_pembayaran" value="QRIS" class="sr-only peer">
-                <div class="peer-checked:bg-blue-900 text-gray-500 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 transition group-hover:bg-blue-100">
-                  <i class="fas fa-qrcode text-sm"></i>
-                </div>
-                <span class="text-xs font-semibold text-gray-700">QRIS</span>
-              </label>
-
-              <label class="border border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition group">
-                <input type="radio" name="metode_pembayaran" value="Debit" class="sr-only peer">
-                <div class="peer-checked:bg-blue-900 text-gray-500 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 transition group-hover:bg-blue-100">
-                  <i class="fas fa-credit-card text-sm"></i>
-                </div>
-                <span class="text-xs font-semibold text-gray-700">Debit / EDC</span>
-              </label>
-
-              <label class="border border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition group">
                 <input type="radio" name="metode_pembayaran" value="Asuransi" class="sr-only peer">
                 <div class="peer-checked:bg-blue-900 text-gray-500 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 transition group-hover:bg-blue-100">
                   <i class="fas fa-shield-alt text-sm"></i>
@@ -275,60 +259,16 @@
             <div id="bpjs-verification-status" class="text-xs hidden"></div>
           </div>
 
-          <!-- Panel QRIS (Ditampilkan dinamis jika QRIS dipilih) -->
-          <div id="qris-panel" class="hidden border border-amber-200 rounded-xl p-4 bg-amber-50/40 space-y-3 transition">
-            <!-- State 1: Belum di-generate -->
-            <div id="qris-before-generate">
-              <div class="flex items-center gap-2 mb-2">
-                <div class="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center">
-                  <i class="fas fa-qrcode text-white text-sm"></i>
-                </div>
-                <div>
-                  <p class="text-xs font-bold text-gray-800">Bayar via QRIS Midtrans</p>
-                  <p class="text-[11px] text-gray-500">Mendukung semua e-wallet & bank (GoPay, OVO, Dana, BCA, dll)</p>
-                </div>
-              </div>
-              <button type="button" id="btn-generate-qr"
-                class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 shadow-sm">
-                <i class="fas fa-qrcode"></i> Generate QR Code Pembayaran
-              </button>
-            </div>
 
-            <!-- State 2: QR sudah di-generate, menunggu scan -->
-            <div id="qris-waiting" class="hidden text-center space-y-3">
-              <p class="text-xs font-bold text-gray-700 uppercase tracking-wide">Scan QR Code Berikut</p>
-              <div class="flex justify-center">
-                <img id="qris-image" src="" alt="QR Code QRIS" class="w-48 h-48 rounded-xl border-2 border-amber-300 shadow-md object-contain bg-white p-2">
-              </div>
-              <div class="flex items-center justify-center gap-2 text-amber-700 text-xs font-semibold">
-                <i class="fas fa-circle-notch animate-spin"></i>
-                <span id="qris-status-text">Menunggu pembayaran dari pasien...</span>
-              </div>
-              <p class="text-[10px] text-gray-400">QR berlaku 30 menit. Status diperbarui otomatis setiap 5 detik.</p>
-              <button type="button" id="btn-refresh-qr"
-                class="text-xs text-amber-700 underline hover:text-amber-900 transition">
-                <i class="fas fa-redo-alt mr-1"></i>Generate Ulang QR
-              </button>
-            </div>
-
-            <!-- State 3: Pembayaran berhasil -->
-            <div id="qris-success" class="hidden text-center space-y-2 py-4">
-              <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl">
-                <i class="fas fa-check-circle"></i>
-              </div>
-              <p class="font-bold text-emerald-800 text-sm">Pembayaran QRIS Berhasil!</p>
-              <p class="text-xs text-emerald-600">Halaman akan diperbarui otomatis...</p>
-            </div>
-          </div>
 
           <div class="p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-2 text-sm text-gray-700">
             <div class="flex justify-between font-bold text-gray-900 text-base">
               <span>Total Bayar:</span>
               <span class="font-mono text-blue-900">Rp {{ number_format($billing->grand_total, 2, ',', '.') }}</span>
             </div>
-            @if($billing->potongan_bpjs > 0)
+            @if($billing->no_bpjs)
               <div class="flex justify-between text-xs text-emerald-700 font-semibold border-b border-blue-200/50 pb-1.5">
-                <span>Potongan BPJS Terpasang:</span>
+                <span>Ditanggung BPJS FKTP:</span>
                 <span>Rp {{ number_format($billing->potongan_bpjs, 2, ',', '.') }}</span>
               </div>
             @endif
@@ -397,29 +337,16 @@
 
 </div>
 
-<!-- Script untuk radio button styling, BPJS, dan QRIS Midtrans -->
+<!-- Script untuk radio button styling dan BPJS -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const radios        = document.querySelectorAll('input[type="radio"][name="metode_pembayaran"]');
     const bpjsRadio     = document.querySelector('input[type="radio"][name="metode_pembayaran"][value="Asuransi"]');
-    const qrisRadio     = document.querySelector('input[type="radio"][name="metode_pembayaran"][value="QRIS"]');
     const bpjsWrapper   = document.getElementById('bpjs-input-wrapper');
-    const qrisPanel     = document.getElementById('qris-panel');
     const btnCekBpjs    = document.getElementById('btn-cek-bpjs');
     const noBpjsInput   = document.getElementById('no_bpjs_input');
     const bpjsStatus    = document.getElementById('bpjs-verification-status');
-    const btnSubmit     = document.getElementById('btn-submit-bayar');
-
-    // ── QRIS Elements ──
-    const btnGenerateQr    = document.getElementById('btn-generate-qr');
-    const btnRefreshQr     = document.getElementById('btn-refresh-qr');
-    const qrisBeforeGen    = document.getElementById('qris-before-generate');
-    const qrisWaiting      = document.getElementById('qris-waiting');
-    const qrisSuccessDiv   = document.getElementById('qris-success');
-    const qrisImage        = document.getElementById('qris-image');
-    const qrisStatusText   = document.getElementById('qris-status-text');
-    
-    let qrisPollingInterval = null;
+    const tunaiPanel    = document.getElementById('tunai-panel');
 
     // ── Update visual state radio buttons ──
     function updateSelection() {
@@ -450,16 +377,12 @@
         }
       }
 
-      // Toggle panel QRIS & sembunyikan tombol Submit biasa
-      if (qrisPanel && btnSubmit) {
-        if (qrisRadio && qrisRadio.checked) {
-          qrisPanel.classList.remove('hidden');
-          btnSubmit.classList.add('hidden');
-          // Stop polling jika switch ke metode lain sebelum scan
+      // Sembunyikan input tunai jika Asuransi/BPJS dipilih
+      if (tunaiPanel) {
+        if (bpjsRadio && bpjsRadio.checked) {
+          tunaiPanel.classList.add('hidden');
         } else {
-          qrisPanel.classList.add('hidden');
-          btnSubmit.classList.remove('hidden');
-          stopQrisPolling();
+          tunaiPanel.classList.remove('hidden');
         }
       }
     }
@@ -536,7 +459,8 @@
                                    `<span class="text-xs text-gray-600 font-normal">` +
                                    `• Nama: <strong>${data.data.nama}</strong><br/>` +
                                    `• Tipe: ${data.data.jenis_peserta}<br/>` +
-                                   `• Potongan: <strong class="text-emerald-600">Rp ${data.data.potongan}</strong></span>` + 
+                                   `• Ditanggung BPJS: <strong class="text-emerald-600">Rp ${data.data.potongan}</strong><br/>` + 
+                                   `• Tagihan Pasien: <strong class="text-amber-600">Rp ${data.data.grand_total}</strong></span>` + 
                                    nikBadge +
                                    nameAlert;
             
@@ -559,113 +483,7 @@
       });
     }
 
-    // ── QRIS Logic ──
-
-    function generateQrisCode() {
-      if (btnGenerateQr) {
-        btnGenerateQr.disabled = true;
-        btnGenerateQr.innerHTML = '<i class="fas fa-circle-notch animate-spin mr-1"></i> Menghubungi Midtrans...';
-      }
-
-      fetch("{{ route('admin.billing.generate-qris', $billing) }}", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.qr_url) {
-          // Tampilkan QR image
-          qrisImage.src = data.qr_url;
-          qrisBeforeGen.classList.add('hidden');
-          qrisWaiting.classList.remove('hidden');
-          // Mulai polling status
-          startQrisPolling();
-        } else {
-          alert('Gagal generate QR: ' + (data.message || 'Error tidak diketahui.'));
-          if (btnGenerateQr) {
-            btnGenerateQr.disabled = false;
-            btnGenerateQr.innerHTML = '<i class="fas fa-qrcode"></i> Generate QR Code Pembayaran';
-          }
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Terjadi error koneksi. Coba lagi.');
-        if (btnGenerateQr) {
-          btnGenerateQr.disabled = false;
-          btnGenerateQr.innerHTML = '<i class="fas fa-qrcode"></i> Generate QR Code Pembayaran';
-        }
-      });
-    }
-
-    function startQrisPolling() {
-      // Poll setiap 5 detik
-      qrisPollingInterval = setInterval(function() {
-        fetch("{{ route('admin.billing.check-qris-status', $billing) }}", {
-          method: 'GET',
-          headers: { 'Accept': 'application/json' }
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === 'settlement') {
-            stopQrisPolling();
-            // Tampilkan success state
-            qrisWaiting.classList.add('hidden');
-            qrisSuccessDiv.classList.remove('hidden');
-            // Redirect ke halaman yang sama setelah 2 detik untuk reload kuitansi
-            setTimeout(() => { window.location.reload(); }, 2000);
-          } else if (data.status === 'expire' || data.status === 'cancel' || data.status === 'deny') {
-            stopQrisPolling();
-            if (qrisStatusText) {
-              qrisStatusText.innerHTML = `<span class="text-red-600"><i class="fas fa-times-circle mr-1"></i>${data.message}</span>`;
-            }
-            // Kembali ke state awal setelah 3 detik
-            setTimeout(() => {
-              qrisWaiting.classList.add('hidden');
-              qrisBeforeGen.classList.remove('hidden');
-              if (btnGenerateQr) {
-                btnGenerateQr.disabled = false;
-                btnGenerateQr.innerHTML = '<i class="fas fa-qrcode"></i> Generate QR Code Baru';
-              }
-            }, 3000);
-          } else if (data.status === 'pending') {
-            if (qrisStatusText) {
-              qrisStatusText.textContent = 'Menunggu pembayaran dari pasien...';
-            }
-          }
-        })
-        .catch(err => console.error('QRIS polling error:', err));
-      }, 5000);
-    }
-
-    function stopQrisPolling() {
-      if (qrisPollingInterval) {
-        clearInterval(qrisPollingInterval);
-        qrisPollingInterval = null;
-      }
-    }
-
-    if (btnGenerateQr) {
-      btnGenerateQr.addEventListener('click', generateQrisCode);
-    }
-
-    if (btnRefreshQr) {
-      btnRefreshQr.addEventListener('click', function() {
-        stopQrisPolling();
-        qrisWaiting.classList.add('hidden');
-        qrisBeforeGen.classList.remove('hidden');
-        if (btnGenerateQr) {
-          btnGenerateQr.disabled = false;
-          btnGenerateQr.innerHTML = '<i class="fas fa-qrcode"></i> Generate QR Code Pembayaran';
-        }
-      });
-    }
-
-    // Inisialisasi awal
-    // Kembalian (tunai) - hitung real-time
+    // ── Kembalian (Tunai) hitung real-time ──
     const grandTotalEl = document.getElementById('grand_total_value');
     const paidEl = document.getElementById('jumlah_dibayar');
     const kembalianDisplayEl = document.getElementById('kembalian-display');

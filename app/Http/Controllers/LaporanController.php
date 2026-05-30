@@ -155,7 +155,7 @@ class LaporanController extends Controller
         // 4. Kalkulasi Ringkasan Keuangan (Hanya dari yang berstatus 'Lunas')
         $lunasBillings = $allFilteredBillings->where('status', 'Lunas');
         
-        $totalPendapatanKotor = $lunasBillings->sum('biaya_registrasi') + $lunasBillings->sum('biaya_tindakan') + $lunasBillings->sum('biaya_obat');
+        $totalPendapatanKotor = $lunasBillings->sum('biaya_registrasi') + $lunasBillings->sum('biaya_tindakan') + $lunasBillings->sum('biaya_obat') + $lunasBillings->sum('biaya_kamar');
         $totalKlaimBpjs = $lunasBillings->sum('potongan_bpjs');
         $totalPendapatanBersih = $lunasBillings->sum('grand_total'); // Cash/EDC/QRIS yang masuk
         

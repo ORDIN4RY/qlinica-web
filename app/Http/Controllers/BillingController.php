@@ -84,7 +84,7 @@ class BillingController extends Controller
     public function bayar(Request $request, Billing $billing)
     {
         $request->validate([
-            'metode_pembayaran' => 'required|string|in:Tunai,Debit,QRIS,Asuransi',
+            'metode_pembayaran' => 'required|string|in:Tunai,Asuransi',
             'jumlah_dibayar' => 'nullable|numeric|min:0',
         ]);
 
@@ -285,30 +285,14 @@ class BillingController extends Controller
             $isNikMatch = (trim($nikPeserta) === trim($nikBpjs));
         }
 
-        // 4. Kalkulasi Potongan BPJS
-        // Biaya Registrasi ditanggung 100%
-        $potonganRegistrasi = $billing->biaya_registrasi;
-        // Biaya Tindakan ditanggung 100%
-        $potonganTindakan = $billing->biaya_tindakan;
-        // Obat ditanggung 80%
-        $potonganObat = $billing->biaya_obat * 0.8;
-        
-        $totalPotongan = $potonganRegistrasi + $potonganTindakan + $potonganObat;
-        
-        // Pastikan potongan tidak melebihi biaya awal
-        $totalBiayaAwal = $billing->biaya_registrasi + $billing->biaya_tindakan + $billing->biaya_obat;
-        if ($totalPotongan > $totalBiayaAwal) {
-            $totalPotongan = $totalBiayaAwal;
-        }
+        // 4. Kalkulasi BPJS FKTP
+        // Kita update no_bpjs dan jalankan recalculateTotals() pada model
+        $billing->no_bpjs = $noBpjs;
+        $billing->recalculateTotals();
+        $billing->save();
 
-        $grandTotalBaru = $totalBiayaAwal - $totalPotongan;
-
-        // 5. Simpan perubahan ke database
-        $billing->update([
-            'no_bpjs' => $noBpjs,
-            'potongan_bpjs' => $totalPotongan,
-            'grand_total' => $grandTotalBaru,
-        ]);
+        $totalPotongan = $billing->potongan_bpjs;
+        $grandTotalBaru = $billing->grand_total;
 
         return response()->json([
             'success' => true,

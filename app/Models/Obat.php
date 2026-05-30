@@ -23,6 +23,9 @@ class Obat extends Model
         'harga_beli',
         'harga',
         'keterangan',
+        'is_fornas',
+        'kode_fornas',
+        'kelas_terapi',
     ];
 
     public function resepDetails()

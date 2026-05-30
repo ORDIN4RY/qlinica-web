@@ -200,23 +200,52 @@ class Billing extends Model
                 $this->potongan_bpjs = $totalBiayaAwal;
                 $this->grand_total = 0;
             } else {
-                // Logika Rawat Jalan
-                $potonganRegistrasi = $bReg;
-                $potonganTindakan = $bTin;
-                $potonganObat = $bOba * 0.8; // Cover 80%
-
-                $totalPotongan = $potonganRegistrasi + $potonganTindakan + $potonganObat;
-                if ($totalPotongan > $totalBiayaAwal) {
-                    $totalPotongan = $totalBiayaAwal;
+                // Logika Rawat Jalan BPJS FKTP - semua gratis kecuali obat non-fornas
+                // Registrasi, Tindakan = Rp 0 (ditanggung kapitasi)
+                // Obat Fornas = Rp 0 (ditanggung BPJS)
+                // Obat Non-Fornas = tetap ditagih (co-payment)
+                $biayaNonFornas = $this->hitungBiayaObatNonFornas();
+                
+                // Pastikan grand total minimum adalah biaya non-fornas
+                $potongan = $totalBiayaAwal - $biayaNonFornas;
+                
+                // Cegah potongan negatif jika ada kesalahan data
+                if ($potongan < 0) {
+                    $potongan = 0;
                 }
 
-                $this->potongan_bpjs = $totalPotongan;
-                $this->grand_total = $totalBiayaAwal - $totalPotongan;
+                $this->potongan_bpjs = $potongan;
+                $this->grand_total = $biayaNonFornas;
             }
         } else {
             $this->potongan_bpjs = 0.00;
             $this->grand_total = $totalBiayaAwal;
         }
+    }
+
+    /**
+     * Menghitung total biaya obat yang tidak termasuk dalam Formularium Nasional
+     * (Obat-obat ini ditanggung sendiri oleh pasien sebagai co-payment)
+     * 
+     * @return float
+     */
+    public function hitungBiayaObatNonFornas()
+    {
+        $totalNonFornas = 0;
+        
+        // Cek semua resep detail yang terhubung dengan billing ini melalui rekam medis
+        if ($this->rekamMedis && $this->rekamMedis->resep) {
+            foreach ($this->rekamMedis->resep->details as $detail) {
+                if ($detail->obat && !$detail->obat->is_fornas) {
+                    // Hitung subtotal untuk obat non-fornas
+                    // Default harga adalah harga dari master obat jika tidak ada field harga_satuan di resep_detail
+                    $harga = $detail->obat->harga ?? 0;
+                    $totalNonFornas += ($detail->jumlah * $harga);
+                }
+            }
+        }
+        
+        return $totalNonFornas;
     }
 }
 

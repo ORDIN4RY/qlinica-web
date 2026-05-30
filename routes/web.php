@@ -25,30 +25,6 @@ use App\Http\Controllers\MidtransWebhookController;
 // Public
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 
-Route::get('/clear-cache-all', function() {
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    \Illuminate\Support\Facades\Artisan::call('config:clear');
-    \Illuminate\Support\Facades\Artisan::call('route:clear');
-    \Illuminate\Support\Facades\Artisan::call('view:clear');
-    return 'Cache cleared successfully';
-});
-
-Route::get('/generate-key', function() {
-    \Illuminate\Support\Facades\Artisan::call('key:generate');
-    return 'Key berhasil dibuat! Silakan cek file .env Anda di cPanel.';
-});
-
-// ⚠️ TEMPORARY: Jalankan migrate via browser (hapus setelah selesai!)
-Route::get('/run-migrate', function() {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        $output = \Illuminate\Support\Facades\Artisan::output();
-        return '<pre>Migration berhasil!<br><br>' . nl2br(e($output)) . '</pre>';
-    } catch (\Exception $e) {
-        return '<pre>Migration gagal: ' . e($e->getMessage()) . '</pre>';
-    }
-});
-
 // ── Display Antrian Publik (tanpa login — untuk layar TV/monitor ruang tunggu) ──
 Route::get('/antrian/display', [AntrianController::class, 'displayPage'])->name('antrian.display');
 Route::get('/antrian/display/data', [AntrianController::class, 'displayData'])->name('antrian.display.data');
