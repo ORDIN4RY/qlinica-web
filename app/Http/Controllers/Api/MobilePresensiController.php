@@ -377,6 +377,78 @@ class MobilePresensiController extends Controller
     }
 
     /**
+     * Mark Alpa: dipanggil dari mobile saat jam pulang shift berlalu
+     * dan pegawai tidak pernah clock in. Backend memvalidasi sebelum simpan.
+     */
+    public function markAlpa(Request $request)
+    {
+        $user    = $request->user();
+        $pegawai = Pegawai::where('user_id', $user->id)->first();
+
+        if (!$pegawai) {
+            return response()->json(['success' => false, 'message' => 'Data pegawai tidak ditemukan.'], 404);
+        }
+
+        $today = now()->toDateString();
+
+        // Cek jadwal shift hari ini
+        $jadwal = \App\Models\JadwalShift::with('shift')
+            ->where('pegawai_id', $pegawai->id)
+            ->whereDate('tanggal', $today)
+            ->first();
+
+        if (!$jadwal) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada jadwal kerja hari ini.',
+            ]);
+        }
+
+        // Pastikan jam pulang shift sudah benar-benar lewat
+        $jamPulang = Carbon::parse($today . ' ' . $jadwal->shift->jam_pulang);
+        if ($jadwal->shift->jam_pulang < $jadwal->shift->jam_masuk) {
+            $jamPulang->addDay(); // Shift malam
+        }
+
+        if (Carbon::now()->lt($jamPulang)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Shift belum selesai, belum bisa ditandai Alpa.',
+            ]);
+        }
+
+        // Cek apakah sudah ada record presensi hari ini
+        $sudahAda = Presensi::where('pegawai_id', $pegawai->id)
+            ->whereDate('tanggal', $today)
+            ->exists();
+
+        if ($sudahAda) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sudah ada record presensi untuk hari ini.',
+            ]);
+        }
+
+        // Simpan record Alpa ke database
+        Presensi::create([
+            'pegawai_id'      => $pegawai->id,
+            'jadwal_shift_id' => $jadwal->id,
+            'tanggal'         => $today,
+            'jam_masuk'       => null,
+            'jam_keluar'      => null,
+            'telat_menit'     => 0,
+            'status'          => 'Alpa',
+            'approval_status' => 'Approved',
+            'keterangan'      => "Alpa - Tidak masuk {$jadwal->shift->nama_shift}",
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status Alpa berhasil dicatat.',
+        ]);
+    }
+
+    /**
      * Helper: ambil tanggal-tanggal cuti/izin/sakit yang sudah disetujui.
      * Data disimpan di tabel presensis dengan status Cuti/Izin/Sakit.
      */

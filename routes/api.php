@@ -37,11 +37,13 @@ Route::prefix('mobile')->group(function () {
         Route::put('/profile', [MobileAuthController::class, 'updateProfile']);
         Route::post('/update-foto', [MobileAuthController::class, 'updateFoto']);
         Route::post('/change-password', [MobileAuthController::class, 'changePassword']);
+        Route::post('/update-fcm-token', [MobileAuthController::class, 'updateFcmToken']);
 
         // Presensi
         Route::get('/presensi', [MobilePresensiController::class, 'index']);
         Route::post('/presensi/clock-in', [MobilePresensiController::class, 'clockIn']);
         Route::post('/presensi/clock-out', [MobilePresensiController::class, 'clockOut']);
+        Route::post('/presensi/alpa', [MobilePresensiController::class, 'markAlpa']);
 
         // Cuti / Izin / Sakit
         Route::get('/cuti', [MobileCutiController::class, 'index']);
