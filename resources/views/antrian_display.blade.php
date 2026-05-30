@@ -509,14 +509,29 @@
       </div>
     </div>
 
-    <div style="display:flex;align-items:center;gap:18px;">
+    <div style="display:flex;align-items:center;gap:18px;position:relative;">
       <div class="header-right">
         <div class="header-clock" id="liveClock">--:--:--</div>
         <div class="header-date"  id="liveDate">—</div>
       </div>
-      <button class="sound-toggle" id="soundToggle" title="Toggle Suara" onclick="toggleSound()">
-        <i class="fas fa-volume-up" id="soundIcon"></i>
-      </button>
+
+      <!-- Voice status + debug panel -->
+      <div style="position:relative;">
+        <button class="sound-toggle" id="soundToggle" title="Toggle Suara / Lihat Voice" onclick="toggleSound(); toggleVoicePanel();">
+          <i class="fas fa-volume-up" id="soundIcon"></i>
+        </button>
+        <!-- Voice panel dropdown -->
+        <div id="voicePanelWrap" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:320px;
+             background:#0f172a;border:1px solid rgba(96,165,250,.2);border-radius:14px;
+             padding:12px 14px;z-index:999;box-shadow:0 16px 48px rgba(0,0,0,.4);max-height:260px;overflow-y:auto;">
+          <div id="voiceStatus" style="font-size:11px;font-weight:700;margin-bottom:8px;padding-bottom:8px;
+               border-bottom:1px solid rgba(255,255,255,.1);color:#94a3b8;">Memuat voice...</div>
+          <div id="voicePanel" style="color:rgba(255,255,255,.75);"></div>
+          <div style="font-size:10px;color:#475569;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08);">
+            🟢 = voice Indonesia/Melayu &nbsp;|&nbsp; Abu = bahasa lain
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -691,55 +706,102 @@ const POLI_COLOR_TEXT = {
 };
 
 /* ══════════════════════════════════
-   TTS — HANYA BAHASA INDONESIA
-   Suara TIDAK akan berpindah setelah
-   sekali terkunci (voiceLocked = true)
+   TTS — BAHASA INDONESIA
+   Strategi berlapis:
+   1. Cari voice id-ID / ms-MY
+   2. Jika tidak ada → pakai voice manapun,
+      tapi ganti TEKS ke angka Indonesia
+      (nol, satu, dua...) agar tetap
+      terdengar Indonesia meski logat Inggris
 ══════════════════════════════════ */
-let ttsVoice   = null;   // suara terpilih
-let voiceLocked = false; // true setelah berhasil dikunci
+let ttsVoice    = null;
+let voiceLocked = false;
+let hasNativeID = false; // true jika ada voice id-ID / ms asli
+
+// Angka → kata Indonesia (untuk fallback voice non-ID)
+const DIGIT_ID = ['nol','satu','dua','tiga','empat','lima','enam','tujuh','delapan','sembilan'];
+
+function digitToIndo(numStr) {
+  return numStr.toString().split('').map(d => DIGIT_ID[parseInt(d)] || d).join(', ');
+}
 
 function loadVoice() {
-  // Jika sudah terkunci, jangan ganti lagi
   if (voiceLocked) return;
 
   const voices = window.speechSynthesis.getVoices();
   if (!voices || voices.length === 0) return;
 
-  // ── Prioritas ketat: hanya id-ID / ms-MY, JANGAN English ──
-  const candidates = [
-    // 1. id-ID eksplisit perempuan
+  // Tampilkan semua voice di panel debug
+  updateVoicePanel(voices);
+
+  // ── Cari voice Indonesia/Melayu ──
+  const idCandidates = [
     voices.find(v => v.lang === 'id-ID' && /female|wanita|perempuan|woman/i.test(v.name)),
-    // 2. id-ID nama Google/Windows yang dikenal
-    voices.find(v => /google bahasa indonesia|google id/i.test(v.name)),
-    voices.find(v => v.lang === 'id-ID' && /microsoft/i.test(v.name)),
-    // 3. Sembarang id-ID
+    voices.find(v => /google bahasa indonesia/i.test(v.name)),
+    voices.find(v => /microsoft.*indonesian|indonesian.*microsoft/i.test(v.name)),
     voices.find(v => v.lang === 'id-ID'),
     voices.find(v => v.lang.startsWith('id-')),
     voices.find(v => v.lang.startsWith('id')),
-    // 4. Melayu (bisa baca Indonesia cukup baik)
     voices.find(v => v.lang === 'ms-MY'),
     voices.find(v => v.lang.startsWith('ms')),
-    // ❌ TIDAK fallback ke en-US / en-GB supaya tidak berlogat Inggris
   ];
 
-  const picked = candidates.find(v => v !== undefined) || null;
+  const picked = idCandidates.find(v => v !== undefined) || null;
 
   if (picked) {
-    ttsVoice   = picked;
-    voiceLocked = true; // kunci — tidak akan berubah lagi
-    console.log('[TTS] Suara dikunci:', picked.name, picked.lang);
+    ttsVoice    = picked;
+    hasNativeID = true;
+    voiceLocked = true;
+    console.log('[TTS] ✅ Voice Indonesia ditemukan:', picked.name, picked.lang);
+    updateVoiceStatus('✅ ' + picked.name + ' (' + picked.lang + ')', '#10b981');
+  } else {
+    // Tidak ada voice Indonesia — pakai voice default apa saja
+    // tapi ubah teks ke kata Indonesia
+    ttsVoice    = null; // biarkan browser pilih default
+    hasNativeID = false;
+    voiceLocked = true;
+    const fallback = voices.find(v => v.default) || voices[0];
+    console.warn('[TTS] ⚠️ Tidak ada voice id-ID. Fallback:', fallback?.name);
+    updateVoiceStatus('⚠️ Fallback: ' + (fallback?.name || 'default') + ' — teks diubah ke kata Indonesia', '#f59e0b');
   }
 }
 
+// ── Panel info voice (klik ikon suara untuk toggle) ──
+function updateVoicePanel(voices) {
+  const panel = document.getElementById('voicePanel');
+  if (!panel) return;
+  const list = voices.map(v =>
+    '<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,.08);">' +
+    '<span style="color:' + (v.lang.startsWith('id') || v.lang.startsWith('ms') ? '#34d399' : '#94a3b8') + ';font-size:10px;">' +
+    '[' + v.lang + ']</span> ' +
+    '<span style="font-size:11px;">' + v.name + (v.default ? ' ★' : '') + '</span>' +
+    '</div>'
+  ).join('');
+  panel.innerHTML = '<div style="font-size:10px;font-weight:800;letter-spacing:1px;color:#64748b;margin-bottom:6px;">VOICES TERSEDIA (' + voices.length + ')</div>' + list;
+}
+
+function updateVoiceStatus(msg, color) {
+  const el = document.getElementById('voiceStatus');
+  if (el) { el.textContent = msg; el.style.color = color; }
+}
+
+let voicePanelOpen = false;
+function toggleVoicePanel() {
+  voicePanelOpen = !voicePanelOpen;
+  const wrap = document.getElementById('voicePanelWrap');
+  if (wrap) wrap.style.display = voicePanelOpen ? 'block' : 'none';
+  // Refresh voices setiap buka panel
+  if (voicePanelOpen) updateVoicePanel(window.speechSynthesis.getVoices());
+}
+
 if ('speechSynthesis' in window) {
-  // Muat sekali saat halaman siap
   window.speechSynthesis.getVoices();
   window.speechSynthesis.onvoiceschanged = function() {
-    // Panggil hanya jika belum terkunci
     if (!voiceLocked) loadVoice();
   };
   setTimeout(loadVoice, 400);
-  setTimeout(loadVoice, 1500); // retry sekali lagi untuk browser lambat
+  setTimeout(loadVoice, 1500);
+  setTimeout(loadVoice, 3000);
 }
 
 /* ── Pengumuman suara Bahasa Indonesia ── */
@@ -750,9 +812,18 @@ function speakAnnouncement(number, name, poli) {
   window.speechSynthesis.cancel();
 
   const poliText = poli ? (POLI_TTS_MAP[poli] || poli) : null;
+  const numStr   = number.toString();
 
-  // Eja nomor per digit agar jelas: "001" → "0, 0, 1"
-  const digitized = number.toString().split('').join(', ');
+  let digitized;
+  if (hasNativeID) {
+    // Voice Indonesia asli → eja digit biasa: "001" → "0, 0, 1"
+    // (voice Indonesia bisa baca angka dengan benar)
+    digitized = numStr.split('').join(', ');
+  } else {
+    // Tidak ada voice Indonesia → eja pakai KATA INDONESIA
+    // agar voice Inggris pun membaca: "nol, nol, satu"
+    digitized = digitToIndo(numStr);
+  }
 
   const text =
     'Perhatian. ' +
@@ -767,15 +838,20 @@ function speakAnnouncement(number, name, poli) {
 
   setTimeout(() => {
     const utter  = new SpeechSynthesisUtterance(text);
-    utter.lang   = 'id-ID';   // selalu paksa id-ID
     utter.rate   = 0.88;
     utter.pitch  = 1.1;
     utter.volume = 1;
 
-    // Pakai suara yang sudah dikunci; jika belum ada, biarkan browser pilih
-    // tapi pastikan lang = id-ID supaya tidak pakai logat Inggris
-    if (ttsVoice) utter.voice = ttsVoice;
+    if (hasNativeID && ttsVoice) {
+      // Ada voice Indonesia → pakai dan set lang id-ID
+      utter.voice = ttsVoice;
+      utter.lang  = ttsVoice.lang;
+    }
+    // Jika tidak ada native voice: JANGAN set utter.lang
+    // Biarkan browser pakai voice default-nya untuk membaca
+    // kata-kata Indonesia yang sudah kita tulis
 
+    utter.onstart = () => console.log('[TTS] Speaking dengan voice:', utter.voice?.name || 'default');
     window.speechSynthesis.speak(utter);
   }, 250);
 }
