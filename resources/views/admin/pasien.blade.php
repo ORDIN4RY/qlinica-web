@@ -23,46 +23,140 @@
   .blood-o  { background:#ecfdf5; color:#059669; }
 
   /* ── MODAL ── */
-  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55);
-    z-index:999; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
-  .modal-overlay.open { display:flex; }
-  .modal-box { background:#fff; border-radius:20px; width:100%; max-width:680px;
-    height:90vh; display:flex; flex-direction:column;
-    box-shadow:0 32px 80px rgba(15,23,42,.22);
-    animation:modalIn .22s cubic-bezier(.4,0,.2,1); margin:16px; overflow:hidden; }
-  @keyframes modalIn { from{opacity:0;transform:scale(.96) translateY(10px)} to{opacity:1;transform:none} }
-  .modal-head { padding:22px 28px 18px; border-bottom:1px solid #e5e7eb;
-    display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
-  .modal-body { padding:22px 28px; overflow-y:auto; flex:1 1 0; min-height:0;
-    scroll-behavior:smooth; }
-  .modal-body::-webkit-scrollbar { width:5px; }
-  .modal-body::-webkit-scrollbar-track { background:#f8fafc; border-radius:99px; }
-  .modal-body::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:99px; }
-  .modal-body::-webkit-scrollbar-thumb:hover { background:#94a3b8; }
-  .modal-foot { padding:16px 28px; border-top:1px solid #e5e7eb; display:flex; justify-content:flex-end; gap:10px; flex-shrink:0; }
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,23,42,.6);
+    z-index: 999;
+    align-items: flex-end;       /* default mobile: sheet dari bawah */
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    padding: 0;
+  }
+  .modal-overlay.open { display: flex; }
 
-  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  .span2 { grid-column:1/-1; }
-  .form-group label { display:block; font-size:12px; font-weight:700;
-    color:#6b7280; text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
+  .modal-box {
+    background: #fff;
+    width: 100%;
+    max-width: 680px;
+    /* Mobile: sheet penuh dari bawah, tapi tidak lebih dari 96vh */
+    max-height: 96dvh;
+    max-height: 96vh;            /* fallback jika dvh tidak didukung */
+    display: flex; flex-direction: column;
+    box-shadow: 0 -8px 48px rgba(15,23,42,.18);
+    animation: modalSlideUp .26s cubic-bezier(.4,0,.2,1);
+    /* Rounded hanya di atas pada mobile */
+    border-radius: 24px 24px 0 0;
+    overflow: hidden;
+    /* Safe area bawah iPhone */
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  /* Desktop: tengah layar, rounded semua sisi */
+  @media (min-width: 641px) {
+    .modal-overlay { align-items: center; padding: 16px; }
+    .modal-box {
+      border-radius: 20px;
+      max-height: 90vh;
+      animation: modalIn .22s cubic-bezier(.4,0,.2,1);
+      padding-bottom: 0;
+    }
+  }
+
+  @keyframes modalSlideUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(.96) translateY(10px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .modal-head {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  @media (min-width: 641px) {
+    .modal-head { padding: 22px 28px 18px; }
+  }
+
+  .modal-body {
+    padding: 16px 18px;
+    overflow-y: auto; flex: 1 1 0; min-height: 0;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  @media (min-width: 641px) {
+    .modal-body { padding: 22px 28px; }
+  }
+  .modal-body::-webkit-scrollbar { width: 5px; }
+  .modal-body::-webkit-scrollbar-track { background: #f8fafc; border-radius: 99px; }
+  .modal-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+  .modal-body::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+  .modal-foot {
+    padding: 14px 18px;
+    border-top: 1px solid #e5e7eb;
+    display: flex; justify-content: flex-end; gap: 10px;
+    flex-shrink: 0;
+    background: #fff;
+  }
+  @media (min-width: 641px) {
+    .modal-foot { padding: 16px 28px; }
+  }
+
+  /* Tombol aksi modal di mobile: full width */
+  @media (max-width: 640px) {
+    .modal-foot { flex-direction: column-reverse; }
+    .modal-foot button, .modal-foot a {
+      width: 100%; justify-content: center; text-align: center;
+    }
+  }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .span2 { grid-column: 1/-1; }
+  .form-group label {
+    display: block; font-size: 12px; font-weight: 700;
+    color: #6b7280; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px;
+  }
   .form-input, .form-select {
-    width:100%; padding:9px 13px; border:1.5px solid #e5e7eb;
-    border-radius:10px; font-size:13.5px; color:#1e293b; background:#fff;
-    outline:none; transition:all .16s; box-sizing:border-box; font-family:inherit; }
+    width: 100%; padding: 9px 13px; border: 1.5px solid #e5e7eb;
+    border-radius: 10px; font-size: 14px; color: #1e293b; background: #fff;
+    outline: none; transition: all .16s; box-sizing: border-box; font-family: inherit;
+    /* Cegah zoom otomatis iOS saat tap input */
+    font-size: max(16px, 13.5px);
+  }
   .form-input:focus, .form-select:focus {
-    border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.1); }
-  .form-input::placeholder { color:#9ca3af; }
-  .form-input.error, .form-select.error { border-color:#ef4444; }
-  .err-text { font-size:11px; color:#ef4444; margin-top:4px; display:none; }
-  .err-text.show { display:block; }
+    border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+  }
+  .form-input::placeholder { color: #9ca3af; }
+  .form-input.error, .form-select.error { border-color: #ef4444; }
+  .err-text { font-size: 11px; color: #ef4444; margin-top: 4px; display: none; }
+  .err-text.show { display: block; }
 
   /* ── CONFIRM MODAL ── */
-  .confirm-icon { width:52px; height:52px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
+  .confirm-icon {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;
+  }
 
-  @media (max-width:640px) {
-    .form-grid { grid-template-columns:1fr; }
-    .span2 { grid-column:auto; }
+  /* Confirm modal (hapus) juga responsive */
+  .confirm-box {
+    width: calc(100% - 24px);
+    max-width: 380px;
+    margin: 0 12px;
+  }
+  @media (max-width: 640px) {
+    .confirm-box {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      border-radius: 24px 24px 0 0;
+      align-self: flex-end;
+    }
+    .form-grid { grid-template-columns: 1fr; }
+    .span2 { grid-column: auto; }
   }
 </style>
 @endpush
@@ -489,7 +583,7 @@
      MODAL HAPUS
 ══════════════════════════════════════════════════════════════ --}}
 <div class="modal-overlay" id="delOverlay">
-  <div class="bg-white rounded-2xl p-8 w-full max-w-sm mx-4 text-center shadow-2xl" style="animation:modalIn .22s ease">
+  <div class="bg-white rounded-2xl p-8 confirm-box text-center shadow-2xl" style="animation:modalIn .22s ease">
     <div class="confirm-icon bg-red-50">
       <i class="fas fa-trash text-red-500 text-xl"></i>
     </div>
