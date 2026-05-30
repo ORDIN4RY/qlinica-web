@@ -141,6 +141,14 @@
     
     /* Style untuk modal/login overlay */
     .auth-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 100;
       opacity: 0;
       visibility: hidden;
       /* Mobile: sheet dari bawah */
@@ -148,6 +156,7 @@
       align-items: flex-end;
       justify-content: center;
       transition: opacity 0.3s ease, visibility 0.3s ease;
+      box-sizing: border-box;
     }
     .auth-modal.show {
       opacity: 1;
@@ -158,6 +167,7 @@
     .auth-modal .modal-content {
       width: 100%;
       max-width: 100%;
+      margin: 0;
       border-radius: 24px 24px 0 0;
       max-height: 96dvh;
       max-height: 96vh;
@@ -166,9 +176,14 @@
       padding-bottom: env(safe-area-inset-bottom, 0);
       transform: translateY(40px);
       transition: transform 0.4s cubic-bezier(0.15, 0.75, 0.45, 1);
+      box-sizing: border-box;
     }
     .auth-modal.show .modal-content {
       transform: translateY(0);
+    }
+
+    .auth-modal *, .auth-modal *::before, .auth-modal *::after {
+      box-sizing: border-box;
     }
 
     /* Desktop: tengah layar, rounded semua sisi */
@@ -274,7 +289,7 @@
             </div>
             
             <!-- quick stat - center on mobile -->
-            <div class="flex items-center gap-8 pt-8 text-gray-600 hero-stats justify-center md:justify-start">
+            <div class="flex flex-wrap items-center gap-x-8 gap-y-4 pt-8 text-gray-600 hero-stats justify-center md:justify-start">
               <div class="flex items-center gap-2"><i class="fas fa-user-md text-blue-900 text-xl"></i> <span>{{ $jumlahDokter }}+ dokter ahli</span></div>
               <div class="flex items-center gap-2"><i class="fas fa-hand-holding-heart text-blue-900 text-xl"></i> <span>{{ $jumlahPasien }}+ pasien</span></div>
             </div>

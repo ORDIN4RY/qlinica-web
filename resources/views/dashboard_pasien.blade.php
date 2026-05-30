@@ -1113,42 +1113,50 @@
       const statusCls = { selesai:'status-selesai', batal:'status-batal', menunggu:'status-menunggu' };
       const statusLbl = { selesai:'Selesai', batal:'Batal', menunggu:'Menunggu' };
 
-      list.innerHTML = items.map((r, idx) => {
+      list.innerHTML = items.map((r) => {
         const primerDiagnosa = r.diagnosa && r.diagnosa.find(d => d.primer);
 
+        const ulasanBtn = r.status === 'selesai'
+          ? (r.hasFeedback
+              ? `<span class="text-green-600 bg-green-50 border border-green-100 text-xs inline-flex items-center gap-1.5 font-semibold px-2.5 py-1.5 rounded-lg"><i class="fas fa-check-circle"></i> Sudah Diulas</span>`
+              : `<button onclick="event.stopPropagation(); showModalFeedback(${r.id})" class="text-blue-600 hover:text-blue-800 text-xs inline-flex items-center gap-1.5 font-semibold bg-blue-50 hover:bg-blue-100 border border-blue-100 px-2.5 py-1.5 rounded-lg transition"><i class="fas fa-star text-yellow-400"></i> Beri Ulasan</button>`)
+          : '';
+
         return `
-        <div class="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors">
-          <div class="p-5 cursor-pointer flex items-start justify-between gap-3 group" onclick="window.location.href='/dashboard-pasien/riwayat/${r.id}'">
-            <div class="flex items-start gap-4">
-              <div class="w-12 h-12 bg-blue-50 text-blue-900 rounded-2xl flex items-center justify-center flex-shrink-0 font-bold group-hover:bg-blue-900 group-hover:text-white transition-all text-xs border border-blue-100/50">
+        <div class="border-b border-gray-50 last:border-b-0 hover:bg-blue-50/20 transition-colors">
+          <div class="p-4 cursor-pointer" onclick="window.location.href='/dashboard-pasien/riwayat/${r.id}'">
+
+            <div class="flex items-start gap-3">
+              <div class="w-11 h-11 bg-blue-50 text-blue-900 rounded-2xl flex items-center justify-center flex-shrink-0 font-bold text-xs border border-blue-100/60">
                 ${r.noAntrian}
               </div>
-              <div>
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span class="font-bold text-gray-800 text-sm group-hover:text-blue-900 transition-colors">${r.layanan}</span>
-                  ${r.jenisPelayanan ? `<span class="text-xs px-2 py-0.5 bg-blue-50/80 text-blue-700 border border-blue-100/50 rounded-full font-semibold">${r.jenisPelayanan}</span>` : ''}
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="font-bold text-gray-800 text-sm">${r.layanan}</span>
+                      ${r.jenisPelayanan ? `<span class="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-full font-semibold">${r.jenisPelayanan}</span>` : ''}
+                    </div>
+                    <div class="text-xs text-gray-400 mt-0.5 flex items-center gap-1 flex-wrap">
+                      <i class="fas fa-calendar-alt text-gray-300 text-[10px]"></i>
+                      <span>${r.tanggalFormatted}</span>
+                      ${r.dokter !== '—' ? `<span class="text-gray-300">·</span><i class="fas fa-user-md text-gray-300 text-[10px]"></i><span>${r.dokter}</span>` : ''}
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${statusCls[r.status]}">${statusLbl[r.status]}</span>
                 </div>
-                <div class="text-xs text-gray-400 mt-1 flex items-center gap-1.5 flex-wrap">
-                  <i class="fas fa-calendar-alt text-gray-300"></i><span>${r.tanggalFormatted}</span>
-                  ${r.dokter !== '—' ? `<span class="text-gray-300">·</span><i class="fas fa-user-md text-gray-300"></i><span>${r.dokter}</span>` : ''}
-                </div>
-                ${r.keluhan ? `<div class="text-xs text-gray-500 mt-1.5 italic"><i class="fas fa-comment-medical mr-1.5 text-blue-400"></i>&ldquo;${r.keluhan}&rdquo;</div>` : ''}
-                ${primerDiagnosa ? `<div class="mt-2 inline-flex items-center gap-1.5 text-xs bg-red-50/80 border border-red-100/50 text-red-700 px-2.5 py-1 rounded-full font-semibold"><i class="fas fa-virus text-xs"></i>${primerDiagnosa.kode} &mdash; ${primerDiagnosa.nama}</div>` : ''}
+                ${r.keluhan ? `<div class="text-xs text-gray-500 mt-1.5 italic"><i class="fas fa-comment-medical mr-1 text-blue-400"></i>&ldquo;${r.keluhan}&rdquo;</div>` : ''}
+                ${primerDiagnosa ? `<div class="mt-1.5 inline-flex items-center gap-1 text-xs bg-red-50 border border-red-100 text-red-700 px-2 py-0.5 rounded-full font-semibold"><i class="fas fa-virus text-[10px]"></i>${primerDiagnosa.kode} &mdash; ${primerDiagnosa.nama}</div>` : ''}
               </div>
             </div>
-            <div class="flex flex-col items-end gap-2.5 flex-shrink-0">
-              <span class="text-xs font-bold px-3 py-1.5 rounded-full ${statusCls[r.status]}">${statusLbl[r.status]}</span>
-              <div class="flex gap-2">
-                ${r.status === 'selesai' ? (
-                  r.hasFeedback ? `
-                    <span class="text-green-600 bg-green-50 border border-green-100 text-xs flex items-center gap-1.5 font-semibold px-2.5 py-1.5 rounded-lg"><i class="fas fa-check-circle"></i> Sudah Diulas</span>
-                  ` : `
-                    <button onclick="event.stopPropagation(); showModalFeedback(${r.id})" class="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1.5 font-semibold transition bg-blue-50 hover:bg-blue-100 border border-blue-100 px-2.5 py-1.5 rounded-lg"><i class="fas fa-star text-yellow-400"></i> Beri Ulasan</button>
-                  `
-                ) : ''}
-                <button class="text-blue-900 bg-blue-50 group-hover:bg-blue-900 group-hover:text-white border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all"><i class="fas fa-eye"></i> Detail</button>
-              </div>
+
+            <div class="flex items-center justify-end gap-2 mt-3 pt-2.5 border-t border-gray-100" onclick="event.stopPropagation()">
+              ${ulasanBtn}
+              <button onclick="window.location.href='/dashboard-pasien/riwayat/${r.id}'" class="inline-flex items-center gap-1.5 text-blue-900 bg-blue-50 hover:bg-blue-900 hover:text-white border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
+                <i class="fas fa-eye"></i> Detail
+              </button>
             </div>
+
           </div>
         </div>`;
       }).join('');
