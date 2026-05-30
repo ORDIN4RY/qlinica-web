@@ -249,16 +249,6 @@
             </div>
           </div>
 
-          <!-- Input BPJS (Ditampilkan dinamis jika Asuransi / BPJS dipilih) -->
-          <div id="bpjs-input-wrapper" class="hidden border border-gray-200 rounded-xl p-4 bg-gray-50/50 space-y-3 transition">
-            <label class="block text-xs font-bold text-gray-500 uppercase">Nomor Kartu BPJS (13 Digit)</label>
-            <div class="flex gap-2">
-              <input type="text" id="no_bpjs_input" value="{{ $billing->no_bpjs }}" placeholder="Contoh: 0001234567890" class="flex-grow px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-              <button type="button" id="btn-cek-bpjs" class="px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-semibold hover:bg-blue-800 transition">Cek BPJS</button>
-            </div>
-            <div id="bpjs-verification-status" class="text-xs hidden"></div>
-          </div>
-
 
 
           <div class="p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-2 text-sm text-gray-700">
@@ -368,15 +358,6 @@
         }
       });
       
-      // Toggle panel BPJS
-      if (bpjsWrapper) {
-        if (bpjsRadio && bpjsRadio.checked) {
-          bpjsWrapper.classList.remove('hidden');
-        } else {
-          bpjsWrapper.classList.add('hidden');
-        }
-      }
-
       // Sembunyikan input tunai jika Asuransi/BPJS dipilih
       if (tunaiPanel) {
         if (bpjsRadio && bpjsRadio.checked) {
@@ -391,97 +372,7 @@
       radio.addEventListener('change', updateSelection);
     });
 
-    // ── BPJS Verification ──
-    if (btnCekBpjs) {
-      btnCekBpjs.addEventListener('click', function() {
-        const noBpjs = noBpjsInput.value.trim();
-        if (!noBpjs) {
-          alert('Silakan masukkan nomor kartu BPJS Kesehatan terlebih dahulu.');
-          return;
-        }
 
-        btnCekBpjs.disabled = true;
-        btnCekBpjs.innerHTML = '<i class="fas fa-spinner animate-spin"></i> Verifikasi...';
-        bpjsStatus.classList.remove('hidden', 'text-emerald-600', 'text-red-600');
-        bpjsStatus.classList.add('text-gray-500');
-        bpjsStatus.innerHTML = '<i class="fas fa-circle-notch animate-spin mr-1"></i> Menghubungkan ke API PCare BPJS...';
-
-        fetch("{{ route('admin.billing.cek-bpjs', $billing) }}", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-          },
-          body: JSON.stringify({ no_bpjs: noBpjs })
-        })
-        .then(response => response.json())
-        .then(data => {
-          btnCekBpjs.disabled = false;
-          btnCekBpjs.innerHTML = 'Cek BPJS';
-          
-          if (data.success) {
-            bpjsStatus.classList.remove('hidden', 'text-gray-500', 'text-red-600');
-            bpjsStatus.classList.add('text-emerald-600', 'font-semibold', 'mt-2');
-            
-            let nameAlert = '';
-            let nikBadge = '';
-            
-            if (data.data.nik_sistem && data.data.nik_bpjs) {
-              if (data.data.is_nik_match) {
-                nikBadge = `<div class="mt-1 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 w-fit">` +
-                           `<i class="fas fa-id-card"></i> NIK Cocok (100% Terverifikasi)` +
-                           `</div>`;
-              } else {
-                nikBadge = `<div class="mt-1 px-2.5 py-1 bg-red-50 text-red-800 border border-red-200 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 w-fit">` +
-                           `<i class="fas fa-exclamation-circle text-red-500"></i> NIK Mismatch (Periksa Fisik KTP!)` +
-                           `</div>`;
-              }
-            } else if (data.data.nik_bpjs) {
-              nikBadge = `<div class="mt-1 px-2.5 py-1 bg-gray-50 text-gray-700 border border-gray-200 rounded-lg text-[11px] flex items-center gap-1.5 w-fit">` +
-                         `<i class="fas fa-info-circle"></i> NIK BPJS: ${data.data.nik_bpjs} (Belum ada NIK di Sistem)` +
-                         `</div>`;
-            }
-
-            if (!data.data.is_name_match) {
-              nameAlert = `<div class="mt-2 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-xs font-normal space-y-1">` +
-                          `<div class="flex items-center gap-1.5 font-bold text-amber-900">` +
-                          `<i class="fas fa-exclamation-triangle text-amber-500"></i>` +
-                          `<span>Peringatan Nama Tidak Cocok!</span>` +
-                          `</div>` +
-                          `• Nama di BPJS: <strong class="underline">${data.data.nama}</strong><br/>` +
-                          `• Nama di Sistem: <strong class="underline">${data.data.nama_sistem}</strong><br/>` +
-                          `• Persentase Kemiripan: <strong class="text-amber-900">${data.data.similarity}%</strong><br/>` +
-                          `<span class="text-[10px] text-amber-600 block mt-1 leading-normal">Mohon kasir memverifikasi fisik kartu identitas pasien (KTP/KIS) sebelum melanjutkan pembayaran.</span>` +
-                          `</div>`;
-            }
-            
-            bpjsStatus.innerHTML = `<i class="fas fa-check-circle mr-1"></i> ${data.message}<br/>` +
-                                   `<span class="text-xs text-gray-600 font-normal">` +
-                                   `• Nama: <strong>${data.data.nama}</strong><br/>` +
-                                   `• Tipe: ${data.data.jenis_peserta}<br/>` +
-                                   `• Ditanggung BPJS: <strong class="text-emerald-600">Rp ${data.data.potongan}</strong><br/>` + 
-                                   `• Tagihan Pasien: <strong class="text-amber-600">Rp ${data.data.grand_total}</strong></span>` + 
-                                   nikBadge +
-                                   nameAlert;
-            
-            const delay = (data.data.is_name_match && (!data.data.nik_sistem || data.data.is_nik_match)) ? 1800 : 5000;
-            setTimeout(() => { window.location.reload(); }, delay);
-          } else {
-            bpjsStatus.classList.remove('hidden', 'text-gray-500', 'text-emerald-600');
-            bpjsStatus.classList.add('text-red-600', 'font-semibold', 'mt-2');
-            bpjsStatus.innerHTML = `<i class="fas fa-times-circle mr-1"></i> ${data.message}`;
-          }
-        })
-        .catch(error => {
-          btnCekBpjs.disabled = false;
-          btnCekBpjs.innerHTML = 'Cek BPJS';
-          bpjsStatus.classList.remove('hidden', 'text-gray-500');
-          bpjsStatus.classList.add('text-red-600', 'font-semibold', 'mt-2');
-          bpjsStatus.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> Terjadi kesalahan koneksi API.';
-          console.error(error);
-        });
-      });
-    }
 
     // ── Kembalian (Tunai) hitung real-time ──
     const grandTotalEl = document.getElementById('grand_total_value');

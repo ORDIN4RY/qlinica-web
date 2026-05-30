@@ -82,11 +82,77 @@ class AntrianController extends Controller
             'tinggi_badan' => 'required|numeric|min:30|max:300',
             'nadi' => 'required|integer|min:30|max:200',
             'respirasi' => 'required|integer|min:10|max:60',
+            'no_bpjs' => 'required_if:jenis_pelayanan,BPJS|nullable|string',
         ]);
+
+        if ($request->jenis_pelayanan === 'BPJS') {
+            $noBpjs = $request->input('no_bpjs');
+            $isNik = (strlen($noBpjs) === 16);
+            
+            $statusKeterangan = 'AKTIF';
+            
+            // Integrasi PCare BPJS
+            $bpjsModeProduction = strtolower(env('BPJS_MODE', 'sandbox')) === 'production';
+            try {
+                if ($bpjsModeProduction && class_exists('\Bridging\Bpjs\PCare\Peserta') && env('BPJS_PCARE_CONSID')) {
+                    $config = [
+                        'cons_id'      => env('BPJS_PCARE_CONSID'),
+                        'secret_key'   => env('BPJS_PCARE_SECRET_KEY'),
+                        'username'     => env('BPJS_PCARE_USERNAME'),
+                        'password'     => env('BPJS_PCARE_PASSWORD'),
+                        'app_code'     => env('BPJS_PCARE_APP_CODE'),
+                        'base_url'     => env('BPJS_PCARE_BASE_URL'),
+                        'service_name' => env('BPJS_PCARE_SERVICE_NAME'),
+                        'user_key'     => env('BPJS_PCARE_USER_KEY'),
+                        'antrean_user_key' => env('BPJS_PCARE_ANTREAN_USER_KEY'),
+                    ];
+                    $bpjs = new \Bridging\Bpjs\PCare\Peserta($config);
+                    
+                    $jenisKartu = $isNik ? 'nik' : 'noka';
+                    $res = $bpjs->jenisKartu($jenisKartu)->keyword($noBpjs)->show();
+                    
+                    if (isset($res['metaData']['code']) && $res['metaData']['code'] == 200) {
+                        $peserta = $res['response'] ?? null;
+                        if ($peserta) {
+                            $statusKeterangan = $peserta['statusPeserta']['keterangan'] ?? 'AKTIF';
+                        }
+                    } else {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'no_bpjs' => 'BPJS Kesehatan: ' . ($res['metaData']['message'] ?? 'Kartu/NIK tidak terdaftar.'),
+                        ]);
+                    }
+                } else {
+                    // Fallback Uji Coba: NIK terdiri dari 16 digit, No. Kartu BPJS terdiri dari 13 digit
+                    if (strlen($noBpjs) !== 13 && strlen($noBpjs) !== 16) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'no_bpjs' => 'Format tidak dikenali. Masukkan 13 digit Nomor Kartu atau 16 digit NIK.',
+                        ]);
+                    }
+                }
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                throw $e;
+            } catch (\Exception $e) {
+                if (strlen($noBpjs) !== 13 && strlen($noBpjs) !== 16) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'no_bpjs' => 'Format tidak valid & koneksi gagal: ' . $e->getMessage(),
+                    ]);
+                }
+            }
+
+            if (strtoupper($statusKeterangan) !== 'AKTIF') {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'no_bpjs' => "Kartu BPJS ditemukan namun status kepesertaan TIDAK AKTIF ({$statusKeterangan}). Harap ubah Jenis Pelayanan menjadi Umum.",
+                ]);
+            }
+        }
 
 
         DB::transaction(function () use ($antrian, $request) {
             $antrian->update(['status' => 'Dipanggil']);
+
+            if ($request->jenis_pelayanan === 'BPJS' && $request->filled('no_bpjs')) {
+                $antrian->pasien->update(['no_bpjs' => $request->input('no_bpjs')]);
+            }
 
             RekamMedis::create([
                 'antrian_id' => $antrian->id,

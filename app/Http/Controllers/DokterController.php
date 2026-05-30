@@ -459,6 +459,7 @@ class DokterController extends Controller
                         'biaya_obat' => 0.00,
                         'grand_total' => 50000.00 + ($request->tindakan ? 75000.00 : 0.00),
                         'status' => 'Belum Bayar',
+                        'no_bpjs' => ($rekamMedis->jenis_pelayanan === 'BPJS') ? $rekamMedis->pasien->no_bpjs : null,
                     ]);
 
                     // Tambahkan rincian tagihan

@@ -136,11 +136,6 @@ Route::middleware(['auth', 'menu:Resep'])->group(function () {
 Route::middleware(['auth', 'menu:Billing'])->group(function () {
     Route::get('/admin/billing', [BillingController::class, 'index'])->name('admin.billing');
     Route::get('/admin/billing/{billing}', [BillingController::class, 'show'])->name('admin.billing.show');
-    Route::post('/admin/billing/{billing}/bayar', [BillingController::class, 'bayar'])->name('admin.billing.bayar')->middleware('menu:Billing,bayar');
-    Route::post('/admin/billing/{billing}/cek-bpjs', [BillingController::class, 'cekBpjs'])->name('admin.billing.cek-bpjs')->middleware('menu:Billing,bpjs');
-    // QRIS Midtrans
-    Route::post('/admin/billing/{billing}/generate-qris', [BillingController::class, 'generateQris'])->name('admin.billing.generate-qris')->middleware('menu:Billing,bayar');
-    Route::get('/admin/billing/{billing}/check-qris-status', [BillingController::class, 'checkQrisStatus'])->name('admin.billing.check-qris-status');
 });
 
 // ── Obat ──

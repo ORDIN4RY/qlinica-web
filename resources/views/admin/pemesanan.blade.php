@@ -373,7 +373,7 @@
                   </button>
                 @elseif($st === 'dipanggil')
                   @if(!$a->rekamMedis)
-                    <button type="button" class="btn-ttv" onclick="openPanggil({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Pemeriksaan Awal TTV">
+                    <button type="button" class="btn-ttv" onclick="openPanggil({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}', '{{ $a->pasien->no_bpjs ?? '' }}')" title="Pemeriksaan Awal TTV">
                       <i class="fas fa-notes-medical text-xs"></i> Pemeriksaan Awal
                     </button>
                     <button type="button" class="btn-panggil" onclick="panggilStatusLangsung({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Panggil Ulang Pasien">
@@ -538,11 +538,21 @@
           {{-- Jenis Pelayanan (BPJS/Umum) --}}
           <div class="form-group col-span-2">
             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Jenis Pelayanan <span class="text-red-500">*</span></label>
-            <select name="jenis_pelayanan" class="form-select border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 rounded-xl transition" required>
+            <select id="selectJenisPelayanan" name="jenis_pelayanan" class="form-select border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 rounded-xl transition" required>
               <option value="">— Pilih Jenis —</option>
               <option value="Umum">Umum</option>
               <option value="BPJS">BPJS</option>
             </select>
+          </div>
+
+          {{-- Input BPJS (Ditampilkan dinamis jika BPJS dipilih) --}}
+          <div id="bpjsInputGroup" class="form-group col-span-2 hidden bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Nomor Kartu BPJS / NIK <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="text" name="no_bpjs" id="inputNoBpjs" class="form-input pl-9 border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 rounded-xl transition" placeholder="Masukkan 13 digit No Kartu atau 16 digit NIK">
+              <i class="fas fa-id-card absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            </div>
+            <p class="text-[10px] text-gray-500 mt-2"><i class="fas fa-info-circle"></i> Sistem akan otomatis memvalidasi keaktifan kartu BPJS saat form disubmit.</p>
           </div>
 
           {{-- Layanan Kesehatan (Poli) --}}
@@ -708,9 +718,16 @@
   });
 
   /* ── MODAL PANGGIL ── */
-  function openPanggil(id, nama) {
+  function openPanggil(id, nama, noBpjs = '') {
     document.getElementById('panggilPasienName').textContent = nama;
     document.getElementById('panggilForm').action = BASE_ANTRIAN + '/' + id + '/panggil';
+    document.getElementById('inputNoBpjs').value = noBpjs;
+    
+    // Reset BPJS selection
+    document.getElementById('selectJenisPelayanan').value = '';
+    document.getElementById('bpjsInputGroup').classList.add('hidden');
+    document.getElementById('inputNoBpjs').required = false;
+
     document.getElementById('modalPanggil').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -720,6 +737,20 @@
   }
   document.getElementById('modalPanggil').addEventListener('click', function(e) {
     if (e.target === this) closePanggil();
+  });
+
+  /* ── TOGGLE BPJS TTV ── */
+  document.getElementById('selectJenisPelayanan').addEventListener('change', function() {
+    const bpjsGroup = document.getElementById('bpjsInputGroup');
+    const inputBpjs = document.getElementById('inputNoBpjs');
+    if (this.value === 'BPJS') {
+      bpjsGroup.classList.remove('hidden');
+      inputBpjs.required = true;
+    } else {
+      bpjsGroup.classList.add('hidden');
+      inputBpjs.required = false;
+      inputBpjs.value = '';
+    }
   });
 
   /* ── MODAL BATAL ── */
