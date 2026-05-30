@@ -141,23 +141,58 @@
     
     /* Style untuk modal/login overlay */
     .auth-modal {
+      opacity: 0;
+      visibility: hidden;
+      /* Mobile: sheet dari bawah */
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
       transition: opacity 0.3s ease, visibility 0.3s ease;
     }
     .auth-modal.show {
       opacity: 1;
       visibility: visible;
     }
+
+    /* Modal content — mobile default: bottom sheet */
     .auth-modal .modal-content {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 24px 24px 0 0;
+      max-height: 96dvh;
+      max-height: 96vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      transform: translateY(40px);
       transition: transform 0.4s cubic-bezier(0.15, 0.75, 0.45, 1);
-      transform: scale(0.95);
     }
     .auth-modal.show .modal-content {
-      transform: scale(1);
+      transform: translateY(0);
     }
-    
-    /* Form input focus */
+
+    /* Desktop: tengah layar, rounded semua sisi */
+    @media (min-width: 640px) {
+      .auth-modal {
+        align-items: center;
+        padding: 16px;
+      }
+      .auth-modal .modal-content {
+        max-width: 448px;
+        border-radius: 24px;
+        max-height: 90vh;
+        padding-bottom: 0;
+        transform: scale(0.95);
+      }
+      .auth-modal.show .modal-content {
+        transform: scale(1);
+      }
+    }
+
+    /* Cegah auto-zoom iOS saat tap input */
     .input-focus {
       transition: all 0.2s;
+      font-size: max(16px, 0.875rem);
     }
     .input-focus:focus {
       border-color: #1e3a8a;
@@ -167,12 +202,8 @@
 
     /* Responsive fixes */
     @media (max-width: 768px) {
-      .hero-content {
-        text-align: center;
-      }
-      .hero-stats {
-        justify-content: center;
-      }
+      .hero-content { text-align: center; }
+      .hero-stats   { justify-content: center; }
     }
   </style>
 </head>
@@ -453,53 +484,70 @@
     </div>
   </footer>
 
-  <!-- ===== MODAL LOGIN (Register dihapus) ===== -->
-  <div id="loginModal" class="auth-modal fixed inset-0 bg-black/50 flex items-center justify-center z-50 opacity-0 invisible transition-all duration-300">
-    <div class="modal-content bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-8 m-4">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-2xl font-bold text-gray-800">SIGN IN</h3>
-        <button class="close-modal text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+  <!-- ===== MODAL LOGIN ===== -->
+  <div id="loginModal" class="auth-modal fixed inset-0 bg-black/50 z-50">
+    <div class="modal-content bg-white shadow-2xl">
+
+      <!-- Handle bar (mobile only) -->
+      <div class="flex justify-center pt-3 pb-1 sm:hidden">
+        <div style="width:40px;height:4px;border-radius:99px;background:#e2e8f0;"></div>
       </div>
 
-      @if($errors->has('session'))
-        <div class="mb-4 bg-amber-50 border border-amber-300 text-amber-800 px-4 py-3 rounded-xl text-sm">
-          <i class="fas fa-clock mr-2"></i>{{ $errors->first('session') }}
-        </div>
-      @elseif($errors->any())
-        <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
-          <i class="fas fa-exclamation-circle mr-2"></i>{{ $errors->first() }}
-        </div>
-      @endif
-
-      <form id="loginForm" method="POST" action="/login" class="space-y-5">
-        @csrf
+      <!-- Header -->
+      <div class="flex justify-between items-center px-6 pt-5 pb-4 border-b border-gray-100">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">No. Rekam Medik</label>
-          <input type="text" name="login_id" value="{{ old('login_id') }}" required
-            class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-blue-900"
-            placeholder="RM-YYYYMMDD-XXXX">
+          <h3 class="text-xl font-bold text-gray-800">Masuk ke QLINICA</h3>
+          <p class="text-xs text-gray-400 mt-0.5">Gunakan No. Rekam Medik Anda</p>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-          <input type="password" name="password" required
-            class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-blue-900"
-            placeholder="••••••••">
-        </div>
-        <div class="flex items-center justify-between">
-          <label class="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="remember" class="rounded border-gray-300"> Ingat saya
-          </label>
-        </div>
+        <button class="close-modal w-9 h-9 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center text-gray-400 text-xl transition">&times;</button>
+      </div>
 
-        <p class="text-sm text-gray-500 text-center">
-          Belum punya No. Rekam Medik? Silahkan datang langsung ke Klinik Qlinica.
-        </p>
+      <!-- Body -->
+      <div class="px-6 py-5">
 
-        <button type="submit" class="w-full btn-subtle bg-blue-900 hover:bg-blue-800 text-white py-3 rounded-xl font-semibold text-lg mt-2">
-          Login
-        </button>
-      </form>
+        @if($errors->has('session'))
+          <div class="mb-4 bg-amber-50 border border-amber-300 text-amber-800 px-4 py-3 rounded-xl text-sm">
+            <i class="fas fa-clock mr-2"></i>{{ $errors->first('session') }}
+          </div>
+        @elseif($errors->any())
+          <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+            <i class="fas fa-exclamation-circle mr-2"></i>{{ $errors->first() }}
+          </div>
+        @endif
 
+        <form id="loginForm" method="POST" action="/login" class="space-y-4">
+          @csrf
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">No. Rekam Medik</label>
+            <input type="text" name="login_id" value="{{ old('login_id') }}" required
+              autocomplete="username"
+              class="input-focus w-full px-4 py-3 border border-gray-200 rounded-xl"
+              placeholder="RM-YYYYMMDD-XXXX">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+            <input type="password" name="password" required
+              autocomplete="current-password"
+              class="input-focus w-full px-4 py-3 border border-gray-200 rounded-xl"
+              placeholder="••••••••">
+          </div>
+          <div class="flex items-center justify-between pt-1">
+            <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+              <input type="checkbox" name="remember" class="rounded border-gray-300"> Ingat saya
+            </label>
+          </div>
+
+          <button type="submit"
+            class="w-full btn-subtle bg-blue-900 hover:bg-blue-800 text-white py-3.5 rounded-xl font-semibold text-base mt-1 flex items-center justify-center gap-2">
+            <i class="fas fa-sign-in-alt"></i> Login
+          </button>
+
+          <p class="text-xs text-gray-400 text-center pt-1">
+            Belum punya akun? Silahkan datang langsung ke klinik.
+          </p>
+        </form>
+
+      </div>
     </div>
   </div>
 

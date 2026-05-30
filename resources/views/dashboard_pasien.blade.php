@@ -94,7 +94,7 @@
               <a href="#antrian" class="btn-anim bg-blue-900 hover:bg-blue-800 text-white px-6 py-3 rounded-2xl font-semibold shadow-md flex items-center gap-2">
                 <i class="fas fa-ticket-alt"></i> Ambil Antrian
               </a>
-              <a href="#riwayat" class="btn-anim bg-white border border-blue-900/30 hover:border-blue-900 text-blue-900 px-6 py-3 rounded-2xl font-semibold shadow-sm flex items-center gap-2">
+              <a href="#profil" onclick="goToRiwayat(event)" class="btn-anim bg-white border border-blue-900/30 hover:border-blue-900 text-blue-900 px-6 py-3 rounded-2xl font-semibold shadow-sm flex items-center gap-2">
                 <i class="fas fa-history"></i> Lihat Riwayat
               </a>
             </div>
@@ -397,12 +397,12 @@
         </div>
 
         <!-- Tab Navigation -->
-        <div class="flex gap-2 mb-6 bg-gray-100 p-1.5 rounded-2xl w-fit mx-auto">
-          <button onclick="switchTab('profil')" id="tab-profil" class="tab-btn active px-5 py-2.5 rounded-xl text-sm font-semibold transition-all">
+        <div class="flex gap-2 mb-6 bg-gray-100 p-1.5 rounded-2xl w-full max-w-sm mx-auto" id="tabNavWrapper">
+          <button onclick="switchTab('profil')" id="tab-profil" class="tab-btn active flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all text-center">
             <i class="fas fa-user mr-1.5"></i> Data Profil
           </button>
-          <button onclick="switchTab('riwayat')" id="tab-riwayat" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-600 transition-all">
-            <i class="fas fa-history mr-1.5"></i> Riwayat Pemesanan
+          <button onclick="switchTab('riwayat')" id="tab-riwayat" class="tab-btn flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 transition-all text-center">
+            <i class="fas fa-history mr-1.5"></i> Riwayat
           </button>
         </div>
 
@@ -543,67 +543,90 @@
         <!-- Tab: Riwayat -->
         <div id="panel-riwayat" class="hidden" data-aos="fade-up">
           <div id="riwayat" class="bg-white rounded-3xl shadow-md border border-blue-900/10 overflow-hidden">
-            <div class="p-6 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <h3 class="font-bold text-gray-800 text-lg">Riwayat Pemesanan</h3>
-                <p class="text-sm text-gray-400">Semua kunjungan dan antrian yang pernah Anda buat</p>
-              </div>
-              <div class="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2">
-                <i class="fas fa-search text-gray-400 text-xs"></i>
-                <input type="text" id="searchRiwayat" placeholder="Cari layanan, diagnosa..." class="bg-transparent text-sm outline-none w-44">
+
+            <!-- Header -->
+            <div class="p-5 border-b border-gray-100">
+              <div class="flex items-start justify-between gap-3 flex-wrap">
+                <div>
+                  <h3 class="font-bold text-gray-800 text-base">Riwayat Pemesanan</h3>
+                  <p class="text-xs text-gray-400 mt-0.5">Semua kunjungan dan antrian yang pernah Anda buat</p>
+                </div>
+                <div class="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2 w-full sm:w-auto">
+                  <i class="fas fa-search text-gray-400 text-xs"></i>
+                  <input type="text" id="searchRiwayat" placeholder="Cari dokter, diagnosa..." class="bg-transparent text-sm outline-none flex-1 sm:w-40">
+                </div>
               </div>
             </div>
-            <div class="divide-y divide-gray-100" id="listRiwayat">
-              @forelse($riwayatDetail as $riwayat)
-                <div class="p-5 hover:bg-blue-50/40 transition-colors duration-200 riwayat-item" data-tanggal="{{ $riwayat['tanggal'] }}" data-dokter="{{ $riwayat['dokter'] }}" data-diagnosa="{{ $riwayat['diagnosa'] }}">
-                  <div class="flex items-start justify-between gap-4">
-                    <div class="flex-1">
-                      <div class="flex items-center gap-2 mb-2">
+
+            <!-- List -->
+            <div id="listRiwayat">
+              @forelse($riwayatDetail as $rw)
+                {{-- Card riwayat — desain responsif --}}
+                <div class="riwayat-item border-b border-gray-50 last:border-b-0 hover:bg-blue-50/30 transition-colors duration-150"
+                     data-tanggal="{{ $rw['tanggal'] }}" data-dokter="{{ $rw['dokter'] }}" data-diagnosa="{{ $rw['diagnosa'] }}">
+                  <div class="p-4 sm:p-5">
+
+                    <!-- Baris atas: tanggal + badge -->
+                    <div class="flex items-center justify-between gap-2 mb-3">
+                      <div class="flex items-center gap-2">
                         <div class="w-8 h-8 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm shrink-0">
                           <i class="fas fa-calendar-check"></i>
                         </div>
                         <div>
-                          <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">{{ $riwayat['tanggal'] }}</div>
-                          <div class="text-sm font-semibold text-gray-800">Kunjungan Medis</div>
+                          <div class="text-xs font-bold text-gray-400 uppercase tracking-wide leading-none">{{ $rw['tanggal'] }}</div>
+                          <div class="text-sm font-bold text-gray-800 mt-0.5">Kunjungan Medis</div>
                         </div>
                       </div>
-                      
-                      <div class="ml-10 space-y-2">
-                        <div class="text-sm">
-                          <span class="text-gray-500">Dokter:</span>
-                          <span class="font-semibold text-gray-800">Dr. {{ $riwayat['dokter'] }}</span>
+                      @if($rw['resep'] === 'Ada Resep')
+                        <span class="inline-flex items-center gap-1 bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                          <i class="fas fa-pills text-[9px]"></i> Resep
+                        </span>
+                      @endif
+                    </div>
+
+                    <!-- Grid info — 2 kolom di sm ke atas, 1 kolom di mobile -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 bg-gray-50 rounded-2xl px-4 py-3 text-sm">
+                      <div class="flex items-start gap-2">
+                        <i class="fas fa-user-md text-blue-400 text-xs mt-1 shrink-0 w-3.5"></i>
+                        <div>
+                          <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Dokter</div>
+                          <div class="font-semibold text-gray-800 text-sm leading-snug">Dr. {{ $rw['dokter'] ?: '—' }}</div>
                         </div>
-                        <div class="text-sm">
-                          <span class="text-gray-500">Keluhan:</span>
-                          <span class="font-semibold text-gray-800">{{ $riwayat['keluhan'] }}</span>
+                      </div>
+                      <div class="flex items-start gap-2">
+                        <i class="fas fa-comment-medical text-amber-400 text-xs mt-1 shrink-0 w-3.5"></i>
+                        <div>
+                          <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Keluhan</div>
+                          <div class="font-semibold text-gray-800 text-sm leading-snug">{{ $rw['keluhan'] ?: '—' }}</div>
                         </div>
-                        <div class="text-sm">
-                          <span class="text-gray-500">Diagnosa:</span>
-                          <span class="font-semibold text-gray-800">{{ $riwayat['diagnosa'] }}</span>
+                      </div>
+                      <div class="flex items-start gap-2 sm:col-span-2">
+                        <i class="fas fa-stethoscope text-green-500 text-xs mt-1 shrink-0 w-3.5"></i>
+                        <div>
+                          <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Diagnosa</div>
+                          <div class="font-semibold text-gray-800 text-sm leading-snug">{{ $rw['diagnosa'] ?: '—' }}</div>
                         </div>
-                        @if($riwayat['resep'] === 'Ada Resep')
-                          <div class="inline-flex items-center gap-1.5 mt-2 bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold px-2 py-1 rounded-full">
-                            <i class="fas fa-pills text-xs"></i> {{ $riwayat['resep'] }}
-                          </div>
-                        @endif
                       </div>
                     </div>
-                    <button class="btn-anim bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 px-3 py-2 rounded-xl text-xs font-semibold shrink-0">
-                      <i class="fas fa-eye"></i> Lihat
-                    </button>
+
                   </div>
                 </div>
               @empty
-                <div class="p-8 text-center text-gray-400">
-                  <i class="fas fa-history text-3xl mb-2 block text-gray-300"></i>
-                  <p class="text-sm">Tidak ada riwayat kunjungan</p>
+                <div class="p-10 text-center text-gray-400">
+                  <i class="fas fa-history text-4xl mb-3 block text-gray-200"></i>
+                  <p class="text-sm font-semibold">Belum ada riwayat kunjungan</p>
+                  <p class="text-xs text-gray-300 mt-1">Kunjungan medis Anda akan muncul di sini</p>
                 </div>
               @endforelse
             </div>
-            <div class="p-8 text-center text-gray-400" id="riwayatEmpty" style="display:none">
-              <i class="fas fa-history text-3xl mb-2 block text-gray-300"></i>
-              <p class="text-sm">Tidak ada riwayat kunjungan</p>
+
+            <!-- Empty state (JS filter) -->
+            <div class="p-10 text-center text-gray-400" id="riwayatEmpty" style="display:none">
+              <i class="fas fa-search text-4xl mb-3 block text-gray-200"></i>
+              <p class="text-sm font-semibold">Tidak ditemukan</p>
+              <p class="text-xs text-gray-300 mt-1">Coba kata kunci lain</p>
             </div>
+
           </div>
         </div>
 
@@ -1145,6 +1168,17 @@
         else document.getElementById('tab-'+t).classList.remove('text-gray-600');
       });
     }
+
+    // Tombol "Lihat Riwayat" → scroll ke section profil lalu aktifkan tab riwayat
+    function goToRiwayat(e) {
+      e.preventDefault();
+      const section = document.getElementById('profil');
+      if (!section) return;
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Tunggu scroll selesai (~500ms) baru switch tab
+      setTimeout(() => switchTab('riwayat'), 520);
+    }
+
 
     // ================================================================
     // MODAL FEEDBACK
