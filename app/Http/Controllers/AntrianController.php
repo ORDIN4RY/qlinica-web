@@ -174,6 +174,68 @@ class AntrianController extends Controller
     }
 
     /**
+     * AJAX endpoint: cek status keaktifan kartu BPJS secara real-time.
+     * Digunakan oleh modal TTV di halaman antrian.
+     * Response JSON: { status: 'aktif'|'tidak_aktif'|'sandbox', nama: '...', faskes: '...' }
+     */
+    public function cekBpjs(Request $request)
+    {
+        $noBpjs = trim($request->query('no_bpjs', ''));
+
+        if (empty($noBpjs) || (strlen($noBpjs) !== 13 && strlen($noBpjs) !== 16)) {
+            return response()->json(['status' => 'tidak_aktif', 'pesan' => 'Format nomor tidak valid.']);
+        }
+
+        $bpjsModeProduction = strtolower(env('BPJS_MODE', 'sandbox')) === 'production';
+
+        if ($bpjsModeProduction && class_exists('\Bridging\Bpjs\PCare\Peserta') && env('BPJS_PCARE_CONSID')) {
+            try {
+                $config = [
+                    'cons_id'           => env('BPJS_PCARE_CONSID'),
+                    'secret_key'        => env('BPJS_PCARE_SECRET_KEY'),
+                    'username'          => env('BPJS_PCARE_USERNAME'),
+                    'password'          => env('BPJS_PCARE_PASSWORD'),
+                    'app_code'          => env('BPJS_PCARE_APP_CODE'),
+                    'base_url'          => env('BPJS_PCARE_BASE_URL'),
+                    'service_name'      => env('BPJS_PCARE_SERVICE_NAME'),
+                    'user_key'          => env('BPJS_PCARE_USER_KEY'),
+                    'antrean_user_key'  => env('BPJS_PCARE_ANTREAN_USER_KEY'),
+                ];
+                $bpjs = new \Bridging\Bpjs\PCare\Peserta($config);
+                $jenisKartu = strlen($noBpjs) === 16 ? 'nik' : 'noka';
+                $res = $bpjs->jenisKartu($jenisKartu)->keyword($noBpjs)->show();
+
+                if (isset($res['metaData']['code']) && $res['metaData']['code'] == 200) {
+                    $peserta = $res['response'] ?? null;
+                    $statusKet = strtoupper($peserta['statusPeserta']['keterangan'] ?? '');
+                    $nama   = $peserta['nama']          ?? '';
+                    $faskes = $peserta['provUmum']['nmProvider'] ?? '';
+
+                    if ($statusKet === 'AKTIF') {
+                        return response()->json(['status' => 'aktif', 'nama' => $nama, 'faskes' => $faskes]);
+                    } else {
+                        return response()->json(['status' => 'tidak_aktif', 'pesan' => $statusKet]);
+                    }
+                }
+
+                return response()->json(['status' => 'tidak_aktif', 'pesan' => $res['metaData']['message'] ?? 'Tidak ditemukan']);
+            } catch (\Exception $e) {
+                return response()->json(['status' => 'tidak_aktif', 'pesan' => 'Gagal terhubung ke API BPJS.']);
+            }
+        }
+
+        // Sandbox/dev mode: validasi hanya berdasarkan format (13 atau 16 digit angka)
+        if (preg_match('/^\d{13,16}$/', $noBpjs)) {
+            return response()->json([
+                'status' => 'sandbox',
+                'pesan'  => 'Mode sandbox. Format valid.',
+            ]);
+        }
+
+        return response()->json(['status' => 'tidak_aktif', 'pesan' => 'Format tidak valid.']);
+    }
+
+    /**
      * Simpan antrian online dari portal pasien.
      * Dipanggil via AJAX (fetch) dari dashboard_pasien.blade.php.
      */

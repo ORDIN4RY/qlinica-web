@@ -69,16 +69,16 @@
               <input type="hidden" name="tgl_masuk" value="{{ now()->format('Y-m-d\TH:i') }}">
 
               <div class="w-full md:w-36">
-                <select name="jenis_penjamin" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" required>
+                <select name="jenis_penjamin" id="penjamin_{{ $rm->pasien_id }}" onchange="onPenjaminChange(this, {{ $rm->pasien_id }})" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" required>
                   <option value="Umum">Umum (Mandiri)</option>
                   <option value="BPJS KESEHATAN">BPJS KESEHATAN</option>
-                  <option value="Asuransi Lain">Asuransi Swasta</option>
                 </select>
               </div>
               {{-- Catatan:
                    - BPJS KESEHATAN rawat inap di FKTP menggunakan skema NON-KAPITASI (klaim manual ke BPJS tiap bulan via P-Care)
                    - SEP (Surat Eligibilitas Peserta) TIDAK diperlukan di FKTP, hanya di FKRTL (Rumah Sakit)
                    - Maksimal rawat inap 5 hari; lebih dari itu wajib dirujuk ke RS
+                   - BPJS tidak menanggung kamar kelas VIP
               --}}
               
               <div class="w-full md:w-40">
@@ -414,17 +414,56 @@
 @push('scripts')
   <script>
     const kamarsTersedia = @json($kamarsTersedia->filter(function($k) { return $k->terisi < $k->kapasitas; })->values());
+    const KELAS_BPJS = ['Kelas 1', 'Kelas 2', 'Kelas 3']; // VIP tidak ditanggung BPJS
+
+    /**
+     * Dipanggil saat penjamin berubah di form rawat inap.
+     * Jika BPJS dipilih, sembunyikan opsi kelas VIP.
+     */
+    function onPenjaminChange(selectEl, pasienId) {
+      const isBpjs = selectEl.value === 'BPJS KESEHATAN';
+      const kelasSelect = document.querySelector(`[data-target="kamar_select_${pasienId}"]`);
+      if (!kelasSelect) return;
+
+      // Tampilkan/sembunyikan VIP option
+      Array.from(kelasSelect.options).forEach(opt => {
+        if (opt.value === 'VIP') {
+          opt.disabled = isBpjs;
+          opt.style.display = isBpjs ? 'none' : '';
+          opt.text = isBpjs ? 'VIP (Tidak ditanggung BPJS)' : 'VIP';
+        }
+      });
+
+      // Jika VIP sedang terpilih dan BPJS dipilih, reset ke opsi pertama yang valid
+      if (isBpjs && kelasSelect.value === 'VIP') {
+        const firstValid = Array.from(kelasSelect.options).find(o => !o.disabled && o.value);
+        if (firstValid) {
+          kelasSelect.value = firstValid.value;
+          kelasSelect.dispatchEvent(new Event('change'));
+        }
+      }
+    }
 
     document.querySelectorAll('.pilih-kelas').forEach(select => {
       select.addEventListener('change', function() {
         const targetId = this.getAttribute('data-target');
         const targetSelect = document.getElementById(targetId);
         const kelas = this.value;
+
+        // Cek apakah penjamin adalah BPJS
+        const pasienId = targetId.replace('kamar_select_', '');
+        const penjaminEl = document.getElementById('penjamin_' + pasienId);
+        const isBpjs = penjaminEl && penjaminEl.value === 'BPJS KESEHATAN';
         
         targetSelect.innerHTML = '<option value="">-- Pilih Kamar --</option>';
         
         if (kelas) {
-          const filteredKamars = kamarsTersedia.filter(k => k.kelas === kelas);
+          // Jika BPJS, hanya tampilkan kamar yang bukan VIP
+          const filteredKamars = kamarsTersedia.filter(k => {
+            if (k.kelas !== kelas) return false;
+            if (isBpjs && !KELAS_BPJS.includes(k.kelas)) return false;
+            return true;
+          });
           filteredKamars.forEach(k => {
             const option = document.createElement('option');
             option.value = k.id;

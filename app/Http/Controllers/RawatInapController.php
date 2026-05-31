@@ -89,18 +89,30 @@ class RawatInapController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'pasien_id' => 'required|exists:pasien,id',
-            'kamar_id' => 'required|exists:kamar,id',
-            'dokter_id' => 'required|exists:pegawai,id',
-            'jenis_penjamin' => 'required|in:Umum,BPJS KESEHATAN,Asuransi Lain',
-            'no_sep' => 'nullable|string|max:50',
+            'pasien_id'      => 'required|exists:pasien,id',
+            'kamar_id'       => 'required|exists:kamar,id',
+            'dokter_id'      => 'required|exists:pegawai,id',
+            'jenis_penjamin' => 'required|in:Umum,BPJS KESEHATAN',
         ]);
+
+        // Validasi kelas kamar untuk pasien BPJS:
+        // BPJS FKTP hanya menanggung Kelas 1, 2, 3. VIP tidak ditanggung.
+        if ($validated['jenis_penjamin'] === 'BPJS KESEHATAN') {
+            $kamar = Kamar::findOrFail($validated['kamar_id']);
+            $kelasDilarang = ['VIP'];
+            if (in_array($kamar->kelas, $kelasDilarang)) {
+                return redirect()->back()->withErrors([
+                    'kamar_id' => 'Pasien BPJS tidak dapat memilih kamar kelas VIP. Silakan pilih Kelas 1, 2, atau 3.',
+                ])->withInput();
+            }
+        }
 
         $validated['tgl_masuk'] = Carbon::now();
 
         \DB::transaction(function() use ($validated) {
-            // Generate SEP if Penjamin is BPJS KESEHATAN and no_sep is empty
-            $noSep = $validated['no_sep'];
+            // Untuk FKTP, tidak ada SEP - SEP hanya untuk FKRTL (Rumah Sakit)
+            // BPJS rawat inap di FKTP menggunakan skema non-kapitasi, diklaim via P-Care
+            $noSep = null;
             if ($validated['jenis_penjamin'] === 'BPJS KESEHATAN' && empty($noSep)) {
                 try {
                     $bpjsModeProduction = strtolower(env('BPJS_MODE', 'sandbox')) === 'production';

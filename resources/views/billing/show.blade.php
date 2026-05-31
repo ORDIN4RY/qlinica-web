@@ -231,13 +231,13 @@
             <div class="grid grid-cols-2 gap-3">
               
               @if(!$billing->no_bpjs)
-              {{-- Tunai: hanya tampil jika bukan pasien BPJS --}}
+              {{-- Bayar Mandiri: hanya tampil jika bukan pasien BPJS --}}
               <label class="border border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition group">
-                <input type="radio" name="metode_pembayaran" value="Tunai" checked class="sr-only peer">
+                <input type="radio" name="metode_pembayaran" value="Bayar Mandiri" checked class="sr-only peer">
                 <div class="peer-checked:bg-blue-900 text-gray-500 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 transition group-hover:bg-blue-100">
                   <i class="fas fa-money-bill-wave text-sm"></i>
                 </div>
-                <span class="text-xs font-semibold text-gray-700">Tunai</span>
+                <span class="text-xs font-semibold text-gray-700">Bayar Mandiri</span>
               </label>
               @endif
 
@@ -274,10 +274,10 @@
             </p>
           </div>
 
-          {{-- Panel input tunai: sembunyikan untuk pasien BPJS --}}
+          {{-- Panel input bayar mandiri: sembunyikan untuk pasien BPJS --}}
           <div id="tunai-panel" class="space-y-2 {{ $billing->no_bpjs ? 'hidden' : '' }}">
-            <label class="block text-xs font-bold text-gray-500 uppercase">Jumlah Dibayar (Tunai)</label>
-            <input type="number" step="0.01" min="0" name="jumlah_dibayar" id="jumlah_dibayar" placeholder="Masukkan jumlah tunai dari pelanggan" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <label class="block text-xs font-bold text-gray-500 uppercase">Jumlah Dibayar</label>
+            <input type="number" step="0.01" min="0" name="jumlah_dibayar" id="jumlah_dibayar" placeholder="Masukkan jumlah yang dibayar pasien" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             <div id="kembalian-display" class="text-sm font-semibold text-gray-800">Kembalian: Rp 0,00</div>
           </div>
 

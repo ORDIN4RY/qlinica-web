@@ -81,6 +81,9 @@ Route::middleware(['auth', 'menu:Antrian Pemesanan'])->group(function () {
     Route::patch('/admin/antrian/{id}/selesai', [AntrianController::class, 'updateStatus'])->name('admin.antrian.selesai')->middleware('menu:Antrian Pemesanan,update');
 });
 
+// ── AJAX: Cek status BPJS real-time (tidak perlu akses menu khusus) ──
+Route::middleware('auth')->get('/admin/bpjs/cek', [AntrianController::class, 'cekBpjs'])->name('admin.bpjs.cek');
+
 // ── Antrian Pemeriksaan ──
 Route::middleware(['auth', 'menu:Antrian Pemeriksaan'])->group(function () {
     Route::get('/dokter/antrian', [DokterController::class, 'antrianIndex'])->name('dokter.antrian');

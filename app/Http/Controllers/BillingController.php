@@ -66,6 +66,20 @@ class BillingController extends Controller
     {
         // Panggil recalculateTotals agar jika pasien sedang rawat inap (Aktif), 
         // kalkulasi hari dan biaya kamar ter-update secara real-time sampai hari ini.
+        $billing->load(['pasien', 'rekamMedis', 'rawatInap']);
+
+        // Sinkronisasi no_bpjs dari rekam medis / antrian jika billing belum punya
+        // (bisa terjadi jika billing dibuat sebelum alur BPJS baru diimplementasikan)
+        if (!$billing->no_bpjs) {
+            $noBpjsFromPasien = $billing->pasien?->no_bpjs;
+            $jenisPelayanan   = $billing->rekamMedis?->jenis_pelayanan ?? '';
+            $jenisPenjamin    = $billing->rawatInap?->jenis_penjamin  ?? '';
+
+            if ($noBpjsFromPasien && ($jenisPelayanan === 'BPJS' || $jenisPenjamin === 'BPJS KESEHATAN')) {
+                $billing->no_bpjs = $noBpjsFromPasien;
+            }
+        }
+
         $billing->recalculateTotals();
         $billing->save();
 
@@ -84,8 +98,8 @@ class BillingController extends Controller
     public function bayar(Request $request, Billing $billing)
     {
         $request->validate([
-            'metode_pembayaran' => 'required|string|in:Tunai,Asuransi',
-            'jumlah_dibayar' => 'nullable|numeric|min:0',
+            'metode_pembayaran' => 'required|string|in:Bayar Mandiri,Asuransi',
+            'jumlah_dibayar'    => 'nullable|numeric|min:0',
         ]);
 
         if ($billing->status === 'Lunas') {
@@ -98,17 +112,17 @@ class BillingController extends Controller
 
         // Jika metode adalah Tunai, pastikan jumlah_dibayar cukup
         $jumlahDibayar = $request->input('jumlah_dibayar') !== null ? floatval($request->input('jumlah_dibayar')) : null;
-        if ($request->input('metode_pembayaran') === 'Tunai') {
+        if ($request->input('metode_pembayaran') === 'Bayar Mandiri') {
             if (is_null($jumlahDibayar) || $jumlahDibayar < floatval($billing->grand_total)) {
                 return redirect()->route('admin.billing.show', $billing)
-                    ->with('error', 'Jumlah dibayar kurang dari total. Mohon masukkan jumlah tunai yang cukup.');
+                    ->with('error', 'Jumlah dibayar kurang dari total. Mohon masukkan jumlah yang cukup.');
             }
         }
 
         DB::transaction(function () use ($billing, $request, $pegawai, $jumlahDibayar) {
             // Hitung kembalian jika ada
             $kembalian = null;
-            if ($request->input('metode_pembayaran') === 'Tunai') {
+            if ($request->input('metode_pembayaran') === 'Bayar Mandiri') {
                 $kembalian = $jumlahDibayar - floatval($billing->grand_total);
                 if ($kembalian < 0) $kembalian = 0;
             }

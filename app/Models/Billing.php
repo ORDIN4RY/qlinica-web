@@ -193,64 +193,67 @@ class Billing extends Model
         $totalBiayaAwal = $bReg + $bKam + $bTin + $bOba;
 
         if ($this->no_bpjs) {
-            // Cek apakah ini transaksi rawat inap dengan penjamin BPJS
-            if ($this->rawatInap && $this->rawatInap->jenis_penjamin === 'BPJS KESEHATAN') {
+            // ── Cek jenis penjamin rawat inap (jika ada) ──
+            $penjaminRawatInap = $this->rawatInap?->jenis_penjamin ?? null;
+
+            if ($this->rawatInap && $penjaminRawatInap === 'BPJS KESEHATAN') {
                 /**
-                 * BPJS FKTP - Rawat Inap Non-Kapitasi
-                 * ─────────────────────────────────────
-                 * Regulasi: BPJS hanya menanggung rawat inap di FKTP maks 5 hari.
-                 * Hari ke-6 dan seterusnya ditanggung sendiri oleh pasien.
-                 *
-                 * Kalkulasi:
-                 * - Hitung total malam / durasi rawat inap
-                 * - Tentukan berapa malam yang ditanggung BPJS (maks 5)
-                 * - Sisa malam ditagih ke pasien
+                 * SKENARIO A: Rawat Inap dengan penjamin BPJS KESEHATAN
+                 * ─────────────────────────────────────────────────────
+                 * BPJS FKTP non-kapitasi: maks 5 hari ditanggung.
+                 * Hari ke-6+ + obat non-fornas = co-payment pasien.
                  */
                 $tglMasuk  = \Carbon\Carbon::parse($this->rawatInap->tgl_masuk)->startOfDay();
                 $tglKeluar = $this->rawatInap->tgl_keluar
                     ? \Carbon\Carbon::parse($this->rawatInap->tgl_keluar)->startOfDay()
                     : now()->startOfDay();
 
-                $totalMalam     = max(1, $tglMasuk->diffInDays($tglKeluar));
-                $malamDitanggung = min($totalMalam, 5); // BPJS maks 5 hari
-                $malamCopay      = $totalMalam - $malamDitanggung; // hari ke-6+
+                $totalMalam      = max(1, $tglMasuk->diffInDays($tglKeluar));
+                $malamDitanggung = min($totalMalam, 5);
+                $malamCopay      = $totalMalam - $malamDitanggung;
 
-                // Hitung biaya kamar per malam rata-rata
-                $tarifPerMalam = $totalMalam > 0 ? ($bKam / $totalMalam) : 0;
-                $biayaKamarCopay     = $malamCopay * $tarifPerMalam;  // ditanggung pasien
-                $biayaKamarDitanggung = $malamDitanggung * $tarifPerMalam; // ditanggung BPJS
+                $tarifPerMalam        = $totalMalam > 0 ? ($bKam / $totalMalam) : 0;
+                $biayaKamarCopay      = $malamCopay * $tarifPerMalam;
+                $biayaKamarDitanggung = $malamDitanggung * $tarifPerMalam;
 
-                // Total yang ditanggung BPJS = registrasi + tindakan + kamar (5 hari) + obat
-                // Obat non-fornas tetap ditanggung pasien sebagai co-payment
-                $biayaNonFornas = $this->hitungBiayaObatNonFornas();
-                $biayaFarnasiDitanggung = $bOba - $biayaNonFornas;
+                $biayaNonFornas         = $this->hitungBiayaObatNonFornas();
+                $biayaFarmasiDitanggung = max(0, $bOba - $biayaNonFornas);
 
-                $totalDitanggungBpjs = $bReg + $bTin + $biayaKamarDitanggung + max(0, $biayaFarnasiDitanggung);
-                $totalCopayPasien    = $biayaKamarCopay + $biayaNonFornas;
+                $this->potongan_bpjs = $bReg + $bTin + $biayaKamarDitanggung + $biayaFarmasiDitanggung;
+                $this->grand_total   = max(0, $biayaKamarCopay + $biayaNonFornas);
 
-                $this->potongan_bpjs = $totalDitanggungBpjs;
-                $this->grand_total   = max(0, $totalCopayPasien);
+            } elseif ($this->rawatInap && $penjaminRawatInap === 'Umum') {
+                /**
+                 * SKENARIO B: Rawat Inap pilih UMUM (pasien BPJS tapi ingin VIP/kamar mandiri)
+                 * ─────────────────────────────────────────────────────────────────────────────
+                 * Pasien secara sengaja memilih "Umum" sebagai penjamin rawat inap.
+                 * Artinya SELURUH biaya (termasuk kamar, tindakan, registrasi) dibayar mandiri.
+                 * BPJS tidak menanggung apapun karena pasien tidak klaim BPJS untuk kunjungan ini.
+                 *
+                 * Catatan: Obat non-fornas tetap ditagih penuh karena tidak ada klaim BPJS.
+                 */
+                $this->potongan_bpjs = 0.00;
+                $this->grand_total   = $totalBiayaAwal;
+
             } else {
-                // Logika Rawat Jalan BPJS FKTP - semua gratis kecuali obat non-fornas
-                // Registrasi, Tindakan = Rp 0 (ditanggung kapitasi)
-                // Obat Fornas = Rp 0 (ditanggung BPJS)
-                // Obat Non-Fornas = tetap ditagih (co-payment)
+                /**
+                 * SKENARIO C: Rawat Jalan BPJS FKTP (tidak ada rawat inap)
+                 * ─────────────────────────────────────────────────────────
+                 * Semua biaya ditanggung kapitasi BPJS, kecuali obat non-fornas.
+                 * Registrasi, Tindakan = Rp 0
+                 * Obat Fornas          = Rp 0
+                 * Obat Non-Fornas      = co-payment pasien
+                 */
                 $biayaNonFornas = $this->hitungBiayaObatNonFornas();
-                
-                // Pastikan grand total minimum adalah biaya non-fornas
-                $potongan = $totalBiayaAwal - $biayaNonFornas;
-                
-                // Cegah potongan negatif jika ada kesalahan data
-                if ($potongan < 0) {
-                    $potongan = 0;
-                }
+                $potongan       = max(0, $totalBiayaAwal - $biayaNonFornas);
 
                 $this->potongan_bpjs = $potongan;
-                $this->grand_total = $biayaNonFornas;
+                $this->grand_total   = $biayaNonFornas;
             }
         } else {
+            // Pasien Umum atau tidak ada no_bpjs — bayar penuh
             $this->potongan_bpjs = 0.00;
-            $this->grand_total = $totalBiayaAwal;
+            $this->grand_total   = $totalBiayaAwal;
         }
     }
 
