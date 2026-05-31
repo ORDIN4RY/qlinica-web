@@ -168,7 +168,7 @@
               </td>
               <td class="px-6 py-4 text-center">
                 @php
-                  $hariDirawat = \Carbon\Carbon::parse($ri->tgl_masuk)->diffInDays(now());
+                  $hariDirawat = max(1, (int) \Carbon\Carbon::parse($ri->tgl_masuk)->startOfDay()->diffInDays(now()->startOfDay()) + 1);
                   $isBpjsMelebihiLimit = $ri->jenis_penjamin === 'BPJS KESEHATAN' && $ri->status === 'Aktif' && $hariDirawat >= 5;
                 @endphp
                 @if($ri->status === 'Aktif')
@@ -189,27 +189,30 @@
                 @endif
               </td>
               @if (auth()->user()->hasMenuAccess('Rawat Inap', 'edit') || auth()->user()->hasMenuAccess('Rawat Inap', 'hapus'))
-              <td class="px-6 py-4 text-right space-x-1">
-                @if($ri->status === 'Aktif' && auth()->user()->hasMenuAccess('Rawat Inap', 'edit'))
-                  <button onclick="openResepModal({{ $ri->id }}, '{{ addslashes($ri->pasien->nama) }}')"
-                    class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
-                    <i class="fas fa-pills mr-1"></i> Resep
+              <td class="px-6 py-4 text-right">
+                <div class="relative group inline-block text-left z-10">
+                  <button type="button" class="inline-flex items-center justify-center rounded-lg border border-gray-200 shadow-sm px-3 py-1.5 bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition">
+                    Aksi <i class="fas fa-chevron-down ml-1.5 text-[10px]"></i>
                   </button>
-                  <button onclick="openPindahModal({{ $ri->id }}, '{{ $ri->pasien->nama }}', {{ $ri->kamar_id }}, '{{ $ri->kamar->kelas }}')"
-                    class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
-                    <i class="fas fa-exchange-alt mr-1"></i> Pindah
-                  </button>
-                  <button onclick="openCheckoutModal({{ $ri->id }}, '{{ $ri->pasien->nama }}')"
-                    class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition shadow-sm">
-                    <i class="fas fa-sign-out-alt mr-1"></i> Pulang
-                  </button>
-                @endif
-                @if($ri->billing)
-                  <a href="{{ route('admin.billing.show', $ri->billing->id) }}"
-                    class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition shadow-sm border border-gray-200">
-                    <i class="fas fa-receipt"></i> Tagihan
-                  </a>
-                @endif
+                  <div class="origin-top-right absolute right-0 mt-2 w-32 rounded-xl shadow-lg bg-white border border-gray-100 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 flex flex-col p-1">
+                    @if($ri->status === 'Aktif' && auth()->user()->hasMenuAccess('Rawat Inap', 'edit'))
+                      <button onclick="openResepModal({{ $ri->id }}, '{{ addslashes($ri->pasien->nama) }}')" class="text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition flex items-center w-full">
+                        <i class="fas fa-pills w-5 text-center mr-1"></i> Resep
+                      </button>
+                      <button onclick="openPindahModal({{ $ri->id }}, '{{ addslashes($ri->pasien->nama) }}', {{ $ri->kamar_id }}, '{{ $ri->kamar->kelas }}')" class="text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition flex items-center w-full">
+                        <i class="fas fa-exchange-alt w-5 text-center mr-1"></i> Pindah
+                      </button>
+                      <button onclick="openCheckoutModal({{ $ri->id }}, '{{ addslashes($ri->pasien->nama) }}')" class="text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition flex items-center w-full">
+                        <i class="fas fa-sign-out-alt w-5 text-center mr-1"></i> Pulang
+                      </button>
+                    @endif
+                    @if($ri->billing)
+                      <a href="{{ route('admin.billing.show', $ri->billing->id) }}" class="text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition flex items-center w-full">
+                        <i class="fas fa-receipt w-5 text-center mr-1"></i> Tagihan
+                      </a>
+                    @endif
+                  </div>
+                </div>
               </td>
               @endif
             </tr>
