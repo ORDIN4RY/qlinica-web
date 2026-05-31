@@ -31,18 +31,19 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
-      height: 100%;
+      height: 100vh;
+      overflow: hidden;
     }
 
     body {
       font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--teks);
-      min-height: 100vh;
-      overflow-x: hidden;
       /* Subtle dot grid background */
       background-image: radial-gradient(circle, #c8d5ee 1px, transparent 1px);
       background-size: 28px 28px;
+      display: flex;
+      flex-direction: column;
     }
 
     /* ══ HEADER ══ */
@@ -63,13 +64,16 @@
       display: flex; align-items: center; gap: 14px;
     }
     .logo-icon {
-      width: 46px; height: 46px;
-      background: #2563eb;
+      width: 48px; height: 48px;
       border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 18px rgba(37,99,235,.4);
       transition: transform .4s ease;
       overflow: hidden;
+      flex-shrink: 0;
+    }
+    .logo-icon img {
+      width: 100%; height: 100%; object-fit: contain;
+      border-radius: 12px;
     }
     .logo-text {
       font-family: 'Sora', sans-serif;
@@ -109,18 +113,20 @@
 
     /* ══ MAIN LAYOUT ══ */
     .main-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
-      padding: 28px 48px 90px;
-      min-height: calc(100vh - 76px);
-      max-width: 1100px;
-      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 18px 28px 54px;
+      flex: 1 1 0;
+      min-height: 0;
+      box-sizing: border-box;
     }
 
     /* ══ LEFT ══ */
     .current-section {
-      display: flex; flex-direction: column; gap: 18px;
+      display: flex; flex-direction: column; gap: 14px;
+      flex: 1 1 0;
+      min-height: 0;
     }
 
     .section-label {
@@ -137,14 +143,14 @@
       border: 1px solid var(--border);
       border-radius: 24px;
       box-shadow: var(--shadow);
-      padding: 56px 60px;
+      padding: 48px 60px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      flex: 1;
-      min-height: 400px;
+      flex: 1 1 0;
+      min-height: 0;
       position: relative;
       overflow: hidden;
       transition: box-shadow .3s;
@@ -202,7 +208,7 @@
     /* ══ Nomor besar TV-friendly ══ */
     .called-number {
       font-family: 'Sora', sans-serif;
-      font-size: clamp(100px, 16vw, 180px);
+      font-size: clamp(110px, 18vw, 220px);
       font-weight: 900;
       line-height: 1;
       letter-spacing: -8px;
@@ -276,14 +282,15 @@
     .stats-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
+      gap: 14px;
+      flex-shrink: 0;
     }
     .stat-chip {
       background: var(--putih);
       border: 1px solid var(--border);
       border-radius: 20px;
       box-shadow: var(--shadow);
-      padding: 24px 20px;
+      padding: 18px 20px;
       text-align: center;
       transition: transform .22s, box-shadow .22s;
       position: relative; overflow: hidden;
@@ -388,16 +395,17 @@
 
     /* ══ RESPONSIVE ══ */
     @media (max-width: 900px) {
-      .main-grid { padding: 16px 20px 90px; }
-      .header-bar { padding: 12px 20px; }
-      .called-card { padding: 36px 24px; min-height: 320px; }
-      .stats-row { gap: 10px; }
-      .stat-chip .val { font-size: 32px; }
+      .main-grid { padding: 10px 14px 52px; gap: 10px; }
+      .header-bar { padding: 0 16px; height: 60px; }
+      .called-card { padding: 24px 18px; }
+      .stats-row { gap: 8px; }
+      .stat-chip .val { font-size: 30px; }
+      .stat-chip { padding: 12px 8px; }
     }
     @media (max-width: 480px) {
-      .stats-row { grid-template-columns: repeat(3,1fr); gap: 8px; }
-      .stat-chip { padding: 16px 10px; }
-      .stat-chip .val { font-size: 26px; }
+      .stats-row { grid-template-columns: repeat(3,1fr); gap: 6px; }
+      .stat-chip { padding: 10px 6px; }
+      .stat-chip .val { font-size: 24px; }
     }
   </style>
 </head>
@@ -416,22 +424,7 @@
   <header class="header-bar">
     <div class="logo-wrap">
       <div class="logo-icon">
-        <svg width="34" height="34" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <!-- White Q ring -->
-          <circle cx="44" cy="43" r="28" fill="none" stroke="white" stroke-width="8"/>
-          <!-- Dark inner circle -->
-          <circle cx="44" cy="43" r="19" fill="#1e3a8a"/>
-          <!-- Cyan cross vertical -->
-          <rect x="40" y="30" width="8" height="26" rx="2" fill="#38bdf8"/>
-          <!-- Cyan cross horizontal -->
-          <rect x="31" y="39" width="26" height="8" rx="2" fill="#38bdf8"/>
-          <!-- Q tail curve -->
-          <path d="M 64 62 C 72 72 80 80 88 88" stroke="white" stroke-width="5.5" fill="none" stroke-linecap="round"/>
-          <!-- Tail ring -->
-          <circle cx="88" cy="88" r="5.5" fill="none" stroke="white" stroke-width="4"/>
-          <!-- Tail dot center -->
-          <circle cx="88" cy="88" r="2" fill="#38bdf8"/>
-        </svg>
+        <img src="{{ asset('favicon.png') }}" alt="QLINICA">
       </div>
       <div>
         <div class="logo-text">QLINICA</div>
@@ -470,10 +463,6 @@
 
     <!-- ── LEFT ── -->
     <div class="current-section">
-      <div class="section-label">
-        <i class="fas fa-bullhorn"></i> Nomor Yang Sedang Dipanggil
-      </div>
-
       <!-- Called Card -->
       <div class="called-card" id="calledCard">
         <!-- No queue state -->
@@ -564,8 +553,9 @@ setInterval(updateClock, 1000);
 /* ══════════════════════════════════
    SOUND TOGGLE
 ══════════════════════════════════ */
-let soundEnabled = true;
-let lastCalledNumber = null;
+let soundEnabled  = true;
+let lastCallKey   = null;  // format: "no_antrian|last_called_at_ts" — deteksi panggil & panggil ulang
+let isFirstLoad   = true;  // saat pertama kali load, jangan bunyikan suara untuk antrian yang sudah ada
 
 function toggleSound() {
   soundEnabled = !soundEnabled;
@@ -806,21 +796,36 @@ function renderCalledCard(data) {
   const poli   = data.dilayani.poli || null;
   const nama   = data.dilayani.nama || '';
 
-  if (lastCalledNumber !== data.dilayani.no_antrian) {
-    // Animasi nomor
-    numEl.classList.remove('number-change');
-    void numEl.offsetWidth;
-    numEl.classList.add('number-change');
+  // Gunakan no_antrian + last_called_at (dikirim server sebagai updated_at)
+  // sebagai key unik. Setiap panggil ulang mengubah last_called_at = NOW(),
+  // sehingga key pasti berubah dan suara pasti diputar di layar display.
+  const callKey = data.dilayani.no_antrian + '|' + (data.dilayani.updated_at || '0');
 
-    // Flash card
-    card.classList.remove('flash-animate');
-    void card.offsetWidth;
-    card.classList.add('flash-animate');
+  if (lastCallKey !== callKey) {
+    if (isFirstLoad) {
+      // Pertama kali halaman dibuka: tangkap key saat ini tanpa bunyikan suara.
+      // Suara hanya diputar untuk perubahan yang terjadi SETELAH halaman dimuat.
+      lastCallKey = callKey;
+      console.log('[Display] First load — key captured silently:', callKey);
+    } else {
+      // Ada panggilan baru atau panggil ulang — bunyikan suara + tampilkan animasi
+      console.log('[Display] Panggilan terdeteksi:', callKey);
 
-    speakAnnouncement(data.dilayani.no_antrian, nama, poli);
-    showCallToast(data.dilayani.no_antrian, nama, poli);
+      // Animasi nomor
+      numEl.classList.remove('number-change');
+      void numEl.offsetWidth;
+      numEl.classList.add('number-change');
 
-    lastCalledNumber = data.dilayani.no_antrian;
+      // Flash card
+      card.classList.remove('flash-animate');
+      void card.offsetWidth;
+      card.classList.add('flash-animate');
+
+      speakAnnouncement(data.dilayani.no_antrian, nama, poli);
+      showCallToast(data.dilayani.no_antrian, nama, poli);
+
+      lastCallKey = callKey;
+    }
   }
 
   numEl.textContent  = 'No. ' + data.dilayani.no_antrian;
@@ -892,7 +897,7 @@ function renderWaitingList(items) {
 /* ══════════════════════════════════
    POLLING
 ══════════════════════════════════ */
-const POLL_INTERVAL = 4000;
+const POLL_INTERVAL = 3000; // 3 detik untuk respons panggil ulang yang lebih cepat
 
 function fetchDisplayData() {
   fetch('{{ route("antrian.display.data") }}', {
@@ -902,6 +907,12 @@ function fetchDisplayData() {
   .then(function(data) {
     renderCalledCard(data);
     renderStats(data);
+    // Setelah fetch pertama selesai, tandai bahwa halaman sudah dimuat penuh
+    // sehingga polling berikutnya akan membunyikan suara untuk perubahan baru
+    if (isFirstLoad) {
+      isFirstLoad = false;
+      console.log('[Display] Halaman siap — polling aktif, suara akan berbunyi untuk panggilan baru.');
+    }
   })
   .catch(function(err) {
     console.warn('Polling error:', err);

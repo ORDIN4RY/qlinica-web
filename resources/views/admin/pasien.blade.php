@@ -22,6 +22,67 @@
   .blood-ab { background:#f5f3ff; color:#7c3aed; }
   .blood-o  { background:#ecfdf5; color:#059669; }
 
+  /* ── TOAST NOTIFIKASI ── */
+  .pasien-toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+    min-width: 320px;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.18), 0 0 0 1px rgba(239,68,68,.15);
+    border-left: 5px solid #ef4444;
+    padding: 16px 20px 16px 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    transform: translateX(calc(100% + 40px));
+    opacity: 0;
+    transition: transform .4s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+    pointer-events: none;
+  }
+  .pasien-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .pasien-toast .toast-ico {
+    width: 36px; height: 36px; flex-shrink: 0;
+    background: #fef2f2; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #ef4444; font-size: 15px;
+  }
+  .pasien-toast .toast-title {
+    font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 5px;
+  }
+  .pasien-toast .toast-list {
+    list-style: disc; padding-left: 16px; margin: 0;
+    font-size: 12px; color: #b91c1c; line-height: 1.7;
+  }
+  .pasien-toast .toast-close {
+    position: absolute; top: 10px; right: 12px;
+    background: none; border: none; cursor: pointer;
+    color: #9ca3af; font-size: 13px; padding: 4px;
+    border-radius: 6px; transition: color .15s;
+  }
+  .pasien-toast .toast-close:hover { color: #ef4444; }
+  .pasien-toast .toast-progress {
+    position: absolute; bottom: 0; left: 5px; right: 0;
+    height: 3px; background: #fecaca; border-radius: 0 0 16px 16px;
+    overflow: hidden;
+  }
+  .pasien-toast .toast-progress-bar {
+    height: 100%; background: #ef4444;
+    animation: toastProgress 6s linear forwards;
+    border-radius: 0 0 16px 16px;
+  }
+  @keyframes toastProgress {
+    from { width: 100%; }
+    to   { width: 0%; }
+  }
+
   /* ── MODAL ── */
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55);
     z-index:999; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
@@ -30,8 +91,10 @@
     height:90vh; display:flex; flex-direction:column;
     box-shadow:0 32px 80px rgba(15,23,42,.22);
     animation:modalIn .22s cubic-bezier(.4,0,.2,1); margin:16px; overflow:hidden; }
-  /* Modal Info - pakai max-height supaya konten fleksibel */
-  .modal-box-info { height:auto !important; max-height:90vh !important; }
+  /* Modal Info - tinggi fleksibel dengan scroll pada body */
+  .modal-box-info { height:auto !important; max-height:92vh !important;
+    display:flex !important; flex-direction:column !important; overflow:hidden !important; }
+  .modal-box-info .modal-body { flex:1 1 auto !important; overflow-y:auto !important; min-height:0 !important; }
   @keyframes modalIn { from{opacity:0;transform:scale(.96) translateY(10px)} to{opacity:1;transform:none} }
   .modal-head { padding:22px 28px 18px; border-bottom:1px solid #e5e7eb;
     display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
@@ -178,19 +241,21 @@
   
 </div>
 
-{{-- Tampilkan Error Validasi (jika ada) --}}
+{{-- Toast Error Validasi --}}
 @if ($errors->any())
-  <div class="bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-2xl shadow-sm mb-5">
-    <div class="flex items-center gap-3 font-semibold mb-2">
-      <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
-      <span>Terjadi Kesalahan Validasi:</span>
-    </div>
-    <ul class="list-disc list-inside text-sm ml-8 text-red-600">
+<div class="pasien-toast" id="validasiToast" style="position:fixed;">
+  <button class="toast-close" onclick="dismissToast()" title="Tutup">&times;</button>
+  <div class="toast-ico"><i class="fas fa-exclamation-triangle"></i></div>
+  <div style="flex:1;min-width:0;">
+    <div class="toast-title">Validasi Gagal</div>
+    <ul class="toast-list">
       @foreach ($errors->all() as $error)
         <li>{{ $error }}</li>
       @endforeach
     </ul>
   </div>
+  <div class="toast-progress"><div class="toast-progress-bar"></div></div>
+</div>
 @endif
 
 {{-- ─── TABLE CARD ──────────────────────────────────────────────────── --}}
@@ -811,6 +876,38 @@
     if (e.key === 'Escape') { closeModal(); closeDel(); closeInfo(); }
   });
 
+  /* ── TOAST VALIDASI ── */
+  (function initValidasiToast() {
+    var toast = document.getElementById('validasiToast');
+    if (!toast) return;
+    // Tampilkan toast setelah sedikit delay agar animasi smooth
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        toast.classList.add('show');
+      });
+    });
+    // Auto-dismiss setelah 6 detik
+    var autoTimer = setTimeout(dismissToast, 6000);
+    toast._autoTimer = autoTimer;
+    // Jika di-hover, jangan auto-dismiss
+    toast.addEventListener('mouseenter', function() {
+      clearTimeout(toast._autoTimer);
+      var bar = toast.querySelector('.toast-progress-bar');
+      if (bar) bar.style.animationPlayState = 'paused';
+    });
+    toast.addEventListener('mouseleave', function() {
+      var bar = toast.querySelector('.toast-progress-bar');
+      if (bar) bar.style.animationPlayState = 'running';
+      toast._autoTimer = setTimeout(dismissToast, 3000);
+    });
+  })();
+
+  function dismissToast() {
+    var toast = document.getElementById('validasiToast');
+    if (!toast) return;
+    toast.classList.remove('show');
+    setTimeout(function() { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 400);
+  }
 
 </script>
 @endpush

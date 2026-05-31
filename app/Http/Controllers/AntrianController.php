@@ -148,7 +148,7 @@ class AntrianController extends Controller
 
 
         DB::transaction(function () use ($antrian, $request) {
-            $antrian->update(['status' => 'Dipanggil']);
+            $antrian->update(['status' => 'Dipanggil', 'last_called_at' => now()]);
 
             if ($request->jenis_pelayanan === 'BPJS' && $request->filled('no_bpjs')) {
                 $antrian->pasien->update(['no_bpjs' => $request->input('no_bpjs')]);
@@ -423,11 +423,13 @@ class AntrianController extends Controller
     {
         $today = now()->toDateString();
 
-        // Nomor antrian yang paling terakhir dipanggil (status Dipanggil)
+        // Nomor antrian yang paling terakhir dipanggil (berdasarkan last_called_at)
+        // Menggunakan last_called_at agar panggil ulang selalu terdeteksi,
+        // dan agar antrian yang dipanggil paling baru tetap menjadi yang ditampilkan.
         $dipanggil = Antrian::with(['pasien', 'rekamMedis'])
             ->where('tanggal', $today)
             ->where('status', 'Dipanggil')
-            ->orderBy('updated_at', 'desc')
+            ->orderByRaw('COALESCE(last_called_at, updated_at) DESC')
             ->first();
 
         $total    = Antrian::where('tanggal', $today)->count();
@@ -450,12 +452,23 @@ class AntrianController extends Controller
                 'poli'       => $a->rekamMedis->pelayanan_kesehatan ?? null,
             ]);
 
+        // Gunakan last_called_at sebagai timestamp key untuk display.
+        // Ini memastikan setiap panggil ulang (last_called_at berubah = now())
+        // akan terdeteksi sebagai "baru" oleh layar display dan memicu suara.
+        $calledTs = null;
+        if ($dipanggil) {
+            $calledTs = $dipanggil->last_called_at
+                ? $dipanggil->last_called_at->timestamp
+                : ($dipanggil->updated_at ? $dipanggil->updated_at->timestamp : null);
+        }
+
         return response()->json([
             'dilayani'        => $dipanggil ? [
                 'no_antrian'  => str_pad($dipanggil->no_antrian, 3, '0', STR_PAD_LEFT),
                 'nama'        => $dipanggil->pasien->nama ?? '-',
                 'jenis'       => $dipanggil->jenis,
                 'poli'        => $dipanggil->rekamMedis->pelayanan_kesehatan ?? null,
+                'updated_at'  => $calledTs,
             ] : null,
             'total'           => $total,
             'selesai'         => $selesai,
@@ -580,7 +593,16 @@ class AntrianController extends Controller
             'status' => 'required|in:Menunggu,Terpanggil,Dipanggil,Dilayani,Selesai,Batal',
         ]);
 
-        $antrian->update(['status' => $request->status]);
+        $updateData = ['status' => $request->status];
+
+        // Setiap kali dipanggil (pertama kali maupun panggil ulang),
+        // perbarui last_called_at agar display key selalu berubah
+        // dan display selalu menampilkan panggilan terakhir dengan benar.
+        if ($request->status === 'Dipanggil') {
+            $updateData['last_called_at'] = now();
+        }
+
+        $antrian->update($updateData);
 
         $message = 'Status antrian berhasil diupdate.';
 

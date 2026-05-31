@@ -433,19 +433,7 @@
           <span>{{ session('warning') }}</span>
         </div>
       @endif
-      @if($errors->any())
-        <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-2xl shadow-sm no-print">
-          <div class="flex items-center gap-3 mb-2">
-            <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
-            <span class="font-bold">Terjadi Kesalahan:</span>
-          </div>
-          <ul class="list-disc list-inside text-sm">
-            @foreach($errors->all() as $error)
-              <li>{{ $error }}</li>
-            @endforeach
-          </ul>
-        </div>
-      @endif
+      {{-- Error validasi ditangani per-halaman via toast --}}
       @yield('content')
       </div>
     </main>

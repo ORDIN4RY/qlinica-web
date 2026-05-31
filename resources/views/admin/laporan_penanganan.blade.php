@@ -14,12 +14,7 @@
   table.laporan-table td { padding: 12px 16px; color: #475569; border-bottom: 1px solid #f1f5f9; vertical-align: top; font-size: 13px; line-height: 1.5; }
   table.laporan-table tbody tr:hover { background: #f8fafc; }
   
-  @media print {
-      body * { visibility: hidden; }
-      .table-card, .table-card * { visibility: visible; }
-      .table-card { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; }
-      nav, aside, header, form { display: none !important; }
-  }
+  @media print { body { margin: 0; } }
 </style>
 @endpush
 
@@ -110,6 +105,38 @@
       </div>
     </div>
   </form>
+</div>
+
+{{-- AREA CETAK (tersembunyi di layar, muncul saat print) --}}
+<div id="printArea" style="display:none;">
+  <div id="printHeader" style="text-align:center;margin-bottom:12px;">
+    <div style="font-size:15pt;font-weight:800;color:#1e3a8a;">LAPORAN PENANGANAN PASIEN</div>
+    <div style="font-size:9pt;color:#64748b;margin-top:3px;">
+      QLINICA &mdash; Dicetak: <span id="printTanggal"></span>
+    </div>
+    @if(request()->anyFilled(['periode','dokter_id','kasus_penyakit','keadaan_keluar','search','tgl_awal','tgl_akhir']))
+    <div style="font-size:8pt;color:#94a3b8;margin-top:2px;">
+      Filter aktif:
+      @if(request('periode')) Periode: {{ ucfirst(request('periode')) }} @endif
+      @if(request('tgl_awal')) {{ request('tgl_awal') }} s/d {{ request('tgl_akhir') }} @endif
+      @if(request('search')) | Pencarian: {{ request('search') }} @endif
+    </div>
+    @endif
+  </div>
+  <div style="overflow:visible;">
+    <table class="laporan-table" style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th>Tanggal</th><th>No RM</th><th>Nama Pasien</th><th>J.Kelamin</th>
+          <th>Umur</th><th>Kode ICDX</th><th>Pengobatan</th><th>Tindakan</th>
+          <th>Keadaan Keluar</th><th>Prognosa</th><th>Pelayanan</th>
+          <th>Jenis Pelayanan</th><th>Pemeriksa</th>
+        </tr>
+      </thead>
+      <tbody id="printBody"></tbody>
+    </table>
+  </div>
+  <div style="font-size:8pt;color:#94a3b8;margin-top:10px;text-align:right;">Total: <span id="printTotal"></span> data</div>
 </div>
 
 {{-- DATA TABLE --}}
@@ -209,33 +236,154 @@
   });
 
   function exportCSV() {
-    let rows = [];
-    let headers = ['Tanggal', 'No RM', 'Nama Pasien', 'Jenis Kelamin', 'Umur', 'Kode ICDX', 'Pengobatan', 'Tindakan', 'Keadaan Keluar', 'Prognosa', 'Pelayanan Kesehatan', 'Jenis Pelayanan', 'Pegawai'];
-    rows.push(headers.join(','));
+    // Gunakan tab-separated + BOM agar Excel langsung membaca kolom dengan benar
+    const BOM = '\uFEFF';
+    const SEP = '\t';
+    const NL  = '\r\n';
 
-    let tableRows = document.querySelectorAll('#dataTable tbody tr');
-    tableRows.forEach(tr => {
-      let cols = tr.querySelectorAll('td');
-      if(cols.length > 1) { // Skip empty state row
-        let rowData = [];
-        cols.forEach(td => {
-          let text = td.innerText.replace(/(\r\n|\n|\r)/gm, " ").replace(/"/g, '""').trim();
-          rowData.push('"' + text + '"');
-        });
-        rows.push(rowData.join(','));
-      }
+    const headers = [
+      'Tanggal','No RM','Nama Pasien','Jenis Kelamin','Umur',
+      'Kode ICDX','Pengobatan','Tindakan','Keadaan Keluar',
+      'Prognosa','Pelayanan Kesehatan','Jenis Pelayanan','Pegawai'
+    ];
+
+    let rows = [ headers.join(SEP) ];
+
+    document.querySelectorAll('#dataTable tbody tr').forEach(tr => {
+      const cols = tr.querySelectorAll('td');
+      if (cols.length <= 1) return; // skip empty-state row
+      const rowData = Array.from(cols).map(td => {
+        // Ambil teks bersih, hapus newline & tab
+        return td.innerText.replace(/[\t\r\n]+/g, ' ').trim();
+      });
+      rows.push(rowData.join(SEP));
     });
 
-    let csvContent = rows.join('\n');
-    let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    let link = document.createElement("a");
-    let url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", "laporan_penanganan.csv");
-    link.style.visibility = 'hidden';
+    const content = BOM + rows.join(NL);
+    const blob    = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const link    = document.createElement('a');
+    link.href     = URL.createObjectURL(blob);
+    link.download = 'laporan_penanganan_' + new Date().toISOString().slice(0,10) + '.csv';
+    link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   }
+  /* ── PRINT via popup window ── */
+  function doPrint() {
+    const rows    = document.querySelectorAll('#dataTable tbody tr');
+    const tanggal = new Date().toLocaleString('id-ID', { dateStyle:'long', timeStyle:'short' });
+
+    let rowsHtml = '';
+    rows.forEach(tr => {
+      const cells = tr.querySelectorAll('td');
+      if (cells.length <= 1) return;
+      rowsHtml += '<tr>';
+      cells.forEach(td => {
+        rowsHtml += '<td>' + (td.innerText.replace(/\n+/g,' ').trim() || '-') + '</td>';
+      });
+      rowsHtml += '</tr>';
+    });
+
+    const html = `<!DOCTYPE html>
+<html lang="id"><head><meta charset="UTF-8">
+<title>Laporan Penanganan | QLINICA</title>
+<style>
+  @page { size: A4 landscape; margin: 12mm 10mm; }
+  body  { font-family: Arial, sans-serif; font-size: 9pt; margin: 0; }
+  .hdr  { text-align:center; margin-bottom: 10px; }
+  .hdr h1 { font-size:13pt; font-weight:800; color:#1e3a8a; margin:0; }
+  .hdr p  { font-size:8pt; color:#64748b; margin:2px 0 0; }
+  table { width:100%; border-collapse:collapse; font-size:8pt; }
+  th    { background:#dbeafe; color:#1e3a8a; padding:5px 6px; border:1px solid #93c5fd;
+          font-weight:700; text-align:left; white-space:nowrap; }
+  td    { padding:4px 6px; border:1px solid #cbd5e1; vertical-align:top;
+          word-wrap:break-word; }
+  tr:nth-child(even) td { background:#f8fafc; }
+  thead { display:table-header-group; }
+  tr    { page-break-inside:avoid; }
+  .foot { font-size:7.5pt; color:#94a3b8; text-align:right; margin-top:8px; }
+</style></head><body>
+<div class="hdr">
+  <h1>LAPORAN PENANGANAN PASIEN &mdash; QLINICA</h1>
+  <p>Dicetak: ${tanggal}</p>
+</div>
+<table>
+  <thead><tr>
+    <th>Tanggal</th><th>No RM</th><th>Nama Pasien</th><th>J.Kel</th>
+    <th>Umur</th><th>Kode ICDX</th><th>Pengobatan</th><th>Tindakan</th>
+    <th>Keadaan Keluar</th><th>Prognosa</th><th>Pelayanan</th>
+    <th>Jenis Pelayanan</th><th>Pemeriksa</th>
+  </tr></thead>
+  <tbody>${rowsHtml}</tbody>
+</table>
+<div class="foot">Total: ${rows.length} data</div>
+</body></html>`;
+
+    const w = window.open('', '_blank', 'width=1200,height=800');
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    w.onload = () => { w.print(); };
+    // fallback jika onload tidak trigger
+    setTimeout(() => { try { w.print(); } catch(e){} }, 800);
+  }
+
+  /* ── EXPORT sebagai file Excel (.xls HTML table) ── */
+  function exportCSV() {
+    const rows    = document.querySelectorAll('#dataTable tbody tr');
+    const tanggal = new Date().toLocaleString('id-ID', { dateStyle:'long', timeStyle:'short' });
+
+    const headers = [
+      'Tanggal','No RM','Nama Pasien','Jenis Kelamin','Umur',
+      'Kode ICDX','Pengobatan','Tindakan','Keadaan Keluar',
+      'Prognosa','Pelayanan Kesehatan','Jenis Pelayanan','Pegawai'
+    ];
+
+    let thHtml = headers.map(h => `<th>${h}</th>`).join('');
+    let tbHtml = '';
+    rows.forEach(tr => {
+      const cells = tr.querySelectorAll('td');
+      if (cells.length <= 1) return;
+      tbHtml += '<tr>';
+      cells.forEach(td => {
+        const txt = td.innerText.replace(/[\r\n]+/g,' ').trim() || '-';
+        tbHtml += `<td>${txt}</td>`;
+      });
+      tbHtml += '</tr>';
+    });
+
+    const xls = `<html xmlns:o="urn:schemas-microsoft-com:office:office"
+  xmlns:x="urn:schemas-microsoft-com:office:excel"
+  xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8">
+<style>
+  th { background:#dbeafe; font-weight:bold; border:1px solid #93c5fd; padding:5px 8px; }
+  td { border:1px solid #e2e8f0; padding:4px 8px; }
+  table { border-collapse:collapse; font-family:Arial; font-size:10pt; }
+</style>
+</head><body>
+<h3 style="font-family:Arial;">Laporan Penanganan Pasien &mdash; QLINICA</h3>
+<p style="font-family:Arial;font-size:10px;color:#64748b;">Diekspor: ${tanggal}</p>
+<table>
+  <thead><tr>${thHtml}</tr></thead>
+  <tbody>${tbHtml}</tbody>
+</table>
+</body></html>`;
+
+    const blob = new Blob([xls], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href  = URL.createObjectURL(blob);
+    link.download = 'laporan_penanganan_' + new Date().toISOString().slice(0,10) + '.xls';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Pasang doPrint ke tombol Print
+  document.querySelector('button[onclick="window.print()"]').setAttribute('onclick','doPrint()');
+  // Pasang exportCSV ke tombol Export CSV
+  document.querySelector('button[onclick="exportCSV()"]')?.setAttribute('onclick','exportCSV()');
 </script>
 @endpush
