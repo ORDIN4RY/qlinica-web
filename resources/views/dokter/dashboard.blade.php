@@ -16,10 +16,7 @@
   </div>
   <div>
     <h3 class="text-red-800 font-bold text-sm">Anda Belum Presensi (Clock In) Hari Ini!</h3>
-    <p class="text-red-600 text-xs mt-1">Anda tidak akan menerima antrean pasien baru sampai Anda melakukan presensi masuk (Clock In) untuk shift Anda hari ini.</p>
-    <a href="{{ route('karyawan.presensi') }}" class="mt-3 inline-block px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
-      <i class="fas fa-clock mr-1.5"></i> Clock In Sekarang
-    </a>
+    <p class="text-red-600 text-xs mt-1">Anda tidak akan menerima antrean pasien baru sampai Anda melakukan presensi masuk (Clock In). Silakan lakukan absensi melalui <b>Aplikasi Mobile Pegawai</b>.</p>
   </div>
 </div>
 @endif
