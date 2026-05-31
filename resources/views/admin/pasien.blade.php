@@ -48,23 +48,42 @@
   .form-group label { display:block; font-size:12px; font-weight:700;
     color:#6b7280; text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
   .form-input, .form-select {
-    width:100%; padding:9px 13px; border:1.5px solid #e5e7eb;
-    border-radius:10px; font-size:13.5px; color:#1e293b; background:#fff;
-    outline:none; transition:all .16s; box-sizing:border-box; font-family:inherit; }
+    width: 100%; padding: 9px 13px; border: 1.5px solid #e5e7eb;
+    border-radius: 10px; font-size: 14px; color: #1e293b; background: #fff;
+    outline: none; transition: all .16s; box-sizing: border-box; font-family: inherit;
+    /* Cegah zoom otomatis iOS saat tap input */
+    font-size: max(16px, 13.5px);
+  }
   .form-input:focus, .form-select:focus {
-    border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.1); }
-  .form-input::placeholder { color:#9ca3af; }
-  .form-input.error, .form-select.error { border-color:#ef4444; }
-  .err-text { font-size:11px; color:#ef4444; margin-top:4px; display:none; }
-  .err-text.show { display:block; }
+    border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+  }
+  .form-input::placeholder { color: #9ca3af; }
+  .form-input.error, .form-select.error { border-color: #ef4444; }
+  .err-text { font-size: 11px; color: #ef4444; margin-top: 4px; display: none; }
+  .err-text.show { display: block; }
 
   /* ── CONFIRM MODAL ── */
-  .confirm-icon { width:52px; height:52px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
+  .confirm-icon {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;
+  }
 
-  @media (max-width:640px) {
-    .form-grid { grid-template-columns:1fr; }
-    .span2 { grid-column:auto; }
+  /* Confirm modal (hapus) juga responsive */
+  .confirm-box {
+    width: calc(100% - 24px);
+    max-width: 380px;
+    margin: 0 12px;
+  }
+  @media (max-width: 640px) {
+    .confirm-box {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      border-radius: 24px 24px 0 0;
+      align-self: flex-end;
+    }
+    .form-grid { grid-template-columns: 1fr; }
+    .span2 { grid-column: auto; }
   }
 </style>
 @endpush
@@ -491,7 +510,7 @@
      MODAL HAPUS
 ══════════════════════════════════════════════════════════════ --}}
 <div class="modal-overlay" id="delOverlay">
-  <div class="bg-white rounded-2xl p-8 w-full max-w-sm mx-4 text-center shadow-2xl" style="animation:modalIn .22s ease">
+  <div class="bg-white rounded-2xl p-8 confirm-box text-center shadow-2xl" style="animation:modalIn .22s ease">
     <div class="confirm-icon bg-red-50">
       <i class="fas fa-trash text-red-500 text-xl"></i>
     </div>

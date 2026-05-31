@@ -2,6 +2,8 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login Petugas | QLINICA</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -50,9 +52,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <a href="{{ route('home') }}" class="flex items-center space-x-2 group">
-          <div class="w-8 h-8 bg-blue-900 rounded-xl flex items-center justify-center transition-transform duration-500 group-hover:rotate-3">
-            <i class="fas fa-clinic-medical text-white text-lg"></i>
-          </div>
+          <img src="{{ asset('favicon.png') }}" alt="QLINICA" class="w-8 h-8 transition-transform duration-500 group-hover:rotate-3">
           <span class="font-semibold text-xl text-gray-800">QLINICA</span>
         </a>
         <a href="{{ route('home') }}" class="text-sm text-blue-900 hover:text-blue-700 font-medium transition flex items-center gap-2">

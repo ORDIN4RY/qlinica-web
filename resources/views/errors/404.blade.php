@@ -2,6 +2,8 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>404 Tidak Ditemukan | Sahaduta</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -23,7 +25,7 @@
     <h1 class="text-7xl font-extrabold text-slate-800 mb-4 tracking-tighter">404</h1>
     <h2 class="text-2xl font-bold text-slate-700 mb-3">Halaman Tidak Ditemukan</h2>
     <p class="text-slate-500 mb-8 leading-relaxed">
-      Maaf, sepertinya Anda tersesat. Halaman yang Anda cari mungkin telah dihapus, diubah namanya, atau memang tidak pernah ada di server Sahaduta.
+      Maaf, sepertinya Anda tersesat. Halaman yang Anda cari mungkin telah dihapus, diubah namanya, atau memang tidak pernah ada di server Cliniqa.
     </p>
     <div class="flex items-center justify-center gap-3">
       <a href="javascript:history.back()" class="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 hover:bg-gray-50 text-slate-700 font-semibold rounded-xl transition-all shadow-sm">

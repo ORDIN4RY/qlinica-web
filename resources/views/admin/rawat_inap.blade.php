@@ -100,16 +100,17 @@
               <input type="hidden" name="tgl_masuk" value="{{ now()->format('Y-m-d\TH:i') }}">
 
               <div class="w-full md:w-36">
-                <select name="jenis_penjamin" onchange="document.getElementById('sep_container_{{ $rm->pasien_id }}').style.display = this.value === 'BPJS KESEHATAN' ? 'block' : 'none'" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" required>
-                  <option value="Umum">Umum</option>
+                <select name="jenis_penjamin" id="penjamin_{{ $rm->pasien_id }}" onchange="onPenjaminChange(this, {{ $rm->pasien_id }})" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" required>
+                  <option value="Umum">Umum (Mandiri)</option>
                   <option value="BPJS KESEHATAN">BPJS KESEHATAN</option>
-                  <option value="Asuransi Lain">Asuransi Lain</option>
                 </select>
               </div>
-
-              <div class="w-full md:w-44" id="sep_container_{{ $rm->pasien_id }}" style="display: none;">
-                <input type="text" name="no_sep" placeholder="No. SEP (Auto jika kosong)" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm">
-              </div>
+              {{-- Catatan:
+                   - BPJS KESEHATAN rawat inap di FKTP menggunakan skema NON-KAPITASI (klaim manual ke BPJS tiap bulan via P-Care)
+                   - SEP (Surat Eligibilitas Peserta) TIDAK diperlukan di FKTP, hanya di FKRTL (Rumah Sakit)
+                   - Maksimal rawat inap 5 hari; lebih dari itu wajib dirujuk ke RS
+                   - BPJS tidak menanggung kamar kelas VIP
+              --}}
               
               <div class="w-full md:w-40">
                 <select class="pilih-kelas w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" data-target="kamar_select_{{ $rm->pasien_id }}" required>
@@ -197,9 +198,21 @@
                 @endif
               </td>
               <td class="px-6 py-4 text-center">
+                @php
+                  $hariDirawat = max(1, (int) \Carbon\Carbon::parse($ri->tgl_masuk)->startOfDay()->diffInDays(now()->startOfDay()) + 1);
+                  $isBpjsMelebihiLimit = $ri->jenis_penjamin === 'BPJS KESEHATAN' && $ri->status === 'Aktif' && $hariDirawat >= 5;
+                @endphp
                 @if($ri->status === 'Aktif')
-                  <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold animate-pulse"><i
-                      class="fas fa-bed mr-1"></i> Dirawat</span>
+                  <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold {{ $isBpjsMelebihiLimit ? '' : 'animate-pulse' }}"><i
+                      class="fas fa-bed mr-1"></i> Dirawat ({{ $hariDirawat }} hari)</span>
+                  @if($isBpjsMelebihiLimit)
+                    <div class="mt-1.5">
+                      <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 border border-red-300 rounded-lg text-[10px] font-bold">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Melebihi 5 hari BPJS! Pertimbangkan rujukan ke RS.
+                      </span>
+                    </div>
+                  @endif
                 @else
                   <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold"><i
                       class="fas fa-check-circle mr-1"></i> Selesai</span><br>
@@ -443,17 +456,56 @@
 @push('scripts')
   <script>
     const kamarsTersedia = @json($kamarsTersedia->filter(function($k) { return $k->terisi < $k->kapasitas; })->values());
+    const KELAS_BPJS = ['Kelas 1', 'Kelas 2', 'Kelas 3']; // VIP tidak ditanggung BPJS
+
+    /**
+     * Dipanggil saat penjamin berubah di form rawat inap.
+     * Jika BPJS dipilih, sembunyikan opsi kelas VIP.
+     */
+    function onPenjaminChange(selectEl, pasienId) {
+      const isBpjs = selectEl.value === 'BPJS KESEHATAN';
+      const kelasSelect = document.querySelector(`[data-target="kamar_select_${pasienId}"]`);
+      if (!kelasSelect) return;
+
+      // Tampilkan/sembunyikan VIP option
+      Array.from(kelasSelect.options).forEach(opt => {
+        if (opt.value === 'VIP') {
+          opt.disabled = isBpjs;
+          opt.style.display = isBpjs ? 'none' : '';
+          opt.text = isBpjs ? 'VIP (Tidak ditanggung BPJS)' : 'VIP';
+        }
+      });
+
+      // Jika VIP sedang terpilih dan BPJS dipilih, reset ke opsi pertama yang valid
+      if (isBpjs && kelasSelect.value === 'VIP') {
+        const firstValid = Array.from(kelasSelect.options).find(o => !o.disabled && o.value);
+        if (firstValid) {
+          kelasSelect.value = firstValid.value;
+          kelasSelect.dispatchEvent(new Event('change'));
+        }
+      }
+    }
 
     document.querySelectorAll('.pilih-kelas').forEach(select => {
       select.addEventListener('change', function() {
         const targetId = this.getAttribute('data-target');
         const targetSelect = document.getElementById(targetId);
         const kelas = this.value;
+
+        // Cek apakah penjamin adalah BPJS
+        const pasienId = targetId.replace('kamar_select_', '');
+        const penjaminEl = document.getElementById('penjamin_' + pasienId);
+        const isBpjs = penjaminEl && penjaminEl.value === 'BPJS KESEHATAN';
         
         targetSelect.innerHTML = '<option value="">-- Pilih Kamar --</option>';
         
         if (kelas) {
-          const filteredKamars = kamarsTersedia.filter(k => k.kelas === kelas);
+          // Jika BPJS, hanya tampilkan kamar yang bukan VIP
+          const filteredKamars = kamarsTersedia.filter(k => {
+            if (k.kelas !== kelas) return false;
+            if (isBpjs && !KELAS_BPJS.includes(k.kelas)) return false;
+            return true;
+          });
           filteredKamars.forEach(k => {
             const option = document.createElement('option');
             option.value = k.id;

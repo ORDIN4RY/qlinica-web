@@ -18,33 +18,76 @@ class DokterController extends Controller
     {
         $pegawai = auth()->user()->pegawai;
 
+        $isClockedIn = false;
+        if ($pegawai) {
+            $isClockedIn = \App\Models\Presensi::where('pegawai_id', $pegawai->id)
+                ->where('tanggal', now()->toDateString())
+                ->whereNotNull('jam_masuk')
+                ->exists();
+        }
+
         $totalRekamMedis = RekamMedis::where('dokter_id', $pegawai->id)->count();
 
-        // Hitung antrian hari ini khusus untuk dokter yang sedang login
-        // Filter melalui rekam_medis berdasarkan poli dokter saat ini dan dokter_id null (belum diklaim) ATAU dokter_id sama dengan dokter saat ini
-        $antrianHariIni = \App\Models\Antrian::where('tanggal', now()->toDateString())
-            ->whereHas('rekamMedis', function ($q) use ($pegawai) {
-                $q->where(function ($sub) use ($pegawai) {
-                    $sub->where('dokter_id', $pegawai->id)
-                        ->orWhere(function ($sub2) use ($pegawai) {
-                            $sub2->whereNull('dokter_id')
-                                 ->where('pelayanan_kesehatan', $pegawai->poli);
-                        });
-                });
+        // Top Penyakit
+        $topPenyakit = \App\Models\RekamMedisDiagnosa::select('icdx_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as n'))
+            ->whereHas('rekamMedis', function($q) use ($pegawai) {
+                if ($pegawai) {
+                    $q->where('dokter_id', $pegawai->id);
+                }
             })
-            ->count();
+            ->groupBy('icdx_id')
+            ->orderByDesc('n')
+            ->limit(5)
+            ->with('icdx')
+            ->get();
 
-        $selesaiHariIni = \App\Models\Antrian::where('tanggal', now()->toDateString())
-            ->whereHas('rekamMedis', function ($q) use ($pegawai) {
-                $q->where('dokter_id', $pegawai->id);
-            })
-            ->where('status', 'Selesai')
-            ->count();
+        $antrianHariIni = 0;
+        $selesaiHariIni = 0;
+        $activeQueues = collect();
+
+        if ($isClockedIn) {
+            $antrianHariIni = \App\Models\Antrian::where('tanggal', now()->toDateString())
+                ->whereHas('rekamMedis', function ($q) use ($pegawai) {
+                    $q->where(function ($sub) use ($pegawai) {
+                        $sub->where('dokter_id', $pegawai->id)
+                            ->orWhere(function ($sub2) use ($pegawai) {
+                                $sub2->whereNull('dokter_id')
+                                     ->where('pelayanan_kesehatan', $pegawai->poli);
+                            });
+                    });
+                })
+                ->count();
+
+            $selesaiHariIni = \App\Models\Antrian::where('tanggal', now()->toDateString())
+                ->whereHas('rekamMedis', function ($q) use ($pegawai) {
+                    $q->where('dokter_id', $pegawai->id);
+                })
+                ->where('status', 'Selesai')
+                ->count();
+
+            $activeQueues = \App\Models\Antrian::with(['pasien', 'rekamMedis'])
+                ->where('tanggal', now()->toDateString())
+                ->whereIn('status', ['Dipanggil', 'Dilayani'])
+                ->whereHas('rekamMedis', function ($q) use ($pegawai) {
+                    $q->where(function ($sub) use ($pegawai) {
+                        $sub->where('dokter_id', $pegawai->id)
+                            ->orWhere(function ($sub2) use ($pegawai) {
+                                $sub2->whereNull('dokter_id')
+                                     ->where('pelayanan_kesehatan', $pegawai->poli);
+                            });
+                    });
+                })
+                ->orderBy('no_antrian')
+                ->get();
+        }
 
         return view('dokter.dashboard', compact(
             'totalRekamMedis',
             'antrianHariIni',
-            'selesaiHariIni'
+            'selesaiHariIni',
+            'activeQueues',
+            'topPenyakit',
+            'isClockedIn'
         ));
     }
 
@@ -152,6 +195,19 @@ class DokterController extends Controller
         $pegawai = $user->pegawai;
         $hasAll  = $user->hasMenuAccess('Antrian Pemeriksaan', 'all');
 
+        $isClockedIn = false;
+        if ($pegawai) {
+            $isClockedIn = \App\Models\Presensi::where('pegawai_id', $pegawai->id)
+                ->where('tanggal', now()->toDateString())
+                ->whereNotNull('jam_masuk')
+                ->exists();
+        }
+
+        if (!$isClockedIn && !$hasAll) {
+            return redirect()->route('dokter.dashboard')
+                ->with('error', 'Silakan melakukan Presensi (Clock In) hari ini terlebih dahulu untuk menerima antrean pasien.');
+        }
+
         // Urutan sort: default = terbaru di atas, batal di bawah
         $sortBy = $request->query('sort', 'default');
 
@@ -231,7 +287,7 @@ class DokterController extends Controller
 
         // Tampilkan SEMUA pasien terdaftar (read-only untuk dokter)
         $query = \App\Models\Pasien::with(['agama', 'pendidikan', 'pekerjaan'])
-            ->selectRaw('pasien.*, TIMESTAMPDIFF(YEAR, tgl_lahir, CURDATE()) as umur')
+            ->selectRaw("pasien.*, EXTRACT(YEAR FROM AGE(CURRENT_DATE, tgl_lahir))::int as umur")
             ->orderBy('nama');
 
         if ($q) {
@@ -459,6 +515,7 @@ class DokterController extends Controller
                         'biaya_obat' => 0.00,
                         'grand_total' => 50000.00 + ($request->tindakan ? 75000.00 : 0.00),
                         'status' => 'Belum Bayar',
+                        'no_bpjs' => ($rekamMedis->jenis_pelayanan === 'BPJS') ? $rekamMedis->pasien->no_bpjs : null,
                     ]);
 
                     // Tambahkan rincian tagihan

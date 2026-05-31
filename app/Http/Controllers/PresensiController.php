@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Presensi;
 use App\Models\Pegawai;
+use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -124,6 +125,36 @@ class PresensiController extends Controller
             $presensi->update([
                 'approval_status' => $request->approval_status
             ]);
+        }
+
+        // Kirim Push Notification FCM ke pegawai
+        try {
+            $pegawai = $presensi->pegawai;
+            if ($pegawai && $pegawai->user && $pegawai->user->fcm_token) {
+                $fcmToken = $pegawai->user->fcm_token;
+                $statusText = $request->approval_status === 'Approved' ? 'DISETUJUI' : 'DITOLAK';
+                $icon = $request->approval_status === 'Approved' ? '✅' : '❌';
+                
+                $title = "{$icon} Pengajuan {$presensi->status} {$statusText}";
+                
+                $tanggalText = $presensi->tanggal;
+                if ($presensi->batch_id) {
+                    $dates = Presensi::where('batch_id', $presensi->batch_id)->orderBy('tanggal', 'asc')->pluck('tanggal');
+                    if ($dates->count() > 1) {
+                        $tanggalText = $dates->first() . ' s/d ' . $dates->last();
+                    }
+                }
+                
+                $body = "Pengajuan {$presensi->status} Anda untuk tanggal {$tanggalText} telah {$statusText} oleh Admin.";
+                
+                FirebaseService::sendPushNotification($fcmToken, $title, $body, [
+                    'type'     => 'cuti_status',
+                    'status'   => $request->approval_status,
+                    'batch_id' => $presensi->batch_id ?? '',
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error("Gagal mengirim FCM notifikasi: " . $e->getMessage());
         }
 
         return redirect()->route('admin.presensi', ['tab' => 'persetujuan'])->with('success', 'Status pengajuan presensi berhasil diperbarui.');

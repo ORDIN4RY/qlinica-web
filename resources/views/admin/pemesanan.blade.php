@@ -373,7 +373,7 @@
                   </button>
                 @elseif($st === 'dipanggil')
                   @if(!$a->rekamMedis)
-                    <button type="button" class="btn-ttv" onclick="openPanggil({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Pemeriksaan Awal TTV">
+                    <button type="button" class="btn-ttv" onclick="openPanggil({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}', '{{ $a->pasien->no_bpjs ?? '' }}')" title="Pemeriksaan Awal TTV">
                       <i class="fas fa-notes-medical text-xs"></i> Pemeriksaan Awal
                     </button>
                     <button type="button" class="btn-panggil" onclick="panggilStatusLangsung({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Panggil Ulang Pasien">
@@ -523,7 +523,7 @@
     </div>
     <form id="panggilForm" method="POST" action="">
       @csrf
-      <div class="modal-body px-6 py-5">
+      <div class="modal-body px-6 py-5 max-h-[70vh] overflow-y-auto">
         <div class="bg-blue-50/50 rounded-xl p-3.5 border border-blue-100/50 flex items-center gap-3 mb-5">
           <div class="w-10 h-10 rounded-full bg-blue-500/10 text-blue-700 flex items-center justify-center">
             <i class="fas fa-user-injured text-sm"></i>
@@ -538,11 +538,29 @@
           {{-- Jenis Pelayanan (BPJS/Umum) --}}
           <div class="form-group col-span-2">
             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Jenis Pelayanan <span class="text-red-500">*</span></label>
-            <select name="jenis_pelayanan" class="form-select border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 rounded-xl transition" required>
+            <select id="selectJenisPelayanan" name="jenis_pelayanan" class="form-select border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 rounded-xl transition" required>
               <option value="">— Pilih Jenis —</option>
               <option value="Umum">Umum</option>
               <option value="BPJS">BPJS</option>
             </select>
+          </div>
+
+          {{-- Input BPJS (Ditampilkan dinamis jika BPJS dipilih) --}}
+          <div id="bpjsInputGroup" class="form-group col-span-2 hidden bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-3">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider">Nomor Kartu BPJS / NIK <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="text" name="no_bpjs" id="inputNoBpjs"
+                class="form-input pl-9 pr-28 border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 rounded-xl transition"
+                placeholder="13 digit No Kartu atau 16 digit NIK"
+                autocomplete="off">
+              <i class="fas fa-id-card absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+              {{-- Badge status cek BPJS --}}
+              <span id="bpjsStatusBadge" class="absolute right-3 top-1/2 -translate-y-1/2 hidden text-[10px] font-bold px-2 py-0.5 rounded-full">
+              </span>
+            </div>
+            {{-- Pesan status detail --}}
+            <div id="bpjsStatusDetail" class="text-[11px] leading-relaxed hidden"></div>
+            <p class="text-[10px] text-gray-500"><i class="fas fa-info-circle"></i> Nomor BPJS tersimpan otomatis. Kunjungan berikutnya akan terisi otomatis.</p>
           </div>
 
           {{-- Layanan Kesehatan (Poli) --}}
@@ -708,9 +726,32 @@
   });
 
   /* ── MODAL PANGGIL ── */
-  function openPanggil(id, nama) {
+  function openPanggil(id, nama, noBpjs = '') {
     document.getElementById('panggilPasienName').textContent = nama;
     document.getElementById('panggilForm').action = BASE_ANTRIAN + '/' + id + '/panggil';
+
+    const inputBpjs    = document.getElementById('inputNoBpjs');
+    const bpjsGroup    = document.getElementById('bpjsInputGroup');
+    const selectJenis  = document.getElementById('selectJenisPelayanan');
+
+    // Reset state
+    resetBpjsStatus();
+    inputBpjs.value = noBpjs || '';
+
+    if (noBpjs) {
+      // Pasien ini punya no_bpjs tersimpan → auto-pilih BPJS & tampilkan panel
+      selectJenis.value = 'BPJS';
+      bpjsGroup.classList.remove('hidden');
+      inputBpjs.required = true;
+      // Langsung cek status secara live
+      checkBpjsStatus(noBpjs);
+    } else {
+      // Pasien baru atau umum → reset
+      selectJenis.value = '';
+      bpjsGroup.classList.add('hidden');
+      inputBpjs.required = false;
+    }
+
     document.getElementById('modalPanggil').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -721,6 +762,98 @@
   document.getElementById('modalPanggil').addEventListener('click', function(e) {
     if (e.target === this) closePanggil();
   });
+
+  /* ── TOGGLE BPJS TTV ── */
+  document.getElementById('selectJenisPelayanan').addEventListener('change', function() {
+    const bpjsGroup = document.getElementById('bpjsInputGroup');
+    const inputBpjs = document.getElementById('inputNoBpjs');
+    if (this.value === 'BPJS') {
+      bpjsGroup.classList.remove('hidden');
+      inputBpjs.required = true;
+      // Jika sudah ada nilai, langsung cek
+      if (inputBpjs.value.trim().length >= 13) {
+        checkBpjsStatus(inputBpjs.value.trim());
+      }
+    } else {
+      bpjsGroup.classList.add('hidden');
+      inputBpjs.required = false;
+      inputBpjs.value = '';
+      resetBpjsStatus();
+    }
+  });
+
+  /* ── CEK BPJS REAL-TIME ── */
+  let bpjsCheckTimer = null;
+  document.getElementById('inputNoBpjs').addEventListener('input', function() {
+    clearTimeout(bpjsCheckTimer);
+    const val = this.value.trim();
+    resetBpjsStatus();
+    if (val.length === 13 || val.length === 16) {
+      setBpjsBadge('checking');
+      bpjsCheckTimer = setTimeout(() => checkBpjsStatus(val), 600);
+    }
+  });
+
+  function resetBpjsStatus() {
+    const badge  = document.getElementById('bpjsStatusBadge');
+    const detail = document.getElementById('bpjsStatusDetail');
+    if (badge)  { badge.className = 'absolute right-3 top-1/2 -translate-y-1/2 hidden text-[10px] font-bold px-2 py-0.5 rounded-full'; badge.textContent = ''; }
+    if (detail) { detail.className = 'text-[11px] leading-relaxed hidden'; detail.textContent = ''; }
+  }
+
+  function setBpjsBadge(status, nama = '', faskes = '') {
+    const badge  = document.getElementById('bpjsStatusBadge');
+    const detail = document.getElementById('bpjsStatusDetail');
+    if (!badge) return;
+
+    badge.classList.remove('hidden');
+    if (status === 'checking') {
+      badge.className = 'absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 animate-pulse';
+      badge.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-1"></i>Mengecek...';
+      if (detail) { detail.className = 'text-[11px] leading-relaxed hidden'; }
+    } else if (status === 'aktif') {
+      badge.className = 'absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700';
+      badge.innerHTML = '<i class="fas fa-check-circle mr-1"></i>AKTIF';
+      if (detail && nama) {
+        detail.className = 'text-[11px] leading-relaxed bg-emerald-50 border border-emerald-200 rounded-lg p-2.5 text-emerald-800';
+        detail.innerHTML = `<i class="fas fa-user-check mr-1"></i><strong>${nama}</strong>${faskes ? ' &mdash; Faskes: ' + faskes : ''}`;
+      }
+    } else if (status === 'tidak_aktif') {
+      badge.className = 'absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700';
+      badge.innerHTML = '<i class="fas fa-times-circle mr-1"></i>TIDAK AKTIF';
+      if (detail) {
+        detail.className = 'text-[11px] leading-relaxed bg-red-50 border border-red-200 rounded-lg p-2.5 text-red-800';
+        detail.innerHTML = `<i class="fas fa-exclamation-triangle mr-1"></i>Kartu BPJS tidak aktif atau tidak ditemukan. Ubah jenis pelayanan ke <strong>Umum</strong>.`;
+      }
+    } else if (status === 'sandbox') {
+      badge.className = 'absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700';
+      badge.innerHTML = '<i class="fas fa-flask mr-1"></i>Sandbox';
+      if (detail) {
+        detail.className = 'text-[11px] leading-relaxed bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-amber-800';
+        detail.innerHTML = `<i class="fas fa-info-circle mr-1"></i>Mode sandbox aktif. Format nomor valid (13/16 digit). Validasi sesungguhnya akan aktif di production.`;
+      }
+    }
+  }
+
+  function checkBpjsStatus(noBpjs) {
+    setBpjsBadge('checking');
+    fetch('{{ route("admin.bpjs.cek") }}?no_bpjs=' + encodeURIComponent(noBpjs), {
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'aktif') {
+        setBpjsBadge('aktif', data.nama || '', data.faskes || '');
+      } else if (data.status === 'sandbox') {
+        setBpjsBadge('sandbox');
+      } else {
+        setBpjsBadge('tidak_aktif');
+      }
+    })
+    .catch(() => {
+      setBpjsBadge('tidak_aktif');
+    });
+  }
 
   /* ── MODAL BATAL ── */
   function openBatal(id, nama) {

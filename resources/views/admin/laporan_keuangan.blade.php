@@ -49,8 +49,6 @@
           <select name="metode_pembayaran" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
             <option value="">Semua Metode</option>
             <option value="Tunai" {{ request('metode_pembayaran') == 'Tunai' ? 'selected' : '' }}>Tunai</option>
-            <option value="Debit" {{ request('metode_pembayaran') == 'Debit' ? 'selected' : '' }}>Debit / EDC</option>
-            <option value="QRIS" {{ request('metode_pembayaran') == 'QRIS' ? 'selected' : '' }}>QRIS</option>
             <option value="Asuransi" {{ request('metode_pembayaran') == 'Asuransi' ? 'selected' : '' }}>Asuransi / BPJS</option>
           </select>
         </div>
@@ -118,7 +116,7 @@
 
     <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex items-center justify-between">
       <div class="space-y-1">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Klaim Asuransi / BPJS</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ditanggung BPJS / Asuransi</p>
         <h3 class="text-xl font-bold text-emerald-600 font-mono">Rp {{ number_format($totalKlaimBpjs, 2, ',', '.') }}</h3>
         <p class="text-[10px] text-gray-400">Tanggungan pihak ketiga</p>
       </div>
@@ -185,14 +183,10 @@
             $percentage = $totalPendapatanBersih > 0 ? ($val / $totalPendapatanBersih) * 100 : 0;
             $colorClasses = [
               'Tunai' => 'bg-indigo-600',
-              'Debit' => 'bg-blue-500',
-              'QRIS' => 'bg-amber-500',
               'Asuransi' => 'bg-emerald-500',
             ];
             $iconClasses = [
               'Tunai' => 'fa-money-bill-wave text-indigo-600 bg-indigo-50',
-              'Debit' => 'fa-credit-card text-blue-500 bg-blue-50',
-              'QRIS' => 'fa-qrcode text-amber-500 bg-amber-50',
               'Asuransi' => 'fa-shield-alt text-emerald-500 bg-emerald-50',
             ];
           @endphp
@@ -235,7 +229,7 @@
             <th class="text-right">Biaya Registrasi</th>
             <th class="text-right">Biaya Tindakan</th>
             <th class="text-right">Biaya Obat</th>
-            <th class="text-right">Potongan BPJS</th>
+            <th class="text-right">Ditanggung BPJS</th>
             <th class="text-right">Total Bersih</th>
             <th class="text-center">Metode Bayar</th>
             <th class="text-center">Status</th>
@@ -363,7 +357,7 @@
 
   function exportCSV() {
     let rows = [];
-    let headers = ['Tanggal Pembuatan', 'No Invoice', 'Nama Pasien', 'Jenis Kasus', 'Biaya Registrasi', 'Biaya Tindakan', 'Biaya Obat', 'Potongan BPJS', 'Total Bersih', 'Metode Pembayaran', 'Status', 'Kasir Penerima'];
+    let headers = ['Tanggal Pembuatan', 'No Invoice', 'Nama Pasien', 'Jenis Kasus', 'Biaya Registrasi', 'Biaya Tindakan', 'Biaya Obat', 'Ditanggung BPJS', 'Total Bersih', 'Metode Pembayaran', 'Status', 'Kasir Penerima'];
     rows.push(headers.join(','));
 
     let tableRows = document.querySelectorAll('#dataTable tbody tr');

@@ -15,7 +15,17 @@ class ResepController extends Controller
         $search = $request->query('search');
 
         $resepQuery = Resep::with(['rekamMedis.pasien', 'rawatInap.pasien', 'dokter.user', 'apoteker.user', 'details.obat'])
-            ->orderByRaw("FIELD(status, 'Menunggu', 'Diproses', 'Menunggu Pembayaran', 'Sudah Dibayar', 'Selesai', 'Dibatalkan')")
+            ->orderByRaw("
+                CASE status
+                    WHEN 'Menunggu' THEN 1
+                    WHEN 'Diproses' THEN 2
+                    WHEN 'Menunggu Pembayaran' THEN 3
+                    WHEN 'Sudah Dibayar' THEN 4
+                    WHEN 'Selesai' THEN 5
+                    WHEN 'Dibatalkan' THEN 6
+                    ELSE 7
+                END ASC
+            ")
             ->orderByDesc('created_at');
 
         if ($status && $status !== 'Semua') {

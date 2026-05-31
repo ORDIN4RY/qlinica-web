@@ -6,25 +6,20 @@
 
 @section('content')
 @php
-  $activeQueues = \App\Models\Antrian::with(['pasien', 'rekamMedis'])
-      ->where('tanggal', now()->toDateString())
-      ->whereIn('status', ['Dipanggil', 'Dilayani'])
-      ->orderBy('no_antrian')
-      ->get();
-
-  $pegawai = auth()->user()->pegawai;
-  $topPenyakit = \App\Models\RekamMedisDiagnosa::select('icdx_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as n'))
-      ->whereHas('rekamMedis', function($q) use ($pegawai) {
-          if ($pegawai) {
-              $q->where('dokter_id', $pegawai->id);
-          }
-      })
-      ->groupBy('icdx_id')
-      ->orderByDesc('n')
-      ->limit(5)
-      ->with('icdx')
-      ->get();
+  // Data passed from controller: $activeQueues, $topPenyakit, $isClockedIn
 @endphp
+
+@if(!$isClockedIn)
+<div class="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-4 shadow-sm animate-pulse">
+  <div class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+    <i class="fas fa-fingerprint text-lg"></i>
+  </div>
+  <div>
+    <h3 class="text-red-800 font-bold text-sm">Anda Belum Presensi (Clock In) Hari Ini!</h3>
+    <p class="text-red-600 text-xs mt-1">Anda tidak akan menerima antrean pasien baru sampai Anda melakukan presensi masuk (Clock In). Silakan lakukan absensi melalui <b>Aplikasi Mobile Pegawai</b>.</p>
+  </div>
+</div>
+@endif
 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
 
   <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 shadow-sm text-white">
