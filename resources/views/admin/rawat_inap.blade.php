@@ -69,16 +69,14 @@
               <input type="hidden" name="tgl_masuk" value="{{ now()->format('Y-m-d\TH:i') }}">
 
               <div class="w-full md:w-36">
-                <select name="jenis_penjamin" onchange="document.getElementById('sep_container_{{ $rm->pasien_id }}').style.display = this.value === 'BPJS KESEHATAN' ? 'block' : 'none'" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" required>
-                  <option value="Umum">Umum</option>
-                  <option value="BPJS KESEHATAN">BPJS KESEHATAN</option>
-                  <option value="Asuransi Lain">Asuransi Lain</option>
+                <select name="jenis_penjamin" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" required>
+                  <option value="Umum">Umum (Mandiri)</option>
+                  <option value="Asuransi Lain">Asuransi Swasta</option>
                 </select>
               </div>
 
-              <div class="w-full md:w-44" id="sep_container_{{ $rm->pasien_id }}" style="display: none;">
-                <input type="text" name="no_sep" placeholder="No. SEP (Auto jika kosong)" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm">
-              </div>
+              {{-- Catatan: BPJS KESEHATAN tidak tersedia untuk rawat inap di klinik FKTP --}}
+              {{-- BPJS hanya menanggung rawat jalan di FKTP. Rawat inap BPJS harus dirujuk ke FKRTL (RS). --}}
               
               <div class="w-full md:w-40">
                 <select class="pilih-kelas w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" data-target="kamar_select_{{ $rm->pasien_id }}" required>
