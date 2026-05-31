@@ -27,6 +27,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(prepend: [
             \Illuminate\Http\Middleware\HandleCors::class,
         ]);
+
+        // Kecualikan rute API mobile dari pengecekan CSRF
+        $middleware->validateCsrfTokens(except: [
+            'api/*',
+            'midtrans/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
     
