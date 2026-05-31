@@ -71,12 +71,15 @@
               <div class="w-full md:w-36">
                 <select name="jenis_penjamin" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" required>
                   <option value="Umum">Umum (Mandiri)</option>
+                  <option value="BPJS KESEHATAN">BPJS KESEHATAN</option>
                   <option value="Asuransi Lain">Asuransi Swasta</option>
                 </select>
               </div>
-
-              {{-- Catatan: BPJS KESEHATAN tidak tersedia untuk rawat inap di klinik FKTP --}}
-              {{-- BPJS hanya menanggung rawat jalan di FKTP. Rawat inap BPJS harus dirujuk ke FKRTL (RS). --}}
+              {{-- Catatan:
+                   - BPJS KESEHATAN rawat inap di FKTP menggunakan skema NON-KAPITASI (klaim manual ke BPJS tiap bulan via P-Care)
+                   - SEP (Surat Eligibilitas Peserta) TIDAK diperlukan di FKTP, hanya di FKRTL (Rumah Sakit)
+                   - Maksimal rawat inap 5 hari; lebih dari itu wajib dirujuk ke RS
+              --}}
               
               <div class="w-full md:w-40">
                 <select class="pilih-kelas w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" data-target="kamar_select_{{ $rm->pasien_id }}" required>
@@ -164,9 +167,21 @@
                 @endif
               </td>
               <td class="px-6 py-4 text-center">
+                @php
+                  $hariDirawat = \Carbon\Carbon::parse($ri->tgl_masuk)->diffInDays(now());
+                  $isBpjsMelebihiLimit = $ri->jenis_penjamin === 'BPJS KESEHATAN' && $ri->status === 'Aktif' && $hariDirawat >= 5;
+                @endphp
                 @if($ri->status === 'Aktif')
-                  <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold animate-pulse"><i
-                      class="fas fa-bed mr-1"></i> Dirawat</span>
+                  <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold {{ $isBpjsMelebihiLimit ? '' : 'animate-pulse' }}"><i
+                      class="fas fa-bed mr-1"></i> Dirawat ({{ $hariDirawat }} hari)</span>
+                  @if($isBpjsMelebihiLimit)
+                    <div class="mt-1.5">
+                      <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 border border-red-300 rounded-lg text-[10px] font-bold">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Melebihi 5 hari BPJS! Pertimbangkan rujukan ke RS.
+                      </span>
+                    </div>
+                  @endif
                 @else
                   <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold"><i
                       class="fas fa-check-circle mr-1"></i> Selesai</span><br>

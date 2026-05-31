@@ -195,10 +195,41 @@ class Billing extends Model
         if ($this->no_bpjs) {
             // Cek apakah ini transaksi rawat inap dengan penjamin BPJS
             if ($this->rawatInap && $this->rawatInap->jenis_penjamin === 'BPJS KESEHATAN') {
-                // Seluruh biaya ditanggung BPJS (Masuk tagihan paket INA-CBG)
-                // (Pada implementasi nyata akan ada selisih kelas jika naik kelas)
-                $this->potongan_bpjs = $totalBiayaAwal;
-                $this->grand_total = 0;
+                /**
+                 * BPJS FKTP - Rawat Inap Non-Kapitasi
+                 * ─────────────────────────────────────
+                 * Regulasi: BPJS hanya menanggung rawat inap di FKTP maks 5 hari.
+                 * Hari ke-6 dan seterusnya ditanggung sendiri oleh pasien.
+                 *
+                 * Kalkulasi:
+                 * - Hitung total malam / durasi rawat inap
+                 * - Tentukan berapa malam yang ditanggung BPJS (maks 5)
+                 * - Sisa malam ditagih ke pasien
+                 */
+                $tglMasuk  = \Carbon\Carbon::parse($this->rawatInap->tgl_masuk)->startOfDay();
+                $tglKeluar = $this->rawatInap->tgl_keluar
+                    ? \Carbon\Carbon::parse($this->rawatInap->tgl_keluar)->startOfDay()
+                    : now()->startOfDay();
+
+                $totalMalam     = max(1, $tglMasuk->diffInDays($tglKeluar));
+                $malamDitanggung = min($totalMalam, 5); // BPJS maks 5 hari
+                $malamCopay      = $totalMalam - $malamDitanggung; // hari ke-6+
+
+                // Hitung biaya kamar per malam rata-rata
+                $tarifPerMalam = $totalMalam > 0 ? ($bKam / $totalMalam) : 0;
+                $biayaKamarCopay     = $malamCopay * $tarifPerMalam;  // ditanggung pasien
+                $biayaKamarDitanggung = $malamDitanggung * $tarifPerMalam; // ditanggung BPJS
+
+                // Total yang ditanggung BPJS = registrasi + tindakan + kamar (5 hari) + obat
+                // Obat non-fornas tetap ditanggung pasien sebagai co-payment
+                $biayaNonFornas = $this->hitungBiayaObatNonFornas();
+                $biayaFarnasiDitanggung = $bOba - $biayaNonFornas;
+
+                $totalDitanggungBpjs = $bReg + $bTin + $biayaKamarDitanggung + max(0, $biayaFarnasiDitanggung);
+                $totalCopayPasien    = $biayaKamarCopay + $biayaNonFornas;
+
+                $this->potongan_bpjs = $totalDitanggungBpjs;
+                $this->grand_total   = max(0, $totalCopayPasien);
             } else {
                 // Logika Rawat Jalan BPJS FKTP - semua gratis kecuali obat non-fornas
                 // Registrasi, Tindakan = Rp 0 (ditanggung kapitasi)

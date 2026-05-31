@@ -230,6 +230,8 @@
             <label class="block text-xs font-bold text-gray-500 uppercase">Metode Pembayaran</label>
             <div class="grid grid-cols-2 gap-3">
               
+              @if(!$billing->no_bpjs)
+              {{-- Tunai: hanya tampil jika bukan pasien BPJS --}}
               <label class="border border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition group">
                 <input type="radio" name="metode_pembayaran" value="Tunai" checked class="sr-only peer">
                 <div class="peer-checked:bg-blue-900 text-gray-500 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 transition group-hover:bg-blue-100">
@@ -237,9 +239,10 @@
                 </div>
                 <span class="text-xs font-semibold text-gray-700">Tunai</span>
               </label>
+              @endif
 
-              <label class="border border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition group">
-                <input type="radio" name="metode_pembayaran" value="Asuransi" class="sr-only peer">
+              <label class="border border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition group {{ $billing->no_bpjs ? 'col-span-2' : '' }}">
+                <input type="radio" name="metode_pembayaran" value="Asuransi" {{ $billing->no_bpjs ? 'checked' : '' }} class="sr-only peer">
                 <div class="peer-checked:bg-blue-900 text-gray-500 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 transition group-hover:bg-blue-100">
                   <i class="fas fa-shield-alt text-sm"></i>
                 </div>
@@ -261,19 +264,39 @@
                 <span>Ditanggung BPJS FKTP:</span>
                 <span>Rp {{ number_format($billing->potongan_bpjs, 2, ',', '.') }}</span>
               </div>
+              <div class="flex justify-between text-xs text-gray-600">
+                <span>No. Kartu BPJS:</span>
+                <span class="font-mono font-semibold">{{ $billing->no_bpjs }}</span>
+              </div>
             @endif
             <p class="text-[11px] text-blue-800 mt-1 leading-relaxed">
               <i class="fas fa-exclamation-circle mr-1"></i> Setelah mengonfirmasi pembayaran, resep obat pasien akan otomatis masuk antrean Apotek untuk segera diserahkan.
             </p>
           </div>
 
-          <div id="tunai-panel" class="space-y-2">
+          {{-- Panel input tunai: sembunyikan untuk pasien BPJS --}}
+          <div id="tunai-panel" class="space-y-2 {{ $billing->no_bpjs ? 'hidden' : '' }}">
             <label class="block text-xs font-bold text-gray-500 uppercase">Jumlah Dibayar (Tunai)</label>
             <input type="number" step="0.01" min="0" name="jumlah_dibayar" id="jumlah_dibayar" placeholder="Masukkan jumlah tunai dari pelanggan" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             <div id="kembalian-display" class="text-sm font-semibold text-gray-800">Kembalian: Rp 0,00</div>
           </div>
 
-          <!-- Tombol submit — disembunyikan saat QRIS dipilih -->
+          @if($billing->no_bpjs)
+          {{-- Panel konfirmasi BPJS --}}
+          <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center space-y-1">
+            <i class="fas fa-shield-alt text-2xl text-emerald-600 block mb-1"></i>
+            <p class="text-xs font-bold text-emerald-800">Pasien BPJS &mdash; Pembayaran Ditanggung</p>
+            <p class="text-[11px] text-emerald-700 leading-relaxed">
+              @if($billing->grand_total == 0)
+                Seluruh biaya ditanggung BPJS. Pasien <strong>tidak perlu membayar</strong> apapun.
+              @else
+                Pasien wajib membayar <strong>Rp {{ number_format($billing->grand_total, 2, ',', '.') }}</strong> (biaya non-fornas / co-payment).
+              @endif
+            </p>
+          </div>
+          @endif
+
+          <!-- Tombol submit -->
           <button type="submit" id="btn-submit-bayar" class="w-full py-3 bg-blue-900 text-white rounded-xl hover:bg-blue-800 transition font-bold text-sm shadow-md flex items-center justify-center gap-2">
             <i class="fas fa-check-circle"></i> Selesaikan &amp; Cetak Kuitansi
           </button>
