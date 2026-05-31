@@ -502,6 +502,13 @@
       });
     }
   });
+  // Portal semua .modal-overlay ke body agar position:fixed bekerja benar
+  // (mengatasi bug containment karena overflow-y:auto pada elemen main)
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.modal-overlay').forEach(function(el) {
+      document.body.appendChild(el);
+    });
+  });
 </script>
 </body>
 </html>

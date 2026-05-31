@@ -54,12 +54,13 @@
       display: flex; align-items: center; gap: 12px;
     }
     .logo-icon {
-      width: 42px; height: 42px;
-      background: var(--navy);
+      width: 46px; height: 46px;
+      background: #2563eb;
       border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 14px rgba(30,58,138,.3);
+      box-shadow: 0 4px 18px rgba(37,99,235,.4);
       transition: transform .4s ease;
+      overflow: hidden;
     }
     .logo-icon:hover { transform: rotate(6deg) scale(1.05); }
     .logo-text {
@@ -100,10 +101,12 @@
     /* ══ MAIN LAYOUT ══ */
     .main-grid {
       display: grid;
-      grid-template-columns: 1fr 320px;
+      grid-template-columns: 1fr;
       gap: 20px;
-      padding: 24px 36px 80px;
+      padding: 28px 48px 90px;
       min-height: calc(100vh - 76px);
+      max-width: 1100px;
+      margin: 0 auto;
     }
 
     /* ══ LEFT ══ */
@@ -125,14 +128,14 @@
       border: 1px solid var(--border);
       border-radius: 24px;
       box-shadow: var(--shadow);
-      padding: 40px 48px;
+      padding: 56px 60px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
       flex: 1;
-      min-height: 340px;
+      min-height: 400px;
       position: relative;
       overflow: hidden;
       transition: box-shadow .3s;
@@ -177,7 +180,7 @@
     /* Number */
     .called-number {
       font-family: 'Sora', sans-serif;
-      font-size: clamp(88px, 13vw, 148px);
+      font-size: clamp(100px, 16vw, 180px);
       font-weight: 900;
       line-height: 1;
       letter-spacing: -6px;
@@ -253,14 +256,14 @@
     .stats-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
+      gap: 16px;
     }
     .stat-chip {
       background: var(--putih);
       border: 1px solid var(--border);
-      border-radius: 16px;
+      border-radius: 20px;
       box-shadow: var(--shadow);
-      padding: 18px 16px;
+      padding: 24px 20px;
       text-align: center;
       transition: transform .2s, box-shadow .2s;
       position: relative; overflow: hidden;
@@ -273,116 +276,23 @@
     .stat-chip.chip-wait::before  { background: linear-gradient(90deg,var(--kuning),#ef4444); }
     .stat-chip.chip-done::before  { background: linear-gradient(90deg,var(--hijau),#06b6d4); }
 
-    .stat-chip:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(30,58,138,.1); }
+    .stat-chip:hover { transform: translateY(-4px); box-shadow: 0 14px 36px rgba(30,58,138,.12); }
     .stat-chip .val {
       font-family: 'Sora', sans-serif;
-      font-size: 34px; font-weight: 900;
+      font-size: 42px; font-weight: 900;
       line-height: 1; letter-spacing: -2px;
     }
     .stat-chip .lbl {
-      font-size: 10px; font-weight: 700;
+      font-size: 11px; font-weight: 700;
       color: var(--abu);
       text-transform: uppercase; letter-spacing: 1.5px;
-      margin-top: 5px;
+      margin-top: 7px;
     }
     .val-total   { color: var(--biru); }
     .val-waiting { color: var(--kuning); }
     .val-done    { color: var(--hijau); }
 
-    /* ══ RIGHT PANEL ══ */
-    .waiting-panel {
-      display: flex; flex-direction: column; gap: 14px;
-    }
-    .panel-card {
-      background: var(--putih);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      flex: 1;
-    }
-    .panel-header-inner {
-      padding: 16px 18px 14px;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-      background: #f8fafc;
-    }
-    .panel-title {
-      font-size: 12px; font-weight: 700;
-      color: var(--teks);
-      text-transform: uppercase; letter-spacing: 1.5px;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .panel-title i { color: var(--biru); }
-    .count-badge {
-      background: #fffbeb;
-      border: 1px solid #fde68a;
-      color: #92400e;
-      font-size: 11px; font-weight: 700;
-      padding: 3px 10px; border-radius: 99px;
-    }
 
-    .waiting-list {
-      display: flex; flex-direction: column; gap: 0;
-      max-height: calc(100vh - 280px);
-      overflow-y: auto;
-    }
-    .waiting-list::-webkit-scrollbar { width: 4px; }
-    .waiting-list::-webkit-scrollbar-track { background: transparent; }
-    .waiting-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-    .queue-item {
-      padding: 13px 18px;
-      display: flex; align-items: center; gap: 12px;
-      border-bottom: 1px solid #f0f4f8;
-      transition: background .18s;
-      animation: slideIn .3s ease;
-    }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(10px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-    .queue-item:last-child { border-bottom: none; }
-    .queue-item:hover { background: #f8fafc; }
-    .queue-item.is-called { background: #eff6ff; border-left: 3px solid var(--biru); }
-
-    .q-num {
-      width: 40px; height: 40px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--navy), var(--biru));
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Sora', sans-serif;
-      font-size: 13px; font-weight: 800;
-      color: #fff; flex-shrink: 0;
-      box-shadow: 0 3px 10px rgba(37,99,235,.25);
-    }
-    .q-num.called-num {
-      background: linear-gradient(135deg, var(--ungu), #a78bfa);
-      box-shadow: 0 3px 14px rgba(124,58,237,.35);
-      animation: pulseNum 1.5s infinite;
-    }
-    @keyframes pulseNum {
-      0%,100% { box-shadow: 0 3px 10px rgba(124,58,237,.35); }
-      50%      { box-shadow: 0 3px 22px rgba(124,58,237,.6); }
-    }
-    .q-info { flex: 1; min-width: 0; }
-    .q-name {
-      font-size: 13px; font-weight: 700;
-      color: var(--teks);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .q-status {
-      font-size: 10px; font-weight: 600;
-      margin-top: 2px; display: flex; align-items: center; gap: 4px;
-    }
-    .q-status.menunggu  { color: var(--kuning); }
-    .q-status.dipanggil { color: var(--ungu); }
-
-    .empty-waiting {
-      text-align: center; padding: 40px 20px;
-      color: var(--abu); font-size: 13px;
-    }
-    .empty-waiting i { display: block; font-size: 28px; margin-bottom: 8px; opacity: .35; }
 
     /* ══ TOAST ══ */
     .call-toast {
@@ -454,9 +364,16 @@
 
     /* ══ RESPONSIVE ══ */
     @media (max-width: 900px) {
-      .main-grid { grid-template-columns: 1fr; padding: 16px 20px 80px; }
-      .waiting-panel { display: none; }
+      .main-grid { padding: 16px 20px 90px; }
       .header-bar { padding: 12px 20px; }
+      .called-card { padding: 36px 24px; min-height: 320px; }
+      .stats-row { gap: 10px; }
+      .stat-chip .val { font-size: 32px; }
+    }
+    @media (max-width: 480px) {
+      .stats-row { grid-template-columns: repeat(3,1fr); gap: 8px; }
+      .stat-chip { padding: 16px 10px; }
+      .stat-chip .val { font-size: 26px; }
     }
   </style>
 </head>
@@ -475,7 +392,22 @@
   <header class="header-bar">
     <div class="logo-wrap">
       <div class="logo-icon">
-        <i class="fas fa-clinic-medical text-white" style="font-size:18px;color:#fff;"></i>
+        <svg width="34" height="34" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- White Q ring -->
+          <circle cx="44" cy="43" r="28" fill="none" stroke="white" stroke-width="8"/>
+          <!-- Dark inner circle -->
+          <circle cx="44" cy="43" r="19" fill="#1e3a8a"/>
+          <!-- Cyan cross vertical -->
+          <rect x="40" y="30" width="8" height="26" rx="2" fill="#38bdf8"/>
+          <!-- Cyan cross horizontal -->
+          <rect x="31" y="39" width="26" height="8" rx="2" fill="#38bdf8"/>
+          <!-- Q tail curve -->
+          <path d="M 64 62 C 72 72 80 80 88 88" stroke="white" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+          <!-- Tail ring -->
+          <circle cx="88" cy="88" r="5.5" fill="none" stroke="white" stroke-width="4"/>
+          <!-- Tail dot center -->
+          <circle cx="88" cy="88" r="2" fill="#38bdf8"/>
+        </svg>
       </div>
       <div>
         <div class="logo-text">QLINICA</div>
@@ -542,24 +474,6 @@
         <div class="stat-chip chip-done">
           <div class="val val-done" id="statDone">0</div>
           <div class="lbl">Selesai</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── RIGHT PANEL ── -->
-    <div class="waiting-panel">
-      <div class="panel-card">
-        <div class="panel-header-inner">
-          <div class="panel-title">
-            <i class="fas fa-list-ol"></i> Antrian Menunggu
-          </div>
-          <div class="count-badge" id="waitingBadge">0</div>
-        </div>
-        <div class="waiting-list" id="waitingList">
-          <div class="empty-waiting" id="emptyWaiting">
-            <i class="fas fa-inbox"></i>
-            Belum ada antrian hari ini
-          </div>
         </div>
       </div>
     </div>
@@ -818,7 +732,6 @@ function renderStats(data) {
   document.getElementById('statTotal').textContent   = data.total   ?? 0;
   document.getElementById('statWaiting').textContent = data.menunggu ?? 0;
   document.getElementById('statDone').textContent    = data.selesai  ?? 0;
-  document.getElementById('waitingBadge').textContent = (data.daftar_menunggu ?? []).length;
 }
 
 function renderWaitingList(items) {
@@ -876,7 +789,6 @@ function fetchDisplayData() {
   .then(function(data) {
     renderCalledCard(data);
     renderStats(data);
-    renderWaitingList(data.daftar_menunggu ?? []);
   })
   .catch(function(err) {
     console.warn('Polling error:', err);

@@ -29,6 +29,37 @@
   .form-input:focus, .form-select:focus {
     border-color:#d97706; box-shadow:0 0 0 3px rgba(217,119,6,.1); }
   .modal-box-resep { max-width: 800px !important; }
+
+  /* ── AKSI DROPDOWN ── */
+  .aksi-btn {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 14px; font-size:12px; font-weight:700;
+    border:1.5px solid #e5e7eb; border-radius:10px;
+    background:#fff; color:#374151; cursor:pointer;
+    transition:all .15s; user-select:none; white-space:nowrap;
+  }
+  .aksi-btn:hover { background:#f8fafc; border-color:#d1d5db; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+  .aksi-btn i { font-size:9px; transition:transform .15s; }
+  .aksi-btn.is-open i { transform:rotate(180deg); }
+
+  .aksi-menu {
+    position:fixed; background:#fff;
+    border:1px solid #e5e7eb; border-radius:12px;
+    box-shadow:0 12px 36px rgba(15,23,42,.15);
+    z-index:9999; min-width:175px; overflow:hidden;
+    display:none;
+  }
+  .aksi-menu.open { display:block; animation:aksiIn .12s ease; }
+  @keyframes aksiIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+  .aksi-menu-item {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 16px; font-size:13px; font-weight:600;
+    color:#374151; cursor:pointer; transition:background .1s;
+    border:none; background:none; width:100%; text-align:left; text-decoration:none;
+  }
+  .aksi-menu-item:hover { background:#f8fafc; }
+  .aksi-menu-item i { font-size:11px; width:14px; text-align:center; flex-shrink:0; }
+  .aksi-menu-sep { height:1px; background:#f0f4f8; margin:4px 0; }
 </style>
 @endpush
 
@@ -176,26 +207,37 @@
                 @endif
               </td>
               @if (auth()->user()->hasMenuAccess('Rawat Inap', 'edit') || auth()->user()->hasMenuAccess('Rawat Inap', 'hapus'))
-              <td class="px-6 py-4 text-right space-x-1">
-                @if($ri->status === 'Aktif' && auth()->user()->hasMenuAccess('Rawat Inap', 'edit'))
-                  <button onclick="openResepModal({{ $ri->id }}, '{{ addslashes($ri->pasien->nama) }}')"
-                    class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
-                    <i class="fas fa-pills mr-1"></i> Resep
-                  </button>
-                  <button onclick="openPindahModal({{ $ri->id }}, '{{ $ri->pasien->nama }}', {{ $ri->kamar_id }}, '{{ $ri->kamar->kelas }}')"
-                    class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
-                    <i class="fas fa-exchange-alt mr-1"></i> Pindah
-                  </button>
-                  <button onclick="openCheckoutModal({{ $ri->id }}, '{{ $ri->pasien->nama }}')"
-                    class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition shadow-sm">
-                    <i class="fas fa-sign-out-alt mr-1"></i> Pulang
-                  </button>
-                @endif
-                @if($ri->billing)
-                  <a href="{{ route('admin.billing.show', $ri->billing->id) }}"
-                    class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition shadow-sm border border-gray-200">
-                    <i class="fas fa-receipt"></i> Tagihan
-                  </a>
+              <td class="px-6 py-4 text-right">
+                @php
+                  $hasAktifAction = $ri->status === 'Aktif' && auth()->user()->hasMenuAccess('Rawat Inap', 'edit');
+                  $hasTagihan = (bool)$ri->billing;
+                @endphp
+                @if($hasAktifAction || $hasTagihan)
+                <button class="aksi-btn" onclick="toggleAksiMenu(this,'aksi-{{ $ri->id }}')">
+                  Aksi <i class="fas fa-chevron-down"></i>
+                </button>
+                <div id="aksi-{{ $ri->id }}" class="aksi-menu">
+                  @if($hasAktifAction)
+                    <button class="aksi-menu-item"
+                      onclick="openResepModal({{ $ri->id }},'{{ addslashes($ri->pasien->nama) }}');closeAksiMenu();">
+                      <i class="fas fa-pills" style="color:#059669"></i> Resep
+                    </button>
+                    <button class="aksi-menu-item"
+                      onclick="openPindahModal({{ $ri->id }},'{{ $ri->pasien->nama }}',{{ $ri->kamar_id }},'{{ $ri->kamar->kelas }}');closeAksiMenu();">
+                      <i class="fas fa-exchange-alt" style="color:#4f46e5"></i> Pindah Kamar
+                    </button>
+                    <button class="aksi-menu-item"
+                      onclick="openCheckoutModal({{ $ri->id }},'{{ $ri->pasien->nama }}');closeAksiMenu();">
+                      <i class="fas fa-sign-out-alt" style="color:#d97706"></i> Pulang
+                    </button>
+                  @endif
+                  @if($hasTagihan)
+                    @if($hasAktifAction)<div class="aksi-menu-sep"></div>@endif
+                    <a href="{{ route('admin.billing.show', $ri->billing->id) }}" class="aksi-menu-item">
+                      <i class="fas fa-receipt" style="color:#6b7280"></i> Tagihan
+                    </a>
+                  @endif
+                </div>
                 @endif
               </td>
               @endif
@@ -584,16 +626,33 @@
       }
     }
 
-    // Close modal on Escape key for resepModal
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        closeModal('resepModal');
+    // ── AKSI DROPDOWN ──
+    let _aksiCloseTimer = null;
+    function toggleAksiMenu(btn, menuId) {
+      const menu = document.getElementById(menuId);
+      const isOpen = menu.classList.contains('open');
+      closeAksiMenu();
+      if (!isOpen) {
+        const rect = btn.getBoundingClientRect();
+        menu.style.top   = (rect.bottom + 6) + 'px';
+        menu.style.right = (window.innerWidth - rect.right) + 'px';
+        menu.style.left  = 'auto';
+        menu.classList.add('open');
+        btn.classList.add('is-open');
       }
+    }
+    function closeAksiMenu() {
+      document.querySelectorAll('.aksi-menu.open').forEach(m => m.classList.remove('open'));
+      document.querySelectorAll('.aksi-btn.is-open').forEach(b => b.classList.remove('is-open'));
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.aksi-btn') && !e.target.closest('.aksi-menu')) closeAksiMenu();
     });
-
-    // Close modal on clicking overlay for resepModal
-    document.getElementById('resepModal').addEventListener('click', function(e) {
-      if (e.target === this) closeModal('resepModal');
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeAksiMenu();
     });
+    // Tutup dropdown saat scroll supaya tidak menimpa
+    window.addEventListener('scroll', closeAksiMenu, { passive: true });
+    document.querySelector('.overflow-x-auto')?.addEventListener('scroll', closeAksiMenu, { passive: true });
   </script>
 @endpush

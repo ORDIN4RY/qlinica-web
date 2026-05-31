@@ -30,6 +30,8 @@
     height:90vh; display:flex; flex-direction:column;
     box-shadow:0 32px 80px rgba(15,23,42,.22);
     animation:modalIn .22s cubic-bezier(.4,0,.2,1); margin:16px; overflow:hidden; }
+  /* Modal Info - pakai max-height supaya konten fleksibel */
+  .modal-box-info { height:auto !important; max-height:90vh !important; }
   @keyframes modalIn { from{opacity:0;transform:scale(.96) translateY(10px)} to{opacity:1;transform:none} }
   .modal-head { padding:22px 28px 18px; border-bottom:1px solid #e5e7eb;
     display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
@@ -514,7 +516,7 @@
      MODAL INFO
 ══════════════════════════════════════════════════════════════ --}}
 <div class="modal-overlay" id="infoOverlay">
-  <div class="modal-box">
+  <div class="modal-box modal-box-info">
     <div class="modal-head">
       <h2 class="text-lg font-bold text-gray-800">Detail Pasien</h2>
       <button onclick="closeInfo()" class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition text-gray-500">
