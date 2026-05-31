@@ -196,10 +196,13 @@
           id="tab-btn-{{ $jabatan->id }}"
         >
           <div class="flex items-center gap-3">
-            <i class="fas fa-user-tag w-4 text-center opacity-70"></i>
+            <i class="fas {{ $jabatan->jenis === 'medis' ? 'fa-stethoscope text-emerald-500' : 'fa-briefcase text-violet-500' }} w-4 text-center"></i>
             <span class="font-semibold text-sm">{{ $jabatan->nama_jabatan }}</span>
           </div>
-          <span class="badge">{{ $jabatan->pegawais_count }}</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full {{ $jabatan->jenis === 'medis' ? 'bg-emerald-50 text-emerald-600' : 'bg-violet-50 text-violet-600' }}">{{ $jabatan->jenis }}</span>
+            <span class="badge">{{ $jabatan->pegawais_count }}</span>
+          </div>
         </button>
       @empty
         <div class="text-center p-4 text-gray-400 text-sm">Belum ada jabatan</div>
@@ -223,6 +226,9 @@
           <div>
             <h2 class="text-xl font-bold text-gray-800 mb-1 flex items-center gap-2">
               {{ $jabatan->nama_jabatan }}
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full {{ $jabatan->jenis === 'medis' ? 'bg-emerald-50 text-emerald-700' : 'bg-violet-50 text-violet-700' }}">
+                {{ $jabatan->jenis === 'medis' ? 'Medis' : 'Non-Medis' }}
+              </span>
             </h2>
             <p class="text-sm text-gray-500">Kelola akses modul dan ekstensi untuk jabatan ini.</p>
           </div>
@@ -362,12 +368,48 @@
 
     <form method="POST" action="{{ route('admin.jabatan.store') }}">
       @csrf
-      <div class="mb-5">
+      <div class="mb-4">
         <label class="block text-xs font-bold text-gray-600 mb-1.5" for="nama_jabatan">Nama Jabatan</label>
         <input type="text" id="nama_jabatan" name="nama_jabatan" value="{{ old('nama_jabatan') }}"
           class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm"
           placeholder="contoh: Kepala Bagian..." autofocus>
         @error('nama_jabatan')
+          <p class="text-red-500 text-xs mt-1.5">{{ $message }}</p>
+        @enderror
+      </div>
+      <div class="mb-5">
+        <label class="block text-xs font-bold text-gray-600 mb-1.5">Jenis Jabatan</label>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition peer-checked:border-emerald-500
+            {{ old('jenis') === 'medis' ? 'border-emerald-400 bg-emerald-50' : 'border-gray-200 hover:border-emerald-200' }}"
+            id="labelMedis">
+            <input type="radio" name="jenis" value="medis" class="hidden jenis-radio"
+              {{ old('jenis') === 'medis' ? 'checked' : '' }}
+              onchange="updateJenisStyle()">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-stethoscope text-emerald-600 text-xs"></i>
+            </div>
+            <div>
+              <div class="font-bold text-sm text-gray-800">Medis</div>
+              <div class="text-[10px] text-gray-400">Dokter, Perawat, dll</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition
+            {{ old('jenis') === 'non-medis' || !old('jenis') ? 'border-violet-400 bg-violet-50' : 'border-gray-200 hover:border-violet-200' }}"
+            id="labelNonMedis">
+            <input type="radio" name="jenis" value="non-medis" class="hidden jenis-radio"
+              {{ old('jenis') === 'non-medis' || !old('jenis') ? 'checked' : '' }}
+              onchange="updateJenisStyle()">
+            <div class="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-briefcase text-violet-600 text-xs"></i>
+            </div>
+            <div>
+              <div class="font-bold text-sm text-gray-800">Non-Medis</div>
+              <div class="text-[10px] text-gray-400">Admin, Satpam, dll</div>
+            </div>
+          </label>
+        </div>
+        @error('jenis')
           <p class="text-red-500 text-xs mt-1.5">{{ $message }}</p>
         @enderror
       </div>
@@ -571,9 +613,31 @@
   });
 
   /* ── Buka modal tambah otomatis jika ada validasi error ── */
-  @if($errors->has('nama_jabatan'))
+  @if($errors->has('nama_jabatan') || $errors->has('jenis'))
     document.getElementById('modalTambah').classList.add('open');
   @endif
+
+  /* ── Style radio button jenis jabatan ── */
+  function updateJenisStyle() {
+    const medisRadio    = document.querySelector('input[name="jenis"][value="medis"]');
+    const nonMedisRadio = document.querySelector('input[name="jenis"][value="non-medis"]');
+    const labelMedis    = document.getElementById('labelMedis');
+    const labelNonMedis = document.getElementById('labelNonMedis');
+
+    if (!medisRadio || !labelMedis) return;
+
+    if (medisRadio.checked) {
+      labelMedis.className    = labelMedis.className.replace(/border-gray-200|border-violet-400 bg-violet-50/g, '').trim()
+        + ' border-emerald-400 bg-emerald-50';
+      labelNonMedis.className = labelNonMedis.className.replace(/border-emerald-400 bg-emerald-50/g, '').trim()
+        + ' border-gray-200';
+    } else {
+      labelNonMedis.className = labelNonMedis.className.replace(/border-gray-200|border-emerald-400 bg-emerald-50/g, '').trim()
+        + ' border-violet-400 bg-violet-50';
+      labelMedis.className    = labelMedis.className.replace(/border-violet-400 bg-violet-50|border-emerald-400 bg-emerald-50/g, '').trim()
+        + ' border-gray-200';
+    }
+  }
 
   /* ── Search Menu ── */
   function searchMenu(input, jabatanId) {

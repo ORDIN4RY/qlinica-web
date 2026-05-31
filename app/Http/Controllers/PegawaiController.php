@@ -29,7 +29,11 @@ class PegawaiController extends Controller
 
         $jabatans = Jabatan::orderBy('nama_jabatan')->pluck('nama_jabatan', 'id');
 
-        return view('admin.pegawai', compact('pegawais', 'search', 'jabatans'));
+        // Count berdasarkan jenis jabatan
+        $countMedis    = Pegawai::whereHas('jabatan', fn($q) => $q->where('jenis', 'medis'))->count();
+        $countNonMedis = Pegawai::whereHas('jabatan', fn($q) => $q->where('jenis', 'non-medis'))->count();
+
+        return view('admin.pegawai', compact('pegawais', 'search', 'jabatans', 'countMedis', 'countNonMedis'));
     }
 
     /** Simpan pegawai baru. */

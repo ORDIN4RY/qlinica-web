@@ -17,11 +17,12 @@ class RawatInapController extends Controller
     {
         $query = RawatInap::with(['pasien', 'kamar', 'dokter', 'billing', 'reseps']);
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        $status = $request->input('status', 'Aktif');
+
+        if ($status === 'Antrian') {
+            $query->whereRaw('1 = 0');
         } else {
-            // Default show active admissions
-            $query->where('status', 'Aktif');
+            $query->where('status', $status);
         }
 
         $rawat_inaps = $query->orderBy('tgl_masuk', 'desc')->paginate(15);

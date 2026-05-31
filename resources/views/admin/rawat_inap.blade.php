@@ -73,76 +73,115 @@
       <a href="{{ route('admin.rawat_inap', ['status' => 'Selesai']) }}"
         class="px-4 py-2 text-sm font-medium rounded-xl border transition {{ request('status') == 'Selesai' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }}">Selesai
         / Pulang</a>
+      <a href="{{ route('admin.rawat_inap', ['status' => 'Antrian']) }}"
+        class="px-4 py-2 text-sm font-medium rounded-xl border transition {{ request('status') == 'Antrian' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }} flex items-center gap-2">
+        <span>Antrian Masuk</span>
+        @if($rekomendasiData->count() > 0)
+          <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+            {{ $rekomendasiData->count() }}
+          </span>
+        @endif
+      </a>
     </div>
 
     <!-- Antrian rawat inap is now inline -->
   </div>
 
-  @if($rekomendasiData->count() > 0 && auth()->user()->hasMenuAccess('Rawat Inap', 'tambah'))
-  <div class="mb-6 bg-white rounded-xl shadow-sm border border-emerald-200 overflow-hidden">
-    <div class="bg-emerald-50 px-6 py-4 border-b border-emerald-100 flex items-center gap-2">
-      <i class="fas fa-clipboard-list text-emerald-600"></i>
-      <h3 class="font-bold text-emerald-800">Antrian Masuk Rawat Inap (Rekomendasi Dokter)</h3>
-    </div>
-    <div class="overflow-x-auto p-4">
-      <div class="space-y-4">
-        @foreach($rekomendasiData as $rm)
-        <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
-          <div class="flex-1">
-            <h4 class="font-bold text-gray-800">{{ $rm->pasien->nama }}</h4>
-            <p class="text-xs text-gray-500">No. RM: {{ $rm->pasien->no_rm }} | Dokter: dr. {{ $rm->dokter->nama }}</p>
-          </div>
-          <div class="flex-1 w-full md:w-auto">
-            <form action="{{ route('admin.rawat_inap.store') }}" method="POST" class="flex flex-col md:flex-row items-center gap-3 w-full">
-              @csrf
-              <input type="hidden" name="pasien_id" value="{{ $rm->pasien_id }}">
-              <input type="hidden" name="dokter_id" value="{{ $rm->dokter_id }}">
-              <input type="hidden" name="tgl_masuk" value="{{ now()->format('Y-m-d\TH:i') }}">
-
-              <div class="w-full md:w-36">
-                <select name="jenis_penjamin" id="penjamin_{{ $rm->pasien_id }}" onchange="onPenjaminChange(this, {{ $rm->pasien_id }})" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" required>
-                  <option value="Umum">Umum (Mandiri)</option>
-                  <option value="BPJS KESEHATAN">BPJS KESEHATAN</option>
-                </select>
-              </div>
-              {{-- Catatan:
-                   - BPJS KESEHATAN rawat inap di FKTP menggunakan skema NON-KAPITASI (klaim manual ke BPJS tiap bulan via P-Care)
-                   - SEP (Surat Eligibilitas Peserta) TIDAK diperlukan di FKTP, hanya di FKRTL (Rumah Sakit)
-                   - Maksimal rawat inap 5 hari; lebih dari itu wajib dirujuk ke RS
-                   - BPJS tidak menanggung kamar kelas VIP
-              --}}
-              
-              <div class="w-full md:w-40">
-                <select class="pilih-kelas w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" data-target="kamar_select_{{ $rm->pasien_id }}" required>
-                  <option value="">-- Pilih Kelas --</option>
-                  @php
-                      $availableClasses = $kamarsTersedia->filter(function($k) { return $k->terisi < $k->kapasitas; })->pluck('kelas')->unique();
-                  @endphp
-                  @foreach($availableClasses as $kelas)
-                    <option value="{{ $kelas }}">{{ $kelas }}</option>
-                  @endforeach
-                </select>
-              </div>
-
-              <div class="w-full md:w-48">
-                <select name="kamar_id" id="kamar_select_{{ $rm->pasien_id }}" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" required>
-                  <option value="">-- Pilih Kamar --</option>
-                  <!-- Options populated by JS -->
-                </select>
-              </div>
-
-              <button type="submit" class="w-full md:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm shadow-sm transition whitespace-nowrap">
-                <i class="fas fa-check mr-1"></i> Accept
-              </button>
-            </form>
-          </div>
-        </div>
-        @endforeach
+  @if(request('status') == 'Antrian')
+  <div class="bg-white rounded-xl shadow-sm border border-emerald-100 overflow-hidden">
+    <div class="bg-emerald-50/60 px-6 py-4 border-b border-emerald-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-clipboard-list text-emerald-600 text-lg"></i>
+        <h3 class="font-bold text-emerald-800">Antrian Masuk Rawat Inap (Rekomendasi Dokter)</h3>
       </div>
+      <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full">{{ $rekomendasiData->count() }} Permintaan</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left min-w-max whitespace-nowrap">
+        <thead class="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
+          <tr>
+            <th class="px-6 py-4">Pasien</th>
+            <th class="px-6 py-4">Rekomendasi Oleh</th>
+            <th class="px-6 py-4">Penjamin</th>
+            <th class="px-6 py-4">Kelas</th>
+            <th class="px-6 py-4">Pilih Kamar</th>
+            @if(auth()->user()->hasMenuAccess('Rawat Inap', 'tambah'))
+              <th class="px-6 py-4 text-center">Aksi</th>
+            @endif
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @forelse($rekomendasiData as $rm)
+            <tr class="hover:bg-emerald-50/10 transition duration-150">
+              <td class="px-6 py-4">
+                <span class="block font-bold text-gray-800">{{ $rm->pasien->nama }}</span>
+                <span class="text-xs font-mono text-gray-500">RM: {{ $rm->pasien->no_rm }}</span>
+              </td>
+              <td class="px-6 py-4">
+                <span class="block font-semibold text-gray-700">dr. {{ $rm->dokter->nama }}</span>
+                <span class="text-xs text-gray-500">Periksa: {{ \Carbon\Carbon::parse($rm->tanggal_periksa)->format('d M Y') }}</span>
+              </td>
+              @if(auth()->user()->hasMenuAccess('Rawat Inap', 'tambah'))
+              <td class="px-6 py-4">
+                <form action="{{ route('admin.rawat_inap.store') }}" method="POST" class="contents">
+                  @csrf
+                  <input type="hidden" name="pasien_id" value="{{ $rm->pasien_id }}">
+                  <input type="hidden" name="dokter_id" value="{{ $rm->dokter_id }}">
+                  <input type="hidden" name="tgl_masuk" value="{{ now()->format('Y-m-d\TH:i') }}">
+
+                  <div class="w-44">
+                    <select name="jenis_penjamin" id="penjamin_{{ $rm->pasien_id }}" onchange="onPenjaminChange(this, {{ $rm->pasien_id }})" class="form-select text-xs py-2 px-3 focus:border-emerald-500 focus:ring-emerald-500/20" required>
+                      <option value="Umum">Umum (Mandiri)</option>
+                      <option value="BPJS KESEHATAN">BPJS KESEHATAN</option>
+                    </select>
+                  </div>
+              </td>
+              <td class="px-6 py-4">
+                  <div class="w-36">
+                    <select class="pilih-kelas form-select text-xs py-2 px-3 focus:border-emerald-500 focus:ring-emerald-500/20" data-target="kamar_select_{{ $rm->pasien_id }}" required>
+                      <option value="">-- Pilih Kelas --</option>
+                      @php
+                          $availableClasses = $kamarsTersedia->filter(function($k) { return $k->terisi < $k->kapasitas; })->pluck('kelas')->unique();
+                      @endphp
+                      @foreach($availableClasses as $kelas)
+                        <option value="{{ $kelas }}">{{ $kelas }}</option>
+                      @endforeach
+                    </select>
+                  </div>
+              </td>
+              <td class="px-6 py-4">
+                  <div class="w-56">
+                    <select name="kamar_id" id="kamar_select_{{ $rm->pasien_id }}" class="form-select text-xs py-2 px-3 focus:border-emerald-500 focus:ring-emerald-500/20" required>
+                      <option value="">-- Pilih Kamar --</option>
+                      <!-- Options populated by JS -->
+                    </select>
+                  </div>
+              </td>
+              <td class="px-6 py-4 text-center">
+                  <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition-all duration-200">
+                    <i class="fas fa-check"></i> Accept
+                  </button>
+                </form>
+              </td>
+              @else
+              <td colspan="4" class="px-6 py-4 text-gray-500 text-xs italic">
+                Anda tidak memiliki akses untuk memproses admisi.
+              </td>
+              @endif
+            </tr>
+          @empty
+            <tr>
+              <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                <i class="fas fa-clipboard-list text-4xl mb-3 text-emerald-100 block"></i>
+                Tidak ada antrian masuk rawat inap saat ini.
+              </td>
+            </tr>
+          @endforelse
+        </tbody>
+      </table>
     </div>
   </div>
-  @endif
-
+  @else
   <!-- Table -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
     <div class="overflow-x-auto">
@@ -273,6 +312,7 @@
       </div>
     @endif
   </div>
+  @endif
 
   <!-- Check-in Modal Removed -->
 
