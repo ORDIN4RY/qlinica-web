@@ -43,24 +43,13 @@
           </select>
         </div>
 
-        {{-- Metode Pembayaran --}}
+        {{-- Jenis Pasien --}}
         <div>
-          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Metode Pembayaran</label>
-          <select name="metode_pembayaran" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
-            <option value="">Semua Metode</option>
-            <option value="Bayar Mandiri" {{ request('metode_pembayaran') == 'Bayar Mandiri' ? 'selected' : '' }}>Bayar Mandiri</option>
-            <option value="BPJS" {{ request('metode_pembayaran') == 'BPJS' ? 'selected' : '' }}>BPJS</option>
-          </select>
-        </div>
-
-        {{-- Status Tagihan --}}
-        <div>
-          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Status Pembayaran</label>
-          <select name="status" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
-            <option value="">Semua Status</option>
-            <option value="Lunas" {{ request('status') == 'Lunas' ? 'selected' : '' }}>Lunas</option>
-            <option value="Belum Bayar" {{ request('status') == 'Belum Bayar' ? 'selected' : '' }}>Belum Bayar</option>
-            <option value="Batal" {{ request('status') == 'Batal' ? 'selected' : '' }}>Dibatalkan</option>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Jenis Pasien</label>
+          <select name="jenis_pasien" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+            <option value="">Semua</option>
+            <option value="Umum" {{ request('jenis_pasien') == 'Umum' ? 'selected' : '' }}>Umum</option>
+            <option value="BPJS" {{ request('jenis_pasien') == 'BPJS' ? 'selected' : '' }}>BPJS</option>
           </select>
         </div>
 
@@ -90,7 +79,7 @@
           <button type="submit" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-800 text-white text-sm font-semibold rounded-xl transition shadow-md">
             Terapkan Filter
           </button>
-          @if(request()->anyFilled(['periode','metode_pembayaran','status','tgl_awal','tgl_akhir']))
+          @if(request()->anyFilled(['periode','jenis_pasien','tgl_awal','tgl_akhir']))
             <a href="{{ route('admin.laporan.keuangan') }}" class="px-4 py-2.5 text-red-500 hover:bg-red-50 text-sm font-semibold rounded-xl transition">
               Reset
             </a>
@@ -171,7 +160,7 @@
 
     {{-- PAYMENT METHODS SHARE --}}
     <div class="lg:col-span-1 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
-      <h3 class="font-bold text-gray-800 text-base mb-4">Metode Pembayaran (Lunas)</h3>
+      <h3 class="font-bold text-gray-800 text-base mb-4">Pendapatan per Jenis Pasien</h3>
       
       <div class="space-y-4 flex-grow flex flex-col justify-center">
         @php
@@ -182,11 +171,11 @@
           @php
             $percentage = $totalPendapatanBersih > 0 ? ($val / $totalPendapatanBersih) * 100 : 0;
             $colorClasses = [
-              'Bayar Mandiri' => 'bg-indigo-600',
+              'Umum' => 'bg-indigo-600',
               'BPJS' => 'bg-emerald-500',
             ];
             $iconClasses = [
-              'Bayar Mandiri' => 'fa-money-bill-wave text-indigo-600 bg-indigo-50',
+              'Umum' => 'fa-users text-indigo-600 bg-indigo-50',
               'BPJS' => 'fa-shield-alt text-emerald-500 bg-emerald-50',
             ];
           @endphp
@@ -230,8 +219,7 @@
             <th class="text-right">Biaya Rawat Inap</th>
             <th class="text-right">Biaya Obat</th>
             <th class="text-right">Ditanggung BPJS</th>
-            <th class="text-right">Total Bersih</th>
-            <th class="text-center">Metode Bayar</th>
+            <th class="text-right">Total</th>
             <th class="text-center">Status</th>
             <th>Kasir Penerima</th>
           </tr>
@@ -262,7 +250,6 @@
               <td class="text-right font-mono">Rp {{ number_format($b->biaya_obat, 0, ',', '.') }}</td>
               <td class="text-right font-mono text-emerald-600 font-semibold">{{ $b->potongan_bpjs > 0 ? '-' : '' }}Rp {{ number_format($b->potongan_bpjs, 0, ',', '.') }}</td>
               <td class="text-right font-bold text-gray-900 font-mono">Rp {{ number_format($b->grand_total, 0, ',', '.') }}</td>
-              <td class="text-center font-semibold text-xs text-gray-700">{{ $b->metode_pembayaran ?: '–' }}</td>
               <td class="text-center">
                 <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold border {{ $statusClasses[$b->status] ?? 'bg-gray-100 text-gray-800' }}">
                   {{ $b->status }}
@@ -357,7 +344,7 @@
 
   function exportCSV() {
     let rows = [];
-    let headers = ['Tanggal Pembuatan', 'No Invoice', 'Nama Pasien', 'Jenis Kasus', 'Biaya Konsultasi', 'Biaya Rawat Inap', 'Biaya Obat', 'Ditanggung BPJS', 'Total Bersih', 'Metode Pembayaran', 'Status', 'Kasir Penerima'];
+    let headers = ['Tanggal Pembuatan', 'No Invoice', 'Nama Pasien', 'Jenis Kasus', 'Biaya Konsultasi', 'Biaya Rawat Inap', 'Biaya Obat', 'Ditanggung BPJS', 'Total', 'Status', 'Kasir Penerima'];
     rows.push(headers.join(','));
 
     let tableRows = document.querySelectorAll('#dataTable tbody tr');

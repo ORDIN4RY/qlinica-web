@@ -227,8 +227,10 @@ class AntrianController extends Controller
         // Sandbox/dev mode: validasi hanya berdasarkan format (13 atau 16 digit angka)
         if (preg_match('/^\d{13,16}$/', $noBpjs)) {
             return response()->json([
-                'status' => 'sandbox',
-                'pesan'  => 'Mode sandbox. Format valid.',
+                'status' => 'aktif',
+                'nama'   => 'Pasien Simulasi ' . substr($noBpjs, -4),
+                'faskes' => 'Klinik QLINICA',
+                'pesan'  => 'Format valid.',
             ]);
         }
 

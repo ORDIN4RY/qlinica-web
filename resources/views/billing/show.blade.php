@@ -234,7 +234,7 @@
                   <span class="text-xs font-semibold text-gray-700 text-center leading-tight">Bayar Mandiri</span>
                 </label>
               @else
-                <label class="cursor-pointer relative">
+                <label class="cursor-pointer relative col-span-2">
                   <input type="radio" name="metode_pembayaran" value="BPJS" checked class="sr-only peer">
                   <div class="h-full border-2 border-slate-100 rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all peer-checked:border-emerald-600 peer-checked:bg-emerald-50 hover:bg-slate-50">
                     <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg">

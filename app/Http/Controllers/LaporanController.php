@@ -139,14 +139,13 @@ class LaporanController extends Controller
             }
         }
 
-        // 2. FILTER METODE PEMBAYARAN
-        if ($request->filled('metode_pembayaran')) {
-            $query->where('metode_pembayaran', $request->get('metode_pembayaran'));
-        }
-
-        // 3. FILTER STATUS
-        if ($request->filled('status')) {
-            $query->where('status', $request->get('status'));
+        // 2. FILTER JENIS PASIEN
+        if ($request->filled('jenis_pasien')) {
+            if ($request->get('jenis_pasien') === 'BPJS') {
+                $query->whereNotNull('no_bpjs');
+            } elseif ($request->get('jenis_pasien') === 'Umum') {
+                $query->whereNull('no_bpjs');
+            }
         }
 
         // Ambil semua data terfilter (tanpa pagination) untuk kalkulasi ringkasan
@@ -161,10 +160,10 @@ class LaporanController extends Controller
         
         $totalBelumBayar = $allFilteredBillings->where('status', 'Belum Bayar')->sum('grand_total');
 
-        // 5. Pendapatan per Metode Bayar
+        // 5. Pendapatan per Jenis Pasien
         $pendapatanMetode = [
-            'Bayar Mandiri' => $lunasBillings->where('metode_pembayaran', 'Bayar Mandiri')->sum('grand_total'),
-            'BPJS' => $lunasBillings->where('metode_pembayaran', 'BPJS')->sum('grand_total'),
+            'Umum' => $lunasBillings->whereNull('no_bpjs')->sum('grand_total'),
+            'BPJS' => $lunasBillings->whereNotNull('no_bpjs')->sum('grand_total'),
         ];
 
         // 6. Data Grafik Harian
