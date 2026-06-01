@@ -640,11 +640,78 @@
 
     // ── RESEP MEDIS REPEATER ──
     let resepRowIndex = 0;
-    const obatsOptionsHtml = `
-      @foreach($obats as $obat)
-        <option value="{{ $obat->id }}">{{ addslashes($obat->nama) }} (Stok: {{ $obat->stok }})</option>
-      @endforeach
-    `;
+    @php
+    $obatArray = $obats->map(function($o) {
+      return [
+        'id' => $o->id,
+        'nama' => $o->nama,
+        'stok' => $o->stok,
+        'is_fornas' => $o->is_fornas ?? false
+      ];
+    })->toArray();
+    @endphp
+    const obatData = @json($obatArray);
+
+    function searchObat(input) {
+      const query = input.value.toLowerCase().trim();
+      const dropdown = input.nextElementSibling;
+      
+      dropdown.innerHTML = '';
+      
+      if (!query) {
+        dropdown.classList.add('hidden');
+        const item = input.closest('.relative');
+        const hiddenId = item.querySelector('.obat-id');
+        if (hiddenId) hiddenId.value = '';
+        return;
+      }
+      
+      const matches = [];
+      for (let i = 0; i < obatData.length; i++) {
+        const item = obatData[i];
+        if (item.nama.toLowerCase().includes(query)) {
+          matches.push(item);
+          if (matches.length >= 10) break;
+        }
+      }
+      
+      if (matches.length === 0) {
+        dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">Tidak ada obat cocok</div>';
+        dropdown.classList.remove('hidden');
+        return;
+      }
+      
+      matches.forEach(item => {
+        const option = document.createElement('div');
+        option.className = 'px-4 py-2 hover:bg-emerald-50 text-sm text-gray-700 cursor-pointer flex justify-between items-center';
+        
+        let fornasBadge = item.is_fornas ? `<span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-bold uppercase ml-2 border border-green-200" title="Ditanggung BPJS">Fornas</span>` : '';
+        let stokBadge = `<span class="text-xs text-gray-400">Stok: ${item.stok}</span>`;
+        
+        option.innerHTML = `
+          <div class="flex items-center"><span>${item.nama}</span>${fornasBadge}</div>
+          ${stokBadge}
+        `;
+        
+        option.onclick = function() {
+          const hiddenId = input.previousElementSibling;
+          if (hiddenId) hiddenId.value = item.id;
+          input.value = item.nama;
+          dropdown.classList.add('hidden');
+        };
+        dropdown.appendChild(option);
+      });
+      
+      dropdown.classList.remove('hidden');
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.classList.contains('obat-search') && !e.target.closest('.obat-dropdown')) {
+        document.querySelectorAll('.obat-dropdown').forEach(dropdown => {
+          dropdown.classList.add('hidden');
+        });
+      }
+    });
 
     function openResepModal(id, namaPasien) {
       document.getElementById('resep_nama_pasien').innerText = namaPasien;
@@ -663,12 +730,17 @@
       rowDiv.className = 'grid grid-cols-1 md:grid-cols-12 gap-2.5 p-3.5 bg-gray-50/50 rounded-xl border border-gray-200 items-end relative';
       
       rowDiv.innerHTML = `
-        <div class="md:col-span-4">
+        <div class="md:col-span-4 relative">
           <label class="block text-[11px] font-bold text-gray-500 mb-1">Nama Obat</label>
-          <select name="obat_id[]" class="form-select text-xs animate-none" required>
-            <option value="">Pilih Obat</option>
-            ${obatsOptionsHtml}
-          </select>
+          <input type="hidden" name="obat_id[]" class="obat-id" required>
+          <input type="text"
+                 class="form-input text-xs w-full obat-search"
+                 placeholder="Ketik nama obat..."
+                 oninput="searchObat(this)"
+                 onfocus="searchObat(this)"
+                 autocomplete="off" required>
+          <div class="absolute left-0 right-0 z-50 mt-1 hidden max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg obat-dropdown divide-y divide-gray-100">
+          </div>
         </div>
         <div class="md:col-span-2">
           <label class="block text-[11px] font-bold text-gray-500 mb-1">Jumlah</label>
