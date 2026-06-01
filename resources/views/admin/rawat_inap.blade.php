@@ -342,6 +342,17 @@
             <input type="datetime-local" name="tgl_keluar" value="{{ now()->format('Y-m-d\TH:i') }}" readonly class="form-input bg-gray-50 text-gray-500 cursor-not-allowed border-gray-200">
           </div>
           <div class="form-group">
+            <label>Keadaan Pasien Saat Keluar</label>
+            <select name="keadaan_keluar" class="form-input" required>
+              <option value="">Pilih Keadaan...</option>
+              <option value="Sembuh">Sembuh</option>
+              <option value="Membaik">Membaik</option>
+              <option value="Belum Sembuh">Belum Sembuh</option>
+              <option value="Dirujuk">Dirujuk</option>
+              <option value="Meninggal">Meninggal</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label>Catatan Kepulangan (Opsional)</label>
             <textarea name="catatan_keluar" rows="2" class="form-input" placeholder="Misal: Sembuh, Rujuk ke RSUD..."></textarea>
           </div>

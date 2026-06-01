@@ -98,7 +98,7 @@ class BillingController extends Controller
     public function bayar(Request $request, Billing $billing)
     {
         $request->validate([
-            'metode_pembayaran' => 'required|string|in:Bayar Mandiri,Asuransi',
+            'metode_pembayaran' => 'required|string|in:Bayar Mandiri,BPJS',
             'jumlah_dibayar'    => 'nullable|numeric|min:0',
         ]);
 
@@ -110,7 +110,7 @@ class BillingController extends Controller
         $user = auth()->user();
         $pegawai = $user->pegawai; // Dapatkan data pegawai dari user kasir yang login
 
-        // Jika metode adalah Tunai, pastikan jumlah_dibayar cukup
+        // Jika metode adalah Bayar Mandiri, pastikan jumlah_dibayar cukup (jika grand_total > 0)
         $jumlahDibayar = $request->input('jumlah_dibayar') !== null ? floatval($request->input('jumlah_dibayar')) : null;
         if ($request->input('metode_pembayaran') === 'Bayar Mandiri') {
             if (is_null($jumlahDibayar) || $jumlahDibayar < floatval($billing->grand_total)) {

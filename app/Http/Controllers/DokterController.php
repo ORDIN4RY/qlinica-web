@@ -510,10 +510,10 @@ class DokterController extends Controller
                         'rekam_medis_id' => $rekamMedis->id,
                         'pasien_id' => $rekamMedis->pasien_id,
                         'no_invoice' => $noInvoice,
-                        'biaya_registrasi' => 50000.00,
-                        'biaya_tindakan' => $request->tindakan ? 75000.00 : 0.00,
+                        'biaya_registrasi' => 50000.00, // Sekarang disebut Biaya Konsultasi
+                        'biaya_tindakan' => 0.00,
                         'biaya_obat' => 0.00,
-                        'grand_total' => 50000.00 + ($request->tindakan ? 75000.00 : 0.00),
+                        'grand_total' => 50000.00,
                         'status' => 'Belum Bayar',
                         'no_bpjs' => ($rekamMedis->jenis_pelayanan === 'BPJS') ? $rekamMedis->pasien->no_bpjs : null,
                     ]);
@@ -521,49 +521,25 @@ class DokterController extends Controller
                     // Tambahkan rincian tagihan
                     \App\Models\BillingDetail::create([
                         'billing_id' => $billing->id,
-                        'nama_item' => 'Registrasi & Jasa Konsultasi Dokter',
+                        'nama_item' => 'Biaya Konsultasi & Jasa Dokter',
                         'kategori' => 'Registrasi',
                         'jumlah' => 1,
                         'harga_satuan' => 50000.00,
                         'subtotal' => 50000.00,
                     ]);
 
-                    if ($request->tindakan) {
-                        \App\Models\BillingDetail::create([
-                            'billing_id' => $billing->id,
-                            'nama_item' => 'Tindakan Medis: ' . substr($request->tindakan, 0, 100),
-                            'kategori' => 'Tindakan',
-                            'jumlah' => 1,
-                            'harga_satuan' => 75000.00,
-                            'subtotal' => 75000.00,
-                        ]);
-                    }
-
                     $billing->recalculateTotals();
                     $billing->save();
                 } else {
-                    // Jika billing sudah ada tapi belum lunas, kita update biaya tindakan jika ada perubahan tindakan
+                    // Jika billing sudah ada tapi belum lunas, pastikan tindakan tetap 0
                     if ($billing->status === 'Belum Bayar') {
-                        $biayaTindakan = $request->tindakan ? 75000.00 : 0.00;
-                        
-                        // Hapus detail tindakan lama jika ada
+                        // Hapus detail tindakan lama jika ada (agar bersih)
                         \App\Models\BillingDetail::where('billing_id', $billing->id)
                             ->where('kategori', 'Tindakan')
                             ->delete();
 
-                        if ($request->tindakan) {
-                            \App\Models\BillingDetail::create([
-                                'billing_id' => $billing->id,
-                                'nama_item' => 'Tindakan Medis: ' . substr($request->tindakan, 0, 100),
-                                'kategori' => 'Tindakan',
-                                'jumlah' => 1,
-                                'harga_satuan' => 75000.00,
-                                'subtotal' => 75000.00,
-                            ]);
-                        }
-
                         $billing->update([
-                            'biaya_tindakan' => $biayaTindakan,
+                            'biaya_tindakan' => 0.00,
                         ]);
                         $billing->recalculateTotals();
                         $billing->save();

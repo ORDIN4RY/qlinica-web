@@ -194,7 +194,7 @@
                   <select name="obat_id[]" class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-sm">
                     <option value="">Pilih obat...</option>
                     @foreach($obats as $obat)
-                      <option value="{{ $obat->id }}">{{ $obat->nama }} (Stok: {{ $obat->stok }})</option>
+                      <option value="{{ $obat->id }}">{{ $obat->nama }}</option>
                     @endforeach
                   </select>
                 </div>

@@ -571,9 +571,6 @@
               <option value="Poli Umum">Poli Umum</option>
               <option value="Poli Gigi">Poli Gigi</option>
               <option value="Poli KIA">Poli KIA</option>
-              <option value="UGD">UGD</option>
-              <option value="Laboratorium">Laboratorium</option>
-              <option value="Baby Spa">Baby Spa</option>
             </select>
           </div>
 

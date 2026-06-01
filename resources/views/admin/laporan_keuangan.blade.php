@@ -13,13 +13,6 @@
   table.laporan-table th { padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 700; color: #1e293b; white-space: nowrap; }
   table.laporan-table td { padding: 12px 16px; color: #475569; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 13px; }
   table.laporan-table tbody tr:hover { background: #f8fafc; }
-  
-  @media print {
-      body * { visibility: hidden; }
-      .print-area, .print-area * { visibility: visible; }
-      .print-area { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; }
-      nav, aside, header, form, .no-print { display: none !important; }
-  }
 </style>
 @endpush
 
@@ -43,24 +36,13 @@
           </select>
         </div>
 
-        {{-- Metode Pembayaran --}}
+        {{-- Jenis Pasien --}}
         <div>
-          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Metode Pembayaran</label>
-          <select name="metode_pembayaran" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
-            <option value="">Semua Metode</option>
-            <option value="Tunai" {{ request('metode_pembayaran') == 'Tunai' ? 'selected' : '' }}>Tunai</option>
-            <option value="Asuransi" {{ request('metode_pembayaran') == 'Asuransi' ? 'selected' : '' }}>Asuransi / BPJS</option>
-          </select>
-        </div>
-
-        {{-- Status Tagihan --}}
-        <div>
-          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Status Pembayaran</label>
-          <select name="status" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
-            <option value="">Semua Status</option>
-            <option value="Lunas" {{ request('status') == 'Lunas' ? 'selected' : '' }}>Lunas</option>
-            <option value="Belum Bayar" {{ request('status') == 'Belum Bayar' ? 'selected' : '' }}>Belum Bayar</option>
-            <option value="Batal" {{ request('status') == 'Batal' ? 'selected' : '' }}>Dibatalkan</option>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Jenis Pasien</label>
+          <select name="jenis_pasien" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+            <option value="">Semua</option>
+            <option value="Umum" {{ request('jenis_pasien') == 'Umum' ? 'selected' : '' }}>Umum</option>
+            <option value="BPJS" {{ request('jenis_pasien') == 'BPJS' ? 'selected' : '' }}>BPJS</option>
           </select>
         </div>
 
@@ -79,7 +61,7 @@
 
       <div class="flex items-center justify-between border-t border-gray-100 pt-4">
         <div class="flex gap-2">
-          <button type="button" onclick="window.print()" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition">
+          <button type="button" onclick="doPrint()" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition">
             <i class="fas fa-print mr-2"></i> Print Laporan
           </button>
           <button type="button" onclick="exportCSV()" class="px-5 py-2.5 bg-green-50 hover:bg-green-100 text-green-700 text-sm font-semibold rounded-xl transition">
@@ -90,7 +72,7 @@
           <button type="submit" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-800 text-white text-sm font-semibold rounded-xl transition shadow-md">
             Terapkan Filter
           </button>
-          @if(request()->anyFilled(['periode','metode_pembayaran','status','tgl_awal','tgl_akhir']))
+          @if(request()->anyFilled(['periode','jenis_pasien','tgl_awal','tgl_akhir']))
             <a href="{{ route('admin.laporan.keuangan') }}" class="px-4 py-2.5 text-red-500 hover:bg-red-50 text-sm font-semibold rounded-xl transition">
               Reset
             </a>
@@ -116,7 +98,7 @@
 
     <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex items-center justify-between">
       <div class="space-y-1">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ditanggung BPJS / Asuransi</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ditanggung BPJS</p>
         <h3 class="text-xl font-bold text-emerald-600 font-mono">Rp {{ number_format($totalKlaimBpjs, 2, ',', '.') }}</h3>
         <p class="text-[10px] text-gray-400">Tanggungan pihak ketiga</p>
       </div>
@@ -127,9 +109,9 @@
 
     <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex items-center justify-between">
       <div class="space-y-1">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Pemasukan Bersih (Cash)</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Pemasukan Kasir</p>
         <h3 class="text-xl font-bold text-blue-900 font-mono">Rp {{ number_format($totalPendapatanBersih, 2, ',', '.') }}</h3>
-        <p class="text-[10px] text-gray-400">Dana tunai / bank yang masuk</p>
+        <p class="text-[10px] text-gray-400">Pemasukan uang langsung di kasir</p>
       </div>
       <div class="w-12 h-12 bg-blue-50 text-blue-900 rounded-xl flex items-center justify-center text-xl">
         <i class="fas fa-wallet"></i>
@@ -138,7 +120,7 @@
 
     <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex items-center justify-between">
       <div class="space-y-1">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Piutang (Belum Bayar)</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Belum Bayar</p>
         <h3 class="text-xl font-bold text-amber-600 font-mono">Rp {{ number_format($totalBelumBayar, 2, ',', '.') }}</h3>
         <p class="text-[10px] text-gray-400">Tagihan kasir tertunda</p>
       </div>
@@ -171,7 +153,7 @@
 
     {{-- PAYMENT METHODS SHARE --}}
     <div class="lg:col-span-1 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
-      <h3 class="font-bold text-gray-800 text-base mb-4">Metode Pembayaran (Lunas)</h3>
+      <h3 class="font-bold text-gray-800 text-base mb-4">Pendapatan per Jenis Pasien</h3>
       
       <div class="space-y-4 flex-grow flex flex-col justify-center">
         @php
@@ -182,12 +164,12 @@
           @php
             $percentage = $totalPendapatanBersih > 0 ? ($val / $totalPendapatanBersih) * 100 : 0;
             $colorClasses = [
-              'Tunai' => 'bg-indigo-600',
-              'Asuransi' => 'bg-emerald-500',
+              'Umum' => 'bg-indigo-600',
+              'BPJS' => 'bg-emerald-500',
             ];
             $iconClasses = [
-              'Tunai' => 'fa-money-bill-wave text-indigo-600 bg-indigo-50',
-              'Asuransi' => 'fa-shield-alt text-emerald-500 bg-emerald-50',
+              'Umum' => 'fa-users text-indigo-600 bg-indigo-50',
+              'BPJS' => 'fa-shield-alt text-emerald-500 bg-emerald-50',
             ];
           @endphp
           <div class="space-y-1.5">
@@ -196,7 +178,7 @@
                 <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] {{ $iconClasses[$m] ?? 'fa-wallet text-gray-500 bg-gray-50' }}">
                   <i class="fas {{ explode(' ', $iconClasses[$m])[0] }}"></i>
                 </div>
-                <span class="font-semibold">{{ $m === 'Asuransi' ? 'BPJS / Asuransi' : $m }}</span>
+                <span class="font-semibold">{{ $m }}</span>
               </div>
               <span class="font-bold font-mono">Rp {{ number_format($val, 2, ',', '.') }} ({{ round($percentage, 1) }}%)</span>
             </div>
@@ -226,12 +208,11 @@
             <th>No. Invoice</th>
             <th>Nama Pasien</th>
             <th>Status Pasien</th>
-            <th class="text-right">Biaya Registrasi</th>
-            <th class="text-right">Biaya Tindakan</th>
+            <th class="text-right">Biaya Konsultasi</th>
+            <th class="text-right">Biaya Rawat Inap</th>
             <th class="text-right">Biaya Obat</th>
             <th class="text-right">Ditanggung BPJS</th>
-            <th class="text-right">Total Bersih</th>
-            <th class="text-center">Metode Bayar</th>
+            <th class="text-right">Total</th>
             <th class="text-center">Status</th>
             <th>Kasir Penerima</th>
           </tr>
@@ -253,16 +234,18 @@
                 <div class="text-[10px] text-gray-400 font-mono">RM: {{ $b->pasien?->no_rm ?: '-' }}</div>
               </td>
               <td>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase {{ $b->no_bpjs ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-700' }}">
-                  {{ $b->no_bpjs ? 'BPJS' : 'UMUM' }}
+                @php
+                  $isBpjs = $b->no_bpjs || ($b->rekamMedis && $b->rekamMedis->jenis_pelayanan === 'BPJS');
+                @endphp
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase {{ $isBpjs ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-700' }}">
+                  {{ $isBpjs ? 'BPJS' : 'UMUM' }}
                 </span>
               </td>
-              <td class="text-right font-mono">Rp {{ number_format($b->biaya_registrasi, 2, ',', '.') }}</td>
-              <td class="text-right font-mono">Rp {{ number_format($b->biaya_tindakan, 2, ',', '.') }}</td>
-              <td class="text-right font-mono">Rp {{ number_format($b->biaya_obat, 2, ',', '.') }}</td>
-              <td class="text-right font-mono text-emerald-600 font-semibold">-Rp {{ number_format($b->potongan_bpjs, 2, ',', '.') }}</td>
-              <td class="text-right font-bold text-gray-900 font-mono">Rp {{ number_format($b->grand_total, 2, ',', '.') }}</td>
-              <td class="text-center font-semibold text-xs text-gray-700">{{ $b->metode_pembayaran ?: '–' }}</td>
+              <td class="text-right font-mono">Rp {{ number_format($b->biaya_registrasi, 0, ',', '.') }}</td>
+              <td class="text-right font-mono">Rp {{ number_format($b->biaya_kamar, 0, ',', '.') }}</td>
+              <td class="text-right font-mono">Rp {{ number_format($b->biaya_obat, 0, ',', '.') }}</td>
+              <td class="text-right font-mono text-emerald-600 font-semibold">{{ $b->potongan_bpjs > 0 ? '-' : '' }}Rp {{ number_format($b->potongan_bpjs, 0, ',', '.') }}</td>
+              <td class="text-right font-bold text-gray-900 font-mono">Rp {{ number_format($b->grand_total, 0, ',', '.') }}</td>
               <td class="text-center">
                 <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold border {{ $statusClasses[$b->status] ?? 'bg-gray-100 text-gray-800' }}">
                   {{ $b->status }}
@@ -357,7 +340,7 @@
 
   function exportCSV() {
     let rows = [];
-    let headers = ['Tanggal Pembuatan', 'No Invoice', 'Nama Pasien', 'Jenis Kasus', 'Biaya Registrasi', 'Biaya Tindakan', 'Biaya Obat', 'Ditanggung BPJS', 'Total Bersih', 'Metode Pembayaran', 'Status', 'Kasir Penerima'];
+    let headers = ['Tanggal Pembuatan', 'No Invoice', 'Nama Pasien', 'Jenis Kasus', 'Biaya Konsultasi', 'Biaya Rawat Inap', 'Biaya Obat', 'Ditanggung BPJS', 'Total', 'Status', 'Kasir Penerima'];
     rows.push(headers.join(','));
 
     let tableRows = document.querySelectorAll('#dataTable tbody tr');
@@ -387,6 +370,79 @@
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  }
+
+  function doPrint() {
+    const rows = document.querySelectorAll('#dataTable tbody tr');
+    const tanggal = new Date().toLocaleString('id-ID', { dateStyle:'long', timeStyle:'short' });
+
+    let rowsHtml = '';
+    rows.forEach(tr => {
+      const cells = tr.querySelectorAll('td');
+      if (cells.length <= 1) return;
+      rowsHtml += '<tr>';
+      cells.forEach(td => {
+        rowsHtml += '<td>' + (td.innerText.replace(/\n+/g,' ').trim() || '-') + '</td>';
+      });
+      rowsHtml += '</tr>';
+    });
+
+    const html = `<!DOCTYPE html>
+<html lang="id"><head><meta charset="UTF-8">
+<title>Laporan Keuangan | QLINICA</title>
+<style>
+  @page { size: A4 landscape; margin: 12mm 10mm; }
+  body  { font-family: Arial, sans-serif; font-size: 9pt; margin: 0; }
+  .hdr  { text-align:center; margin-bottom: 10px; }
+  .hdr h1 { font-size:13pt; font-weight:800; color:#1e3a8a; margin:0; }
+  .hdr p  { font-size:8pt; color:#64748b; margin:2px 0 0; }
+  table { width:100%; border-collapse:collapse; font-size:8pt; margin-bottom: 15px; }
+  th    { background:#dbeafe; color:#1e3a8a; padding:5px 6px; border:1px solid #93c5fd; font-weight:700; text-align:left; white-space:nowrap; }
+  td    { padding:4px 6px; border:1px solid #cbd5e1; vertical-align:top; word-wrap:break-word; }
+  tr:nth-child(even) td { background:#f8fafc; }
+  thead { display:table-header-group; }
+  tr    { page-break-inside:avoid; }
+  .summary { border: 1px solid #cbd5e1; padding: 10px; display: inline-block; min-width: 300px; background: #f8fafc; }
+  .summary table { border: none; margin: 0; width: 100%; }
+  .summary td { border: none; padding: 3px 0; background: transparent; font-size: 9pt; font-weight: bold; }
+</style></head><body>
+<div class="hdr">
+  <h1>LAPORAN KEUANGAN TRANSAKSI PASIEN &mdash; QLINICA</h1>
+  <p>Dicetak: ${tanggal}</p>
+  @if(request()->anyFilled(['periode','jenis_pasien','tgl_awal','tgl_akhir']))
+  <div style="font-size:8pt;color:#94a3b8;margin-top:2px;">
+    Filter aktif:
+    @if(request('periode')) Periode: {{ ucfirst(request('periode')) }} @endif
+    @if(request('tgl_awal')) {{ request('tgl_awal') }} s/d {{ request('tgl_akhir') }} @endif
+    @if(request('jenis_pasien')) | Jenis Pasien: {{ request('jenis_pasien') }} @endif
+  </div>
+  @endif
+</div>
+<table>
+  <thead><tr>
+    <th>Tanggal</th><th>No Invoice</th><th>Nama Pasien</th><th>Kasus</th>
+    <th>Konsultasi</th><th>Rawat Inap</th><th>Obat</th><th>Ditanggung BPJS</th>
+    <th>Total Tagihan</th><th>Status</th><th>Kasir</th>
+  </tr></thead>
+  <tbody>${rowsHtml}</tbody>
+</table>
+<div style="display: flex; justify-content: flex-end;">
+  <div class="summary">
+    <table>
+      <tr><td style="color:#64748b;">Pendapatan Kotor:</td><td style="text-align:right;">Rp {{ number_format($totalPendapatanKotor, 0, ',', '.') }}</td></tr>
+      <tr><td style="color:#10b981;">Tanggungan Klaim BPJS:</td><td style="text-align:right; color:#10b981;">Rp {{ number_format($totalKlaimBpjs, 0, ',', '.') }}</td></tr>
+      <tr><td style="color:#1e3a8a;">Total Pemasukan Kasir:</td><td style="text-align:right; font-size:11pt; color:#1e3a8a;">Rp {{ number_format($totalPendapatanBersih, 0, ',', '.') }}</td></tr>
+    </table>
+  </div>
+</div>
+</body></html>`;
+
+    const w = window.open('', '_blank', 'width=1200,height=800');
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    w.onload = () => { w.print(); };
+    setTimeout(() => { try { w.print(); } catch(e){} }, 800);
   }
 </script>
 @endpush

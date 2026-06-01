@@ -150,12 +150,8 @@
           
           <div class="w-full sm:w-80 space-y-2 text-sm">
             <div class="flex justify-between text-gray-600">
-              <span>Sub Biaya Registrasi:</span>
+              <span>Sub Biaya Konsultasi:</span>
               <span class="font-mono">Rp {{ number_format($billing->biaya_registrasi, 2, ',', '.') }}</span>
-            </div>
-            <div class="flex justify-between text-gray-600">
-              <span>Sub Biaya Tindakan:</span>
-              <span class="font-mono">Rp {{ number_format($billing->biaya_tindakan, 2, ',', '.') }}</span>
             </div>
             <div class="flex justify-between text-gray-600">
               <span>Sub Biaya Obat-obatan:</span>
@@ -165,9 +161,12 @@
               <span>Sub Biaya Kamar Inap:</span>
               <span class="font-mono">Rp {{ number_format($billing->biaya_kamar, 2, ',', '.') }}</span>
             </div>
-            @if($billing->no_bpjs)
+            @php
+              $isBpjs = $billing->no_bpjs || ($billing->rekamMedis && $billing->rekamMedis->jenis_pelayanan === 'BPJS');
+            @endphp
+            @if($isBpjs)
               <div class="flex justify-between text-emerald-600 font-semibold">
-                <span>Ditanggung BPJS ({{ $billing->no_bpjs }}):</span>
+                <span>Ditanggung BPJS {{ $billing->no_bpjs ? "({$billing->no_bpjs})" : '' }}:</span>
                 <span class="font-mono">-Rp {{ number_format($billing->potongan_bpjs, 2, ',', '.') }}</span>
               </div>
             @endif
@@ -229,26 +228,28 @@
           <div class="space-y-2">
             <label class="block text-xs font-bold text-gray-500 uppercase">Metode Pembayaran</label>
             <div class="grid grid-cols-2 gap-3">
-              
-              @if(!$billing->no_bpjs)
-              {{-- Bayar Mandiri: hanya tampil jika bukan pasien BPJS --}}
-              <label class="border border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition group">
-                <input type="radio" name="metode_pembayaran" value="Bayar Mandiri" checked class="sr-only peer">
-                <div class="peer-checked:bg-blue-900 text-gray-500 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 transition group-hover:bg-blue-100">
-                  <i class="fas fa-money-bill-wave text-sm"></i>
-                </div>
-                <span class="text-xs font-semibold text-gray-700">Bayar Mandiri</span>
-              </label>
+              @if($billing->grand_total > 0)
+                <label class="border border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition group col-span-2">
+                  <input type="radio" name="metode_pembayaran" value="Bayar Mandiri" checked class="sr-only peer">
+                  <div class="peer-checked:bg-blue-900 text-gray-500 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 transition group-hover:bg-blue-100">
+                    <i class="fas fa-money-bill-wave text-sm"></i>
+                  </div>
+                  <span class="text-xs font-semibold text-gray-700 text-center leading-tight">Bayar Mandiri</span>
+                </label>
+              @else
+                <label class="cursor-pointer relative col-span-2">
+                  <input type="radio" name="metode_pembayaran" value="BPJS" checked class="sr-only peer">
+                  <div class="h-full border-2 border-slate-100 rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all peer-checked:border-emerald-600 peer-checked:bg-emerald-50 hover:bg-slate-50">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg">
+                      <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <span class="text-xs font-bold text-emerald-800 text-center">BPJS</span>
+                  </div>
+                  <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-emerald-600 transition-opacity">
+                    <i class="fas fa-check-circle"></i>
+                  </div>
+                </label>
               @endif
-
-              <label class="border border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition group {{ $billing->no_bpjs ? 'col-span-2' : '' }}">
-                <input type="radio" name="metode_pembayaran" value="Asuransi" {{ $billing->no_bpjs ? 'checked' : '' }} class="sr-only peer">
-                <div class="peer-checked:bg-blue-900 text-gray-500 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 transition group-hover:bg-blue-100">
-                  <i class="fas fa-shield-alt text-sm"></i>
-                </div>
-                <span class="text-xs font-semibold text-gray-700">Asuransi / BPJS</span>
-              </label>
-
             </div>
           </div>
 
@@ -354,7 +355,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const radios        = document.querySelectorAll('input[type="radio"][name="metode_pembayaran"]');
-    const bpjsRadio     = document.querySelector('input[type="radio"][name="metode_pembayaran"][value="Asuransi"]');
+    const bpjsRadio     = document.querySelector('input[type="radio"][name="metode_pembayaran"][value="BPJS"]');
     const bpjsWrapper   = document.getElementById('bpjs-input-wrapper');
     const btnCekBpjs    = document.getElementById('btn-cek-bpjs');
     const noBpjsInput   = document.getElementById('no_bpjs_input');
