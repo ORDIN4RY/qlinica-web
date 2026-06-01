@@ -207,7 +207,7 @@
         <div class="flex justify-end pt-8">
           <div class="text-center w-64 space-y-12">
             <div class="text-xs text-gray-500">
-              <p>Denpasar, {{ $billing->paid_at->isoFormat('D MMMM YYYY') }}</p>
+              <p>Jember, {{ $billing->paid_at->isoFormat('D MMMM YYYY') }}</p>
               <p>Kasir Penerima,</p>
             </div>
             <div>

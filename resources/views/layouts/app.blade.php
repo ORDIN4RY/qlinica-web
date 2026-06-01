@@ -466,7 +466,7 @@
   if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);
   if (overlay) overlay.addEventListener('click', closeSidebar);
 
-  // Toggle Sidebar Dropdowns
+  // Toggle Sidebar Dropdowns with persistence
   function toggleSidebarGroup(groupId) {
     const groupEl = document.getElementById(groupId);
     const chevronEl = document.getElementById(groupId + '-chevron');
@@ -475,15 +475,34 @@
       if (isHidden) {
         groupEl.classList.remove('hidden');
         chevronEl.classList.add('rotate-180');
+        sessionStorage.setItem('sidebar_group_' + groupId, 'open');
       } else {
         groupEl.classList.add('hidden');
         chevronEl.classList.remove('rotate-180');
+        sessionStorage.setItem('sidebar_group_' + groupId, 'closed');
       }
     }
   }
 
-  // Persist Sidebar Scroll Position
+  // Restore Sidebar States (Groups & Scroll)
   document.addEventListener("DOMContentLoaded", function() {
+    // Restore collapsible groups from sessionStorage
+    const groups = ['medis-group', 'apotek-group', 'master-group', 'sdm-group', 'laporan-group'];
+    groups.forEach(function(groupId) {
+      const groupEl = document.getElementById(groupId);
+      const chevronEl = document.getElementById(groupId + '-chevron');
+      if (groupEl && chevronEl) {
+        const savedState = sessionStorage.getItem('sidebar_group_' + groupId);
+        if (savedState === 'open') {
+          groupEl.classList.remove('hidden');
+          chevronEl.classList.add('rotate-180');
+        } else if (savedState === 'closed') {
+          groupEl.classList.add('hidden');
+          chevronEl.classList.remove('rotate-180');
+        }
+      }
+    });
+
     const sidebarNav = document.getElementById('sidebar-nav');
     if (sidebarNav) {
       const savedScroll = sessionStorage.getItem('sidebarScrollPosition');
@@ -495,6 +514,7 @@
       });
     }
   });
+
   // Portal semua .modal-overlay ke body agar position:fixed bekerja benar
   // (mengatasi bug containment karena overflow-y:auto pada elemen main)
   document.addEventListener('DOMContentLoaded', function() {
