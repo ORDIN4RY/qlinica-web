@@ -219,19 +219,16 @@ class ObatController extends Controller
         $tglAwal = $request->get('tgl_awal');
         $tglAkhir = $request->get('tgl_akhir');
         
-        // Total Obat Keluar (Jumlah unit obat yang diresepkan/terjual)
-        $obatKeluarQuery = \App\Models\BillingDetail::where('kategori', 'obat')
-            ->whereHas('billing', function($q) use ($tglAwal, $tglAkhir) {
-                $q->where('status', 'Lunas');
-                if ($tglAwal && $tglAkhir) {
-                    $q->whereBetween('created_at', [$tglAwal . ' 00:00:00', $tglAkhir . ' 23:59:59']);
-                } else {
-                    $q->whereMonth('created_at', now()->month)
-                      ->whereYear('created_at', now()->year);
-                }
-            });
-        $totalObatKeluar = $obatKeluarQuery->sum('jumlah');
-        
+        $totalObatKeluar = \App\Models\ResepDetail::whereHas('resep', function($q) use ($tglAwal, $tglAkhir) {
+            $q->where('status', 'Selesai');
+            if ($tglAwal && $tglAkhir) {
+                $q->whereBetween('selesai_at', [$tglAwal . ' 00:00:00', $tglAkhir . ' 23:59:59']);
+            } else {
+                $q->whereMonth('selesai_at', now()->month)
+                  ->whereYear('selesai_at', now()->year);
+            }
+        })->sum('jumlah');
+
         // Total Resep Diproses
         $resepQuery = \App\Models\Resep::where('status', 'Selesai');
         if ($tglAwal && $tglAkhir) {
@@ -243,22 +240,28 @@ class ObatController extends Controller
         $resepCount = $resepQuery->count();
 
         // 10 Obat Terlaris / Paling Sering Keluar
-        $topSelling = \App\Models\BillingDetail::select('nama_item')
+        $topSelling = \App\Models\ResepDetail::select('obat_id')
             ->selectRaw('SUM(jumlah) as total_terjual')
-            ->where('kategori', 'obat')
-            ->whereHas('billing', function($q) use ($tglAwal, $tglAkhir) {
-                $q->where('status', 'Lunas');
+            ->whereHas('resep', function($q) use ($tglAwal, $tglAkhir) {
+                $q->where('status', 'Selesai');
                 if ($tglAwal && $tglAkhir) {
-                    $q->whereBetween('created_at', [$tglAwal . ' 00:00:00', $tglAkhir . ' 23:59:59']);
+                    $q->whereBetween('selesai_at', [$tglAwal . ' 00:00:00', $tglAkhir . ' 23:59:59']);
                 } else {
-                    $q->whereMonth('created_at', now()->month)
-                      ->whereYear('created_at', now()->year);
+                    $q->whereMonth('selesai_at', now()->month)
+                      ->whereYear('selesai_at', now()->year);
                 }
             })
-            ->groupBy('nama_item')
+            ->groupBy('obat_id')
             ->orderByRaw('SUM(jumlah) DESC')
             ->limit(10)
-            ->get();
+            ->get()
+            ->map(function($item) {
+                $obat = \App\Models\Obat::find($item->obat_id);
+                return (object)[
+                    'nama_item' => $obat ? $obat->nama : 'Unknown',
+                    'total_terjual' => $item->total_terjual
+                ];
+            });
 
         // Status Stok Obat
         $totalObat = Obat::count();
