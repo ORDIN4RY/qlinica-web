@@ -224,7 +224,7 @@ class ObatController extends Controller
             if ($tglAwal && $tglAkhir) {
                 $q->whereRaw('DATE(COALESCE(selesai_at, updated_at)) BETWEEN ? AND ?', [$tglAwal, $tglAkhir]);
             } else {
-                $q->whereRaw('MONTH(COALESCE(selesai_at, updated_at)) = ? AND YEAR(COALESCE(selesai_at, updated_at)) = ?', [now()->month, now()->year]);
+                $q->whereRaw('EXTRACT(MONTH FROM COALESCE(selesai_at, updated_at)) = ? AND EXTRACT(YEAR FROM COALESCE(selesai_at, updated_at)) = ?', [now()->month, now()->year]);
             }
         })->sum('jumlah');
 
@@ -244,7 +244,7 @@ class ObatController extends Controller
         if ($tglAwal && $tglAkhir) {
             $resepQuery->whereRaw('DATE(COALESCE(selesai_at, updated_at)) BETWEEN ? AND ?', [$tglAwal, $tglAkhir]);
         } else {
-            $resepQuery->whereRaw('MONTH(COALESCE(selesai_at, updated_at)) = ? AND YEAR(COALESCE(selesai_at, updated_at)) = ?', [$now->month, $now->year]);
+            $resepQuery->whereRaw('EXTRACT(MONTH FROM COALESCE(selesai_at, updated_at)) = ? AND EXTRACT(YEAR FROM COALESCE(selesai_at, updated_at)) = ?', [$now->month, $now->year]);
         }
         $resepCount = $resepQuery->count();
 
@@ -256,7 +256,7 @@ class ObatController extends Controller
                 if ($tglAwal && $tglAkhir) {
                     $q->whereRaw('DATE(COALESCE(selesai_at, updated_at)) BETWEEN ? AND ?', [$tglAwal, $tglAkhir]);
                 } else {
-                    $q->whereRaw('MONTH(COALESCE(selesai_at, updated_at)) = ? AND YEAR(COALESCE(selesai_at, updated_at)) = ?', [now()->month, now()->year]);
+                    $q->whereRaw('EXTRACT(MONTH FROM COALESCE(selesai_at, updated_at)) = ? AND EXTRACT(YEAR FROM COALESCE(selesai_at, updated_at)) = ?', [now()->month, now()->year]);
                 }
             })
             ->groupBy('obat_id')
