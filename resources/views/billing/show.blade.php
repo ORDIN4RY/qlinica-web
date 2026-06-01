@@ -155,35 +155,49 @@
           </div>
           
           <div class="w-full sm:w-80 space-y-2 text-sm">
+            <!-- Subtotal -->
             <div class="flex justify-between text-gray-600">
-              <span>Subtotal:</span>
-              <span class="font-mono">Rp {{ number_format($billing->details->sum('subtotal'), 2, ',', '.') }}</span>
+              <span class="font-medium">Subtotal:</span>
+              <span class="font-mono text-gray-900 font-medium">Rp {{ number_format($billing->details->sum('subtotal'), 2, ',', '.') }}</span>
             </div>
+
+            <!-- Ditanggung BPJS -->
             @php
               $isBpjs = $billing->no_bpjs || ($billing->rekamMedis && $billing->rekamMedis->jenis_pelayanan === 'BPJS');
             @endphp
             @if($isBpjs)
-              <div class="flex justify-between text-emerald-600 font-semibold">
-                <span>Ditanggung BPJS {{ $billing->no_bpjs ? "({$billing->no_bpjs})" : '' }}:</span>
-                <span class="font-mono">-Rp {{ number_format($billing->potongan_bpjs, 2, ',', '.') }}</span>
+              <div class="flex justify-between items-start text-emerald-600 font-semibold">
+                <div class="flex flex-col text-left">
+                  <span>Ditanggung BPJS:</span>
+                  @if($billing->no_bpjs)
+                    <span class="text-[10px] text-gray-400 font-mono font-normal tracking-tight mt-0.5">{{ $billing->no_bpjs }}</span>
+                  @endif
+                </div>
+                <span class="font-mono text-emerald-600">
+                  -Rp {{ number_format($billing->potongan_bpjs, 2, ',', '.') }}
+                </span>
               </div>
             @endif
-            <div class="flex justify-between text-lg font-bold text-gray-900 border-t border-gray-200 pt-2">
+
+            <!-- Grand Total -->
+            <div class="flex justify-between items-center text-lg font-bold text-gray-900 border-t border-gray-200 pt-2 mt-2">
               <span>Grand Total:</span>
               <span class="font-mono text-blue-900">Rp {{ number_format($billing->grand_total, 2, ',', '.') }}</span>
             </div>
 
+            <!-- Detail Pembayaran (Jika Lunas) -->
             @if($billing->status === 'Lunas')
-              <div class="flex justify-between text-sm mt-2">
-                <span>Jumlah Dibayar:</span>
-                <span class="font-mono">Rp {{ number_format($billing->jumlah_dibayar ?? 0, 2, ',', '.') }}</span>
-              </div>
-              <div class="flex justify-between text-sm font-semibold">
-                <span>Kembalian:</span>
-                <span class="font-mono">Rp {{ number_format($billing->kembalian ?? 0, 2, ',', '.') }}</span>
+              <div class="border-t border-dashed border-gray-200 pt-2 mt-2 space-y-2">
+                <div class="flex justify-between text-gray-600 text-xs">
+                  <span>Jumlah Dibayar:</span>
+                  <span class="font-mono text-gray-800 font-semibold">Rp {{ number_format($billing->jumlah_dibayar ?? 0, 2, ',', '.') }}</span>
+                </div>
+                <div class="flex justify-between text-gray-600 text-xs font-semibold">
+                  <span>Kembalian:</span>
+                  <span class="font-mono text-gray-900 font-bold">Rp {{ number_format($billing->kembalian ?? 0, 2, ',', '.') }}</span>
+                </div>
               </div>
             @endif
-
           </div>
         </div>
       </div>
