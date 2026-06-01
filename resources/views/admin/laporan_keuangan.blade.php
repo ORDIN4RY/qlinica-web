@@ -48,7 +48,7 @@
           <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Metode Pembayaran</label>
           <select name="metode_pembayaran" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
             <option value="">Semua Metode</option>
-            <option value="Tunai" {{ request('metode_pembayaran') == 'Tunai' ? 'selected' : '' }}>Tunai</option>
+            <option value="Bayar Mandiri" {{ request('metode_pembayaran') == 'Bayar Mandiri' ? 'selected' : '' }}>Bayar Mandiri</option>
             <option value="Asuransi" {{ request('metode_pembayaran') == 'Asuransi' ? 'selected' : '' }}>Asuransi / BPJS</option>
           </select>
         </div>
@@ -182,11 +182,11 @@
           @php
             $percentage = $totalPendapatanBersih > 0 ? ($val / $totalPendapatanBersih) * 100 : 0;
             $colorClasses = [
-              'Tunai' => 'bg-indigo-600',
+              'Bayar Mandiri' => 'bg-indigo-600',
               'Asuransi' => 'bg-emerald-500',
             ];
             $iconClasses = [
-              'Tunai' => 'fa-money-bill-wave text-indigo-600 bg-indigo-50',
+              'Bayar Mandiri' => 'fa-money-bill-wave text-indigo-600 bg-indigo-50',
               'Asuransi' => 'fa-shield-alt text-emerald-500 bg-emerald-50',
             ];
           @endphp

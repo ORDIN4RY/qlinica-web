@@ -229,26 +229,23 @@
           <div class="space-y-2">
             <label class="block text-xs font-bold text-gray-500 uppercase">Metode Pembayaran</label>
             <div class="grid grid-cols-2 gap-3">
-              
-              @if(!$billing->no_bpjs)
-              {{-- Bayar Mandiri: hanya tampil jika bukan pasien BPJS --}}
-              <label class="border border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition group">
-                <input type="radio" name="metode_pembayaran" value="Bayar Mandiri" checked class="sr-only peer">
-                <div class="peer-checked:bg-blue-900 text-gray-500 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 transition group-hover:bg-blue-100">
-                  <i class="fas fa-money-bill-wave text-sm"></i>
-                </div>
-                <span class="text-xs font-semibold text-gray-700">Bayar Mandiri</span>
-              </label>
+              @if($billing->grand_total > 0)
+                <label class="border border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition group col-span-2">
+                  <input type="radio" name="metode_pembayaran" value="Bayar Mandiri" checked class="sr-only peer">
+                  <div class="peer-checked:bg-blue-900 text-gray-500 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 transition group-hover:bg-blue-100">
+                    <i class="fas fa-money-bill-wave text-sm"></i>
+                  </div>
+                  <span class="text-xs font-semibold text-gray-700 text-center leading-tight">Bayar Mandiri</span>
+                </label>
+              @else
+                <label class="col-span-2 border border-emerald-200 bg-emerald-50 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-emerald-100 transition group">
+                  <input type="radio" name="metode_pembayaran" value="Asuransi" checked class="sr-only peer">
+                  <div class="peer-checked:bg-emerald-600 text-emerald-600 w-8 h-8 rounded-full flex items-center justify-center bg-white transition group-hover:bg-emerald-100">
+                    <i class="fas fa-shield-alt text-sm peer-checked:text-white"></i>
+                  </div>
+                  <span class="text-xs font-bold text-emerald-800 text-center">Asuransi / BPJS</span>
+                </label>
               @endif
-
-              <label class="border border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition group {{ $billing->no_bpjs ? 'col-span-2' : '' }}">
-                <input type="radio" name="metode_pembayaran" value="Asuransi" {{ $billing->no_bpjs ? 'checked' : '' }} class="sr-only peer">
-                <div class="peer-checked:bg-blue-900 text-gray-500 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 transition group-hover:bg-blue-100">
-                  <i class="fas fa-shield-alt text-sm"></i>
-                </div>
-                <span class="text-xs font-semibold text-gray-700">Asuransi / BPJS</span>
-              </label>
-
             </div>
           </div>
 

@@ -34,27 +34,27 @@
 
   <!-- Quick Stats -->
   <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
-    <div class="bg-green-50 border border-green-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-      <p class="text-xs font-semibold text-green-700 uppercase tracking-wider">Total Penjualan Obat</p>
-      <p class="text-2xl font-black text-green-900 mt-1">Rp {{ number_format($totalPenjualan, 0, ',', '.') }}</p>
-      <span class="text-[10px] text-green-600 font-medium mt-1">Berdasarkan Billing Terbayar (Lunas)</span>
-    </div>
-    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-      <p class="text-xs font-semibold text-indigo-700 uppercase tracking-wider">Laba Bersih Apotek (Margin)</p>
-      <p class="text-2xl font-black text-indigo-900 mt-1">Rp {{ number_format($totalMargin, 0, ',', '.') }}</p>
-      <span class="text-[10px] text-indigo-600 font-medium mt-1">Penjualan setelah dikurangi HPP modal</span>
-    </div>
     <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
       <p class="text-xs font-semibold text-blue-700 uppercase tracking-wider">Resep Selesai</p>
       <p class="text-2xl font-black text-blue-900 mt-1">{{ $resepCount }} Resep</p>
-      <span class="text-[10px] text-blue-600 font-medium mt-1">Resep sukses diserahkan ke pasien</span>
+      <span class="text-[10px] text-blue-600 font-medium mt-1">Total resep sukses diserahkan ke pasien</span>
+    </div>
+    <div class="bg-green-50 border border-green-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+      <p class="text-xs font-semibold text-green-700 uppercase tracking-wider">Total Obat Keluar</p>
+      <p class="text-2xl font-black text-green-900 mt-1">{{ number_format($totalObatKeluar, 0, ',', '.') }} Unit</p>
+      <span class="text-[10px] text-green-600 font-medium mt-1">Berdasarkan data tagihan lunas</span>
+    </div>
+    <div class="bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+      <p class="text-xs font-semibold text-red-700 uppercase tracking-wider">Obat Kritis</p>
+      <p class="text-2xl font-black text-red-900 mt-1">{{ $totalObatKritis }} Item</p>
+      <span class="text-[10px] text-red-600 font-medium mt-1">Item obat dengan stok habis atau menipis</span>
     </div>
   </div>
 </div>
 
 <!-- Sales Chart -->
 <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6 shadow-sm mb-8">
-  <h3 class="font-bold text-lg text-gray-800 mb-4">Grafik Penjualan 7 Hari Terakhir</h3>
+  <h3 class="font-bold text-lg text-gray-800 mb-4">Grafik Resep Terlayani (7 Hari Terakhir)</h3>
   <div class="w-full overflow-hidden">
     <canvas id="salesChart" class="w-full" height="80"></canvas>
   </div>
@@ -69,21 +69,19 @@
         <table class="min-w-full text-sm">
       <thead class="bg-gray-100 border-b">
         <tr>
-          <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Obat</th>
-          <th class="text-center px-3 py-2 font-semibold whitespace-nowrap">Terjual</th>
-          <th class="text-right px-3 py-2 font-semibold whitespace-nowrap">Total</th>
+          <th class="text-left px-3 py-2 font-semibold whitespace-nowrap">Nama Obat</th>
+          <th class="text-right px-3 py-2 font-semibold whitespace-nowrap">Total Keluar (Unit)</th>
         </tr>
       </thead>
       <tbody>
         @forelse($topSelling as $item)
         <tr class="border-b hover:bg-gray-50">
           <td class="px-3 py-2.5 font-medium text-gray-700 whitespace-nowrap">{{ $item->nama_item }}</td>
-          <td class="px-3 py-2.5 text-center text-gray-600 font-bold">{{ $item->total_terjual }}</td>
-          <td class="px-3 py-2.5 text-right font-semibold text-gray-800 whitespace-nowrap">Rp {{ number_format($item->total_pendapatan, 0, ',', '.') }}</td>
+          <td class="px-3 py-2.5 text-right text-gray-600 font-bold">{{ $item->total_terjual }}</td>
         </tr>
         @empty
         <tr>
-          <td colspan="3" class="px-3 py-8 text-center text-gray-400">Belum ada data penjualan obat.</td>
+          <td colspan="2" class="px-3 py-8 text-center text-gray-400">Belum ada data obat keluar.</td>
         </tr>
         @endforelse
       </tbody>
@@ -140,15 +138,15 @@
     data: {
       labels: labels,
       datasets: [{
-        label: 'Penjualan Obat (Rp)',
+        label: 'Resep Selesai',
         data: dataSales,
-        borderColor: '#16a34a',
-        backgroundColor: 'rgba(22, 163, 74, 0.1)',
+        borderColor: '#2563eb',
+        backgroundColor: 'rgba(37, 99, 235, 0.1)',
         tension: 0.4,
         fill: true,
         borderWidth: 3,
         pointRadius: 6,
-        pointBackgroundColor: '#16a34a',
+        pointBackgroundColor: '#2563eb',
         pointBorderColor: '#fff',
         pointBorderWidth: 2,
       }]
@@ -166,9 +164,7 @@
         y: {
           beginAtZero: true,
           ticks: {
-            callback: function(value) {
-              return 'Rp ' + Number(value).toLocaleString('id-ID');
-            }
+            stepSize: 1
           }
         }
       }

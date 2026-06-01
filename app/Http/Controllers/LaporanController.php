@@ -163,7 +163,7 @@ class LaporanController extends Controller
 
         // 5. Pendapatan per Metode Bayar
         $pendapatanMetode = [
-            'Tunai' => $lunasBillings->where('metode_pembayaran', 'Tunai')->sum('grand_total'),
+            'Bayar Mandiri' => $lunasBillings->where('metode_pembayaran', 'Bayar Mandiri')->sum('grand_total'),
             'Asuransi' => $lunasBillings->where('metode_pembayaran', 'Asuransi')->sum('grand_total'),
         ];
 

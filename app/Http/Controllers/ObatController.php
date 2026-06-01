@@ -209,7 +209,7 @@ class ObatController extends Controller
     }
 
     /**
-     * Menyajikan Laporan Analisis Penjualan & Finansial Apotek.
+     * Menyajikan Laporan Analisis Apotek (Operasional & Inventori).
      */
     public function laporan(Request $request)
     {
@@ -219,7 +219,8 @@ class ObatController extends Controller
         $tglAwal = $request->get('tgl_awal');
         $tglAkhir = $request->get('tgl_akhir');
         
-        $salesQuery = \App\Models\BillingDetail::where('kategori', 'obat')
+        // Total Obat Keluar (Jumlah unit obat yang diresepkan/terjual)
+        $obatKeluarQuery = \App\Models\BillingDetail::where('kategori', 'obat')
             ->whereHas('billing', function($q) use ($tglAwal, $tglAkhir) {
                 $q->where('status', 'Lunas');
                 if ($tglAwal && $tglAkhir) {
@@ -229,21 +230,7 @@ class ObatController extends Controller
                       ->whereYear('created_at', now()->year);
                 }
             });
-
-        $sales = $salesQuery->get();
-        $totalPenjualan = $sales->sum('subtotal');
-        
-        // Hitung HPP dan Margin Laba
-        $totalHpp = 0;
-        foreach ($sales as $sale) {
-            $obat = Obat::where('nama', $sale->nama_item)->first();
-            if ($obat) {
-                $totalHpp += $obat->harga_beli * $sale->jumlah;
-            } else {
-                $totalHpp += $sale->harga_satuan * 0.80 * $sale->jumlah;
-            }
-        }
-        $totalMargin = $totalPenjualan - $totalHpp;
+        $totalObatKeluar = $obatKeluarQuery->sum('jumlah');
         
         // Total Resep Diproses
         $resepQuery = \App\Models\Resep::where('status', 'Selesai');
@@ -255,10 +242,9 @@ class ObatController extends Controller
         }
         $resepCount = $resepQuery->count();
 
-        // 10 Obat Terlaris
+        // 10 Obat Terlaris / Paling Sering Keluar
         $topSelling = \App\Models\BillingDetail::select('nama_item')
             ->selectRaw('SUM(jumlah) as total_terjual')
-            ->selectRaw('SUM(subtotal) as total_pendapatan')
             ->where('kategori', 'obat')
             ->whereHas('billing', function($q) {
                 $q->where('status', 'Lunas');
@@ -279,29 +265,30 @@ class ObatController extends Controller
             $pctMenipis = round(($menipis / $totalObat) * 100);
             $pctTersedia = 100 - $pctHabis - $pctMenipis;
         } else {
+            $habis = 0; $menipis = 0; $tersedia = 0;
             $pctHabis = 0; $pctMenipis = 0; $pctTersedia = 100;
         }
 
-        // Grafik Penjualan 7 Hari Terakhir
+        // Total item obat yang kritis (habis + menipis)
+        $totalObatKritis = $habis + $menipis;
+
+        // Grafik Resep Selesai 7 Hari Terakhir
         $grafikHari = [];
         $grafikData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
             $grafikHari[] = $date->translatedFormat('l');
             
-            $dailySales = \App\Models\BillingDetail::where('kategori', 'obat')
-                ->whereHas('billing', function($q) use ($date) {
-                    $q->where('status', 'Lunas')
-                      ->whereDate('created_at', $date->toDateString());
-                })->sum('subtotal');
-            $grafikData[] = (float)$dailySales;
+            $dailyResep = \App\Models\Resep::where('status', 'Selesai')
+                ->whereDate('selesai_at', $date->toDateString())
+                ->count();
+            $grafikData[] = $dailyResep;
         }
 
         return view('apoteker.laporan', compact(
-            'totalPenjualan',
-            'totalHpp',
-            'totalMargin',
+            'totalObatKeluar',
             'resepCount',
+            'totalObatKritis',
             'topSelling',
             'pctHabis',
             'pctMenipis',
