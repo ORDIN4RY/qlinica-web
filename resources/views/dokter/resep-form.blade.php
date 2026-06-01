@@ -72,14 +72,17 @@
 
 @push('scripts')
 <script>
-  const obatData = @json($obats->map(function($o) {
+  @php
+  $obatArray = $obats->map(function($o) {
     return [
       'id' => $o->id,
       'nama' => $o->nama,
       'stok' => $o->stok,
       'is_fornas' => $o->is_fornas
     ];
-  }));
+  })->toArray();
+  @endphp
+  const obatData = @json($obatArray);
 
   function searchObat(input) {
     const query = input.value.toLowerCase().trim();
