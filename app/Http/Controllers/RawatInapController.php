@@ -94,6 +94,7 @@ class RawatInapController extends Controller
             'kamar_id'       => 'required|exists:kamar,id',
             'dokter_id'      => 'required|exists:pegawai,id',
             'jenis_penjamin' => 'required|in:Umum,BPJS KESEHATAN',
+            'no_bpjs'        => 'nullable|string',
         ]);
 
         // Validasi kelas kamar untuk pasien BPJS:
@@ -105,6 +106,14 @@ class RawatInapController extends Controller
                 return redirect()->back()->withErrors([
                     'kamar_id' => 'Pasien BPJS tidak dapat memilih kamar kelas VIP. Silakan pilih Kelas 1, 2, atau 3.',
                 ])->withInput();
+            }
+            
+            // Simpan/update no BPJS di tabel pasien jika diisi
+            if (!empty($validated['no_bpjs'])) {
+                $pasien = \App\Models\Pasien::find($validated['pasien_id']);
+                if ($pasien) {
+                    $pasien->update(['no_bpjs' => $validated['no_bpjs']]);
+                }
             }
         }
 
@@ -208,9 +217,16 @@ class RawatInapController extends Controller
             ]);
 
             // Hapus/konsumsi flag rekomendasi rawat inap agar tidak muncul lagi di dropdown
-            \App\Models\RekamMedis::where('pasien_id', $validated['pasien_id'])
+            // dan ikat resep poli ke rawat inap agar Apotek bisa memprosesnya sebagai resep rawat inap
+            $rekamMedisList = \App\Models\RekamMedis::where('pasien_id', $validated['pasien_id'])
                 ->where('is_rekomendasi_rawat_inap', true)
-                ->update(['is_rekomendasi_rawat_inap' => false]);
+                ->get();
+            foreach ($rekamMedisList as $rm) {
+                $rm->update(['is_rekomendasi_rawat_inap' => false]);
+                \App\Models\Resep::where('rekam_medis_id', $rm->id)
+                    ->whereNull('rawat_inap_id')
+                    ->update(['rawat_inap_id' => $rawatInap->id]);
+            }
 
             // Cari tagihan poli (Rawat Jalan) terakhir yang masih 'Belum Bayar' dan belum diikat rawat_inap_id
             $billing = Billing::where('pasien_id', $rawatInap->pasien_id)

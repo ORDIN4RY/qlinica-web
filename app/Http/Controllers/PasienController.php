@@ -32,7 +32,20 @@ class PasienController extends Controller
         $pendidikans = Pendidikan::orderBy('pendidikan')->get(['id', 'pendidikan']);
         $pekerjaans  = Pekerjaan::orderBy('pekerjaan')->get(['id', 'pekerjaan']);
 
-        return view('admin.pasien', compact('pasiens', 'search', 'agamas', 'pendidikans', 'pekerjaans'));
+        // Generate next No RM automatically based on RM-YYYY-urutan
+        $currentYear = now()->format('Y');
+        $prefix = "RM-{$currentYear}-";
+        $lastRm = Pasien::where('no_rm', 'like', "{$prefix}%")->orderByRaw('LENGTH(no_rm) DESC, no_rm DESC')->first();
+        
+        if ($lastRm) {
+            $lastNumber = (int) str_replace($prefix, '', $lastRm->no_rm);
+            $nextNumber = str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
+            $nextRm = $prefix . $nextNumber;
+        } else {
+            $nextRm = $prefix . '00001';
+        }
+
+        return view('admin.pasien', compact('pasiens', 'search', 'agamas', 'pendidikans', 'pekerjaans', 'nextRm'));
     }
 
     /** Ambil semua data pasien (AJAX). */
@@ -78,6 +91,7 @@ class PasienController extends Controller
             'tgl_lahir'      => 'required|date',
             'jenis_kelamin'  => 'required|in:L,P',
             'nik'            => 'nullable|string|max:16|unique:pasien,nik',
+            'no_bpjs'        => 'nullable|string|max:13',
             'nama_kk'        => 'nullable|string|max:100',
             'golongan_darah' => 'nullable|in:A,B,AB,O',
             'alamat'         => 'nullable|string',
@@ -112,6 +126,7 @@ class PasienController extends Controller
                 'user_id'        => $newUser->id,
                 'no_rm'          => $request->no_rm,
                 'nik'            => $request->nik,
+                'no_bpjs'        => $request->no_bpjs,
                 'nama'           => $request->nama,
                 'nama_kk'        => $request->nama_kk,
                 'tgl_lahir'      => $request->tgl_lahir,
@@ -143,6 +158,7 @@ class PasienController extends Controller
             'tgl_lahir'      => 'required|date',
             'jenis_kelamin'  => 'required|in:L,P',
             'nik'            => 'nullable|string|max:16|unique:pasien,nik,' . $id,
+            'no_bpjs'        => 'nullable|string|max:13',
             'nama_kk'        => 'nullable|string|max:100',
             'golongan_darah' => 'nullable|in:A,B,AB,O',
             'alamat'         => 'nullable|string',
@@ -162,6 +178,7 @@ class PasienController extends Controller
             $pasien->update([
                 'no_rm'          => $request->no_rm,
                 'nik'            => $request->nik,
+                'no_bpjs'        => $request->no_bpjs,
                 'nama'           => $request->nama,
                 'nama_kk'        => $request->nama_kk,
                 'tgl_lahir'      => $request->tgl_lahir,

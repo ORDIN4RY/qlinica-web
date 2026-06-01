@@ -10,7 +10,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <style>
-    html { scroll-behavior: smooth; }
+    html, body {
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+      max-width: 100vw;
+    }
     .card-hover { transition: all 0.3s cubic-bezier(0.15,0.75,0.45,1); }
     .card-hover:hover { transform: translateY(-6px); box-shadow: 0 20px 40px -12px rgba(30,58,138,0.2); }
     .btn-anim { transition: all 0.25s ease; }
@@ -33,9 +37,97 @@
     .star-rating input { display: none; }
     .star-rating label { color: #d1d5db; font-size: 2.25rem; padding: 0 0.25rem; cursor: pointer; transition: color 0.2s; }
     .star-rating label:hover, .star-rating label:hover ~ label, .star-rating input:checked ~ label { color: #facc15; }
+
+    /* ── Ambil Antrian Modal ── */
+    .ambil-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100%; height: 100%;
+      z-index: 9999;
+    }
+    .ambil-modal.show { display: block; }
+
+    /* Backdrop */
+    .ambil-modal .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      animation: backdropIn 0.25s ease;
+      transition: opacity 0.3s ease;
+    }
+    .ambil-modal.closing .modal-backdrop {
+      opacity: 0;
+    }
+    @keyframes backdropIn { from { opacity:0; } to { opacity:1; } }
+
+    /* Positioner — MOBILE: bottom sheet */
+    .ambil-modal .modal-positioner {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: center;
+      animation: sheetUp 0.35s cubic-bezier(0.15,0.75,0.45,1);
+      will-change: transform;
+      z-index: 10000;
+    }
+    @keyframes sheetUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+
+    /* Content box — mobile */
+    .ambil-modal .modal-positioner .modal-content {
+      width: 100%;
+      max-width: 100%;
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      overflow-y: auto;
+      max-height: 88vh;
+      box-sizing: border-box;
+      /* Interaction setup */
+      touch-action: auto;
+      user-select: auto;
+      -webkit-user-select: auto;
+    }
+
+    /* Handle bar area — cursor grab */
+    .ambil-modal .modal-drag-handle {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px 0 4px;
+      cursor: grab;
+      touch-action: none;
+    }
+    .ambil-modal .modal-drag-handle:active { cursor: grabbing; }
+    .ambil-modal .modal-drag-handle div {
+      width: 40px; height: 4px;
+      border-radius: 99px;
+      background: #cbd5e1;
+      transition: background 0.2s, width 0.2s;
+    }
+    .ambil-modal .modal-drag-handle:hover div,
+    .ambil-modal .modal-drag-handle:active div { background: #94a3b8; width: 52px; }
+
+    /* DESKTOP: centered dialog */
+    @media (min-width: 640px) {
+      .ambil-modal .modal-positioner {
+        top: 0; bottom: 0;
+        align-items: center;
+        padding: 20px;
+        animation: dialogIn 0.25s cubic-bezier(0.15,0.75,0.45,1);
+      }
+      @keyframes dialogIn  { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+      .ambil-modal .modal-positioner .modal-content {
+        max-width: 460px;
+        border-radius: 24px;
+        max-height: 90vh;
+        touch-action: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      }
+      .ambil-modal .modal-drag-handle { display: none; }
+    }
   </style>
 </head>
-<body class="bg-gray-50 font-sans antialiased text-gray-700 overflow-x-hidden">
+<body class="bg-gray-50 font-sans antialiased text-gray-700 overflow-x-hidden" style="overflow-x:hidden;max-width:100vw;">
 
   <!-- ===== NAVBAR ===== -->
   <header class="bg-white/90 backdrop-blur-sm sticky top-0 z-30 border-b border-blue-900/10 shadow-sm">
@@ -52,7 +144,7 @@
           <a href="#beranda"  class="text-gray-700 hover:text-blue-900 transition">Beranda</a>
           <a href="#antrian"  class="text-gray-700 hover:text-blue-900 transition">Antrian</a>
           <a href="#profil"   class="text-gray-700 hover:text-blue-900 transition">Profil</a>
-          <a href="#riwayat"  class="text-gray-700 hover:text-blue-900 transition">Riwayat</a>
+          <a href="#profil" onclick="goToRiwayat(event)" class="text-gray-700 hover:text-blue-900 transition">Riwayat</a>
         </nav>
 
         <!-- User + Logout -->
@@ -194,7 +286,7 @@
                         <div class="text-[10px] text-gray-400">Total Biaya Sementara</div>
                         <div class="text-lg font-black text-{{ $accent }}-750">Rp {{ number_format($tagihan['grand_total'], 0, ',', '.') }}</div>
                       </div>
-                      <button onclick="openModalDetailTagihan({{ json_encode($tagihan) }})" 
+                      <button onclick="openModalDetailTagihan({{ json_encode($tagihan) }})"
                               class="bg-white hover:bg-{{ $accent }}-600 text-{{ $accent }}-700 hover:text-white border border-{{ $accent }}-200 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1">
                         <i class="fas fa-search-dollar"></i> Rincian
                       </button>
@@ -228,7 +320,7 @@
                                 <i class="fas fa-user-md text-gray-400 mr-1"></i>Dr. {{ $resep->dokter->nama ?? 'Dokter Klinik' }}
                               </div>
                             </div>
-                            
+
                             @php
                               $statusLower = strtolower($resep->status);
                             @endphp
@@ -262,10 +354,10 @@
                                         {{ $detail->obat->nama ?? 'Nama Obat' }}
                                       </div>
                                       <div class="text-[10px] text-indigo-650 font-semibold mt-0.5">
-                                        Dosis: <span class="bg-indigo-50 border border-indigo-100 px-1 rounded">{{ $detail->dosis }}</span> 
+                                        Dosis: <span class="bg-indigo-50 border border-indigo-100 px-1 rounded">{{ $detail->dosis }}</span>
                                         &bull; <span class="bg-indigo-50 border border-indigo-100 px-1 rounded">{{ $detail->aturan_pakai }}</span>
                                       </div>
-                                      
+
                                       @if($detail->keterangan)
                                         <div class="mt-1.5 text-[9px] text-gray-500 italic bg-gray-50/70 border border-gray-100 px-1.5 py-0.5 rounded flex items-start gap-1 leading-normal">
                                           <i class="fas fa-info-circle text-gray-400 mt-0.5"></i>
@@ -697,7 +789,7 @@
               <input type="text" name="contact" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition" placeholder="Email atau No. HP">
             </div>
           </div>
-          
+
           <div class="mb-6">
             <label class="block text-sm font-semibold text-gray-600 mb-2">Pesan atau Ulasan</label>
             <textarea name="message" rows="4" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none" placeholder="Tuliskan pengalaman Anda untuk kami..."></textarea>
@@ -725,148 +817,179 @@
   </footer>
 
   <!-- Modal Ulasan Selesai Periksa -->
-  <div id="modalFeedback" class="fixed inset-0 z-[60] hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-  <div class="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 relative" id="modalFeedbackContent">
-    
-    <button onclick="closeModalFeedback()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
-      <i class="fas fa-times text-xl"></i>
-    </button>
+  <div id="modalFeedback" class="ambil-modal">
+    <div id="modalFeedbackBackdrop" class="modal-backdrop"></div>
+    <div class="modal-positioner">
+      <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden relative modal-content" id="modalFeedbackContent">
 
-    <div class="p-8">
-      <div class="text-center mb-6">
-        <h3 class="text-2xl font-bold text-gray-800">Ulasan Layanan</h3>
-      </div>
-
-      <form action="#" method="POST" id="formModalFeedback">
-        <input type="hidden" id="feedbackAntrianId" value="">
-
-        <!-- Rating -->
-        <div class="mb-6 text-center">
-          <label class="block text-base font-semibold text-gray-700 mb-3">
-            Seberapa puas Anda dengan layanan kami?
-          </label>
-
-          <div class="star-rating justify-center">
-            <input type="radio" id="m_star5" name="rating" value="5" />
-            <label for="m_star5" title="Sangat Puas"><i class="fas fa-star"></i></label>
-
-            <input type="radio" id="m_star4" name="rating" value="4" />
-            <label for="m_star4" title="Puas"><i class="fas fa-star"></i></label>
-
-            <input type="radio" id="m_star3" name="rating" value="3" />
-            <label for="m_star3" title="Cukup"><i class="fas fa-star"></i></label>
-
-            <input type="radio" id="m_star2" name="rating" value="2" />
-            <label for="m_star2" title="Kurang"><i class="fas fa-star"></i></label>
-
-            <input type="radio" id="m_star1" name="rating" value="1" />
-            <label for="m_star1" title="Sangat Kurang"><i class="fas fa-star"></i></label>
-          </div>
-        </div>
-
-        <!-- Input -->
-        <div class="grid md:grid-cols-3 gap-5 mb-5">
-          
-          <!-- Nama lebih lebar -->
-          <div class="md:col-span-5">
-            <label class="block text-sm font-semibold text-gray-600 mb-2">
-              Nama Lengkap
-            </label>
-
-            <input 
-              type="text" 
-              name="name" 
-              value="{{ $pasien->nama ?? '' }}"
-              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition"
-              placeholder="Masukkan nama Anda"
-            >
-          </div>
-        </div>
-
-        <!-- Ulasan -->
-        <div class="mb-6">
-          <label class="block text-sm font-semibold text-gray-600 mb-2">
-            Ulasan Kunjungan
-          </label>
-
-          <textarea 
-            name="ulasan" 
-            rows="4" 
-            required
-            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none"
-            placeholder="Tuliskan ulasan Anda mengenai pelayanan kami..."
-          ></textarea>
-        </div>
-
-        <!-- Button -->
-        <button 
-          type="button" 
-          id="btnSubmitFeedback"
-          onclick="submitModalFeedback()"
-          class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 shadow-md"
-        >
-          <i class="fas fa-paper-plane"></i> Kirim Ulasan
+        <button onclick="closeModalFeedback()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
+          <i class="fas fa-times text-xl"></i>
         </button>
 
-      </form>
+        <div class="p-8 pt-4 sm:pt-8">
+          <div class="text-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Ulasan Layanan</h3>
+          </div>
+
+          <form action="#" method="POST" id="formModalFeedback">
+            <input type="hidden" id="feedbackAntrianId" value="">
+
+            <!-- Rating -->
+            <div class="mb-6 text-center">
+              <label class="block text-base font-semibold text-gray-700 mb-3">
+                Seberapa puas Anda dengan layanan kami?
+              </label>
+
+              <div class="star-rating justify-center">
+                <input type="radio" id="m_star5" name="rating" value="5" />
+                <label for="m_star5" title="Sangat Puas"><i class="fas fa-star"></i></label>
+
+                <input type="radio" id="m_star4" name="rating" value="4" />
+                <label for="m_star4" title="Puas"><i class="fas fa-star"></i></label>
+
+                <input type="radio" id="m_star3" name="rating" value="3" />
+                <label for="m_star3" title="Cukup"><i class="fas fa-star"></i></label>
+
+                <input type="radio" id="m_star2" name="rating" value="2" />
+                <label for="m_star2" title="Kurang"><i class="fas fa-star"></i></label>
+
+                <input type="radio" id="m_star1" name="rating" value="1" />
+                <label for="m_star1" title="Sangat Kurang"><i class="fas fa-star"></i></label>
+              </div>
+            </div>
+
+            <!-- Input -->
+            <div class="grid md:grid-cols-3 gap-5 mb-5">
+
+              <!-- Nama lebih lebar -->
+              <div class="md:col-span-5">
+                <label class="block text-sm font-semibold text-gray-600 mb-2">
+                  Nama Lengkap
+                </label>
+
+                <input
+                  type="text"
+                  name="name"
+                  value="{{ $pasien->nama ?? '' }}"
+                  class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition text-sm"
+                  placeholder="Masukkan nama Anda"
+                >
+              </div>
+            </div>
+
+            <!-- Ulasan -->
+            <div class="mb-6">
+              <label class="block text-sm font-semibold text-gray-600 mb-2">
+                Ulasan Kunjungan
+              </label>
+
+              <textarea
+                name="ulasan"
+                rows="4"
+                required
+                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none text-sm"
+                placeholder="Tuliskan ulasan Anda mengenai pelayanan kami..."
+              ></textarea>
+            </div>
+
+            <!-- Button -->
+            <button
+              type="button"
+              id="btnSubmitFeedback"
+              onclick="submitModalFeedback()"
+              class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 shadow-md"
+            >
+              <i class="fas fa-paper-plane"></i> Kirim Ulasan
+            </button>
+
+          </form>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+
+  <!-- Modal Konfirmasi Batal Antrian -->
+  <div id="modalConfirmBatal" class="ambil-modal">
+    <div id="modalConfirmBatalBackdrop" class="modal-backdrop"></div>
+    <div class="modal-positioner">
+      <div class="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden relative modal-content" id="modalConfirmBatalContent">
+        <div class="p-6 text-center">
+          <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800 mb-2">Batalkan Antrian?</h3>
+          <p class="text-sm text-gray-500 mb-6">Apakah Anda yakin ingin membatalkan antrian <span id="confirmBatalNomor" class="font-bold text-red-600"></span>? Tindakan ini akan menghapus antrian secara permanen.</p>
+          
+          <div class="flex gap-3">
+            <button type="button" onclick="closeModalConfirmBatal()" class="flex-1 py-3 border border-gray-200 text-gray-500 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
+              Kembali
+            </button>
+            <button type="button" onclick="executeBatalAntrian()" class="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition shadow-md shadow-red-100">
+              Ya, Batalkan
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal Ambil Antrian Online -->
-  <div id="modalAmbilAntrianOnline" class="fixed inset-0 z-[60] hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 relative" id="modalAmbilAntrianOnlineContent">
-      
-      <button onclick="closeModalAmbil()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
-        <i class="fas fa-times text-xl"></i>
-      </button>
+  <div id="modalAmbilAntrianOnline" class="ambil-modal">
+    <div id="modalAmbilBackdrop" class="modal-backdrop"></div>
+    <div class="modal-positioner">
+      <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden relative modal-content" id="modalAmbilAntrianOnlineContent">
 
-      <div class="p-8">
-        <div class="text-center mb-6">
-          <div class="w-16 h-16 bg-blue-100 text-blue-900 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
-            <i class="fas fa-ticket-alt"></i>
-          </div>
-          <h3 class="text-2xl font-bold text-gray-800">Ambil Antrian Online</h3>
-          <p class="text-sm text-gray-500 mt-1">Dapatkan nomor antrian Anda secara instan untuk hari ini.</p>
-        </div>
+        <button onclick="closeModalAmbil()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
+          <i class="fas fa-times text-xl"></i>
+        </button>
 
-        <div class="mb-6 bg-blue-50/50 border border-blue-100 rounded-2xl p-4 text-sm text-blue-900">
-          <h4 class="font-bold mb-1.5 flex items-center gap-1.5"><i class="fas fa-info-circle"></i> Kebijakan & Panduan:</h4>
-          <ul class="list-disc list-inside space-y-1 text-xs text-blue-955/85 text-left">
-            <li>Nomor antrian berlaku untuk hari ini.</li>
-            <li>Anda tidak perlu memilih poliklinik sekarang. Poliklinik dan dokter tujuan akan diproses langsung oleh Resepsionis saat pemeriksaan awal.</li>
-            <li>Harap datang tepat waktu sesuai dengan estimasi antrian Anda.</li>
-          </ul>
-        </div>
-
-        <div class="space-y-4">
-          <div class="text-left">
-            <label class="block text-sm font-semibold text-gray-600 mb-2">
-              Keluhan Awal (Opsional)
-            </label>
-            <textarea 
-              id="keluhanAwalModal" 
-              rows="3" 
-              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none text-sm"
-              placeholder="Jelaskan keluhan medis awal Anda jika ada (misal: Demam sejak kemarin, sakit kepala, dll.)..."
-            ></textarea>
+        <div class="p-8 pt-4 sm:pt-8">
+          <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-blue-100 text-blue-900 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+              <i class="fas fa-ticket-alt"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800">Ambil Antrian Online</h3>
+            <p class="text-sm text-gray-500 mt-1">Dapatkan nomor antrian Anda secara instan untuk hari ini.</p>
           </div>
 
-          <button 
-            type="button" 
-            id="btnConfirmAmbilAntrian"
-            onclick="confirmAmbilAntrian()"
-            class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-3.5 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 shadow-md"
-          >
-            <i class="fas fa-check-circle"></i> Konfirmasi Ambil Antrian
-          </button>
+          {{-- <div class="mb-6 bg-blue-50/50 border border-blue-100 rounded-2xl p-4 text-sm text-blue-900">
+            <h4 class="font-bold mb-1.5 flex items-center gap-1.5"><i class="fas fa-info-circle"></i> Kebijakan & Panduan:</h4>
+            <ul class="list-disc list-inside space-y-1 text-xs text-blue-955/85 text-left">
+              <li>Nomor antrian berlaku untuk hari ini.</li>
+              <li>Anda tidak perlu memilih poliklinik sekarang. Poliklinik dan dokter tujuan akan diproses langsung oleh Resepsionis saat pemeriksaan awal.</li>
+              <li>Harap datang tepat waktu sesuai dengan estimasi antrian Anda.</li>
+            </ul>
+          </div> --}}
+
+          <div class="space-y-4">
+            <div class="text-left">
+              <label class="block text-sm font-semibold text-gray-600 mb-2">
+                Keluhan Awal (Opsional)
+              </label>
+              <textarea
+                id="keluhanAwalModal"
+                rows="3"
+                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-900 outline-none transition resize-none text-sm"
+                placeholder="Jelaskan keluhan medis awal Anda jika ada (misal: Demam sejak kemarin, sakit kepala, dll.)..."
+              ></textarea>
+            </div>
+
+            <button
+              type="button"
+              id="btnConfirmAmbilAntrian"
+              onclick="confirmAmbilAntrian()"
+              class="btn-anim w-full bg-blue-900 hover:bg-blue-800 text-white py-3.5 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 shadow-md"
+            >
+              <i class="fas fa-check-circle"></i> Konfirmasi Ambil Antrian
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Modal Detail Tagihan Aktif -->
-  <div id="modalDetailTagihan" class="fixed inset-0 z-[60] hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+  <div id="modalDetailTagihan" class="fixed inset-0 z-[60] hidden bg-gray-900/75 flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
     <div class="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 relative flex flex-col max-h-[85vh]" id="modalDetailTagihanContent">
       <!-- Accent header stripe -->
       <div id="modalTagihanAccent" class="h-2 w-full bg-indigo-600"></div>
@@ -940,12 +1063,12 @@
             <span class="text-gray-500">Subtotal Biaya Pelayanan:</span>
             <span class="font-semibold text-gray-800" id="modalTagihanSubtotal">Rp 0</span>
           </div>
-          
+
           <div id="modalTagihanBpjsRow" class="flex justify-between items-center text-sm text-green-700 bg-green-50 border border-green-100/50 p-2.5 rounded-xl">
             <span class="flex items-center gap-1.5"><i class="fas fa-shield-alt text-green-600"></i> Ditanggung BPJS:</span>
             <span class="font-bold" id="modalTagihanBpjs">Rp 0</span>
           </div>
-          
+
           <div class="pt-3 border-t border-dashed border-gray-200 flex justify-between items-center">
             <div>
               <span class="font-bold text-gray-800 text-base">Total yang Harus Dibayar:</span>
@@ -1103,10 +1226,10 @@
         (r.keluhan && r.keluhan.toLowerCase().includes(q)) ||
         (r.diagnosa && r.diagnosa.some(d => d.nama.toLowerCase().includes(q) || d.kode.toLowerCase().includes(q)))
       );
-      if (!items.length) { 
-        list.innerHTML=''; 
-        if (empty) empty.style.display='block'; 
-        return; 
+      if (!items.length) {
+        list.innerHTML='';
+        if (empty) empty.style.display='block';
+        return;
       }
       if (empty) empty.style.display='none';
 
@@ -1147,14 +1270,14 @@
                 </div>
                 ${r.keluhan ? `<div class="text-xs text-gray-500 mt-1.5 italic"><i class="fas fa-comment-medical mr-1 text-blue-400"></i>&ldquo;${r.keluhan}&rdquo;</div>` : ''}
                 ${primerDiagnosa ? `<div class="mt-1.5 inline-flex items-center gap-1 text-xs bg-red-50 border border-red-100 text-red-700 px-2 py-0.5 rounded-full font-semibold"><i class="fas fa-virus text-[10px]"></i>${primerDiagnosa.kode} &mdash; ${primerDiagnosa.nama}</div>` : ''}
-              </div>
-            </div>
 
-            <div class="flex items-center justify-end gap-2 mt-3 pt-2.5 border-t border-gray-100" onclick="event.stopPropagation()">
-              ${ulasanBtn}
-              <button onclick="window.location.href='/dashboard-pasien/riwayat/${r.id}'" class="inline-flex items-center gap-1.5 text-blue-900 bg-blue-50 hover:bg-blue-900 hover:text-white border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
-                <i class="fas fa-eye"></i> Detail
-              </button>
+                <div class="flex items-center justify-start sm:justify-end gap-2 mt-3 pt-2.5 border-t border-gray-100" onclick="event.stopPropagation()">
+                  ${ulasanBtn}
+                  <button onclick="window.location.href='/dashboard-pasien/riwayat/${r.id}'" class="inline-flex items-center gap-1.5 text-blue-900 bg-blue-50 hover:bg-blue-900 hover:text-white border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
+                    <i class="fas fa-eye"></i> Detail
+                  </button>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -1191,28 +1314,75 @@
     // ================================================================
     // MODAL FEEDBACK
     // ================================================================
+    const modalFeedback         = document.getElementById('modalFeedback');
+    const modalFeedbackBackdrop = document.getElementById('modalFeedbackBackdrop');
+    const modalFeedbackPos      = modalFeedback ? modalFeedback.querySelector('.modal-positioner') : null;
+
     function showModalFeedback(id = null) {
-      const modal = document.getElementById('modalFeedback');
-      const content = document.getElementById('modalFeedbackContent');
-      
       document.getElementById('feedbackAntrianId').value = id;
       document.getElementById('formModalFeedback').reset();
-      
-      modal.classList.remove('hidden');
-      // Trigger reflow
-      void modal.offsetWidth;
-      modal.classList.remove('opacity-0');
-      content.classList.remove('scale-95');
-      content.classList.add('scale-100');
+
+      if (modalFeedback) {
+        modalFeedback.classList.remove('closing');
+        if (modalFeedbackPos) {
+          modalFeedbackPos.style.transition = '';
+          modalFeedbackPos.style.transform  = '';
+
+          // Force re-trigger CSS animations
+          modalFeedbackPos.style.animation = 'none';
+          modalFeedbackPos.offsetHeight; // force reflow
+          modalFeedbackPos.style.animation = '';
+        }
+        if (modalFeedbackBackdrop) {
+          modalFeedbackBackdrop.style.transition = '';
+          modalFeedbackBackdrop.style.opacity    = '';
+        }
+        modalFeedback.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      }
     }
 
-    function closeModalFeedback() {
-      const modal = document.getElementById('modalFeedback');
-      const content = document.getElementById('modalFeedbackContent');
-      modal.classList.add('opacity-0');
-      content.classList.remove('scale-100');
-      content.classList.add('scale-95');
-      setTimeout(() => { modal.classList.add('hidden'); }, 300);
+    function closeModalFeedback(fromY) {
+      fromY = fromY || 0;
+      const isMobile = window.innerWidth < 640;
+
+      if (modalFeedback) {
+        if (isMobile && modalFeedbackPos) {
+          const targetY = window.innerHeight + 40;
+          const dist    = targetY - fromY;
+          const dur     = Math.min(Math.max(dist * 0.5, 180), 350);
+
+          if (modalFeedbackBackdrop) {
+            modalFeedbackBackdrop.style.transition = `opacity ${dur}ms ease`;
+            modalFeedbackBackdrop.style.opacity    = '0';
+          }
+
+          modalFeedbackPos.style.transition = `transform ${dur}ms cubic-bezier(0.4,0,1,1)`;
+          modalFeedbackPos.style.transform  = `translateY(${targetY}px)`;
+
+          setTimeout(() => {
+            modalFeedback.classList.remove('show');
+            modalFeedbackPos.style.transition = '';
+            modalFeedbackPos.style.transform  = '';
+            modalFeedbackPos.style.animation  = '';
+            if (modalFeedbackBackdrop) {
+              modalFeedbackBackdrop.style.transition = '';
+              modalFeedbackBackdrop.style.opacity    = '';
+            }
+            document.body.style.overflow = '';
+          }, dur + 20);
+        } else {
+          modalFeedback.classList.add('closing');
+          setTimeout(() => {
+            modalFeedback.classList.remove('show', 'closing');
+            document.body.style.overflow = '';
+          }, 220);
+        }
+      }
+    }
+
+    if (modalFeedbackBackdrop) {
+      modalFeedbackBackdrop.addEventListener('click', () => closeModalFeedback(0));
     }
 
     async function submitModalFeedback() {
@@ -1253,7 +1423,7 @@
         if (data.success) {
           showToast('Terima kasih atas ulasan Anda! 🎉', 'green');
           closeModalFeedback();
-          
+
           // Update riwayatData secara dinamis & re-render
           const item = riwayatData.find(r => r.id == antrianId);
           if (item) {
@@ -1279,26 +1449,79 @@
 
     const hasBiayaBerlangsung = {{ (isset($biayaBerlangsung) && $biayaBerlangsung->count() > 0) ? 'true' : 'false' }};
 
+    const modalAmbil         = document.getElementById('modalAmbilAntrianOnline');
+    const modalAmbilBackdrop = document.getElementById('modalAmbilBackdrop');
+    const modalAmbilPos      = modalAmbil ? modalAmbil.querySelector('.modal-positioner') : null;
+
     function openModalAmbil() {
       if (hasBiayaBerlangsung) {
         showToast('Anda masih terdaftar dalam perawatan aktif/pelayanan yang belum selesai.', 'red');
         return;
       }
-      const modal = document.getElementById('modalAmbilAntrianOnline');
-      if (modal) {
-        modal.classList.remove('hidden');
-        void modal.offsetWidth;
-        modal.classList.remove('opacity-0');
+      if (modalAmbil) {
+        modalAmbil.classList.remove('closing');
+        if (modalAmbilPos) {
+          modalAmbilPos.style.transition = '';
+          modalAmbilPos.style.transform  = '';
+
+          // Force re-trigger CSS animations
+          modalAmbilPos.style.animation = 'none';
+          modalAmbilPos.offsetHeight; // force reflow
+          modalAmbilPos.style.animation = '';
+        }
+        if (modalAmbilBackdrop) {
+          modalAmbilBackdrop.style.transition = '';
+          modalAmbilBackdrop.style.opacity    = '';
+        }
+        modalAmbil.classList.add('show');
+        document.body.style.overflow = 'hidden';
       }
     }
 
-    function closeModalAmbil() {
-      const modal = document.getElementById('modalAmbilAntrianOnline');
-      if (modal) {
-        modal.classList.add('opacity-0');
-        setTimeout(() => { modal.classList.add('hidden'); }, 300);
+    function closeModalAmbil(fromY) {
+      fromY = fromY || 0;
+      const isMobile = window.innerWidth < 640;
+
+      if (modalAmbil) {
+        if (isMobile && modalAmbilPos) {
+          const targetY = window.innerHeight + 40;
+          const dist    = targetY - fromY;
+          const dur     = Math.min(Math.max(dist * 0.5, 180), 350);
+
+          if (modalAmbilBackdrop) {
+            modalAmbilBackdrop.style.transition = `opacity ${dur}ms ease`;
+            modalAmbilBackdrop.style.opacity    = '0';
+          }
+
+          modalAmbilPos.style.transition = `transform ${dur}ms cubic-bezier(0.4,0,1,1)`;
+          modalAmbilPos.style.transform  = `translateY(${targetY}px)`;
+
+          setTimeout(() => {
+            modalAmbil.classList.remove('show');
+            modalAmbilPos.style.transition = '';
+            modalAmbilPos.style.transform  = '';
+            modalAmbilPos.style.animation  = '';
+            if (modalAmbilBackdrop) {
+              modalAmbilBackdrop.style.transition = '';
+              modalAmbilBackdrop.style.opacity    = '';
+            }
+            document.body.style.overflow = '';
+          }, dur + 20);
+        } else {
+          modalAmbil.classList.add('closing');
+          setTimeout(() => {
+            modalAmbil.classList.remove('show', 'closing');
+            document.body.style.overflow = '';
+          }, 220);
+        }
       }
     }
+
+    if (modalAmbilBackdrop) {
+      modalAmbilBackdrop.addEventListener('click', () => closeModalAmbil(0));
+    }
+
+
 
     // ================================================================
     // BIAYA BERJALAN DETAIL MODAL
@@ -1327,7 +1550,7 @@
       // Populate text fields
       document.getElementById('modalTagihanNoInvoice').textContent = '#' + data.no_invoice;
       document.getElementById('modalTagihanTipe').textContent = data.tipe;
-      
+
       // Date format
       const tglMulai = new Date(data.tgl_mulai);
       const options = { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -1352,7 +1575,7 @@
         data.details.forEach(item => {
           const row = document.createElement('tr');
           row.className = 'hover:bg-gray-50/50 transition-colors';
-          
+
           // Format category badge
           let badgeColor = 'bg-gray-100 text-gray-700';
           if (item.kategori === 'Kamar') badgeColor = 'bg-indigo-50 text-indigo-750 border-indigo-100';
@@ -1405,7 +1628,7 @@
       const modal = document.getElementById('modalDetailTagihan');
       const content = document.getElementById('modalDetailTagihanContent');
       if (!modal || !content) return;
-      
+
       modal.classList.add('opacity-0');
       content.classList.remove('scale-100');
       content.classList.add('scale-95');
@@ -1479,12 +1702,91 @@
       }
     }
 
-    async function batalAntrian() {
+    // ================================================================
+    // BATALKAN ANTRIAN DENGAN MODAL KONFIRMASI
+    // ================================================================
+    const modalConfirmBatal         = document.getElementById('modalConfirmBatal');
+    const modalConfirmBatalBackdrop = document.getElementById('modalConfirmBatalBackdrop');
+    const modalConfirmBatalPos      = modalConfirmBatal ? modalConfirmBatal.querySelector('.modal-positioner') : null;
+
+    function batalAntrian() {
       if (!antrianAktif || !antrianAktif.id) {
         showToast('Tidak ada antrian aktif.', 'red');
         return;
       }
-      if (!confirm('Batalkan antrian ' + antrianAktif.nomor + '?\nData antrian akan dihapus permanen.')) return;
+
+      const numEl = document.getElementById('confirmBatalNomor');
+      if (numEl) numEl.textContent = antrianAktif.nomor;
+
+      if (modalConfirmBatal) {
+        modalConfirmBatal.classList.remove('closing');
+        if (modalConfirmBatalPos) {
+          modalConfirmBatalPos.style.transition = '';
+          modalConfirmBatalPos.style.transform  = '';
+          modalConfirmBatalPos.style.animation = 'none';
+          modalConfirmBatalPos.offsetHeight; // force reflow
+          modalConfirmBatalPos.style.animation = '';
+        }
+        if (modalConfirmBatalBackdrop) {
+          modalConfirmBatalBackdrop.style.transition = '';
+          modalConfirmBatalBackdrop.style.opacity    = '';
+        }
+        modalConfirmBatal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeModalConfirmBatal(fromY) {
+      fromY = fromY || 0;
+      const isMobile = window.innerWidth < 640;
+
+      if (modalConfirmBatal) {
+        if (isMobile && modalConfirmBatalPos) {
+          const targetY = window.innerHeight + 40;
+          const dist    = targetY - fromY;
+          const dur     = Math.min(Math.max(dist * 0.5, 180), 350);
+
+          if (modalConfirmBatalBackdrop) {
+            modalConfirmBatalBackdrop.style.transition = `opacity ${dur}ms ease`;
+            modalConfirmBatalBackdrop.style.opacity    = '0';
+          }
+
+          modalConfirmBatalPos.style.transition = `transform ${dur}ms cubic-bezier(0.4,0,1,1)`;
+          modalConfirmBatalPos.style.transform  = `translateY(${targetY}px)`;
+
+          setTimeout(() => {
+            modalConfirmBatal.classList.remove('show');
+            modalConfirmBatalPos.style.transition = '';
+            modalConfirmBatalPos.style.transform  = '';
+            modalConfirmBatalPos.style.animation  = '';
+            if (modalConfirmBatalBackdrop) {
+              modalConfirmBatalBackdrop.style.transition = '';
+              modalConfirmBatalBackdrop.style.opacity    = '';
+            }
+            document.body.style.overflow = '';
+          }, dur + 20);
+        } else {
+          modalConfirmBatal.classList.add('closing');
+          setTimeout(() => {
+            modalConfirmBatal.classList.remove('show', 'closing');
+            document.body.style.overflow = '';
+          }, 220);
+        }
+      }
+    }
+
+    if (modalConfirmBatalBackdrop) {
+      modalConfirmBatalBackdrop.addEventListener('click', () => closeModalConfirmBatal(0));
+    }
+
+    async function executeBatalAntrian() {
+      if (!antrianAktif || !antrianAktif.id) {
+        showToast('Tidak ada antrian aktif.', 'red');
+        closeModalConfirmBatal(0);
+        return;
+      }
+
+      closeModalConfirmBatal(0);
 
       const btnBatal = document.querySelector('#hasilAntrian button[onclick="batalAntrian()"]');
       if (btnBatal) {

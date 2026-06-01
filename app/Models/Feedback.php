@@ -13,6 +13,7 @@ class Feedback extends Model
         'rekam_medis_id',
         'ulasan',
         'penilaian',
+        'is_visible',
     ];
 
     /**

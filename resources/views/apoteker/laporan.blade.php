@@ -5,9 +5,9 @@
 @section('page-subtitle', 'Analisis penjualan dan stok obat')
 
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
+<div class="flex flex-col lg:flex-row gap-4 md:gap-6 mb-8">
   <!-- Filter -->
-  <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col justify-between">
+  <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm lg:w-1/3 flex flex-col justify-between">
     <div>
       <h3 class="font-bold text-gray-800 mb-2">Filter Laporan</h3>
       <p class="text-xs text-gray-500 mb-4">Saring laporan penjualan obat apotek berdasarkan rentang tanggal perolehan.</p>
@@ -33,21 +33,16 @@
   </div>
 
   <!-- Quick Stats -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
-    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+  <div class="lg:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 shadow-sm flex flex-col justify-center">
       <p class="text-xs font-semibold text-blue-700 uppercase tracking-wider">Resep Selesai</p>
       <p class="text-2xl font-black text-blue-900 mt-1">{{ $resepCount }} Resep</p>
       <span class="text-[10px] text-blue-600 font-medium mt-1">Total resep sukses diserahkan ke pasien</span>
     </div>
-    <div class="bg-green-50 border border-green-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+    <div class="bg-green-50 border border-green-200 rounded-xl p-5 shadow-sm flex flex-col justify-center">
       <p class="text-xs font-semibold text-green-700 uppercase tracking-wider">Total Obat Keluar</p>
       <p class="text-2xl font-black text-green-900 mt-1">{{ number_format($totalObatKeluar, 0, ',', '.') }} Unit</p>
-      <span class="text-[10px] text-green-600 font-medium mt-1">Berdasarkan data tagihan lunas</span>
-    </div>
-    <div class="bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-      <p class="text-xs font-semibold text-red-700 uppercase tracking-wider">Obat Kritis</p>
-      <p class="text-2xl font-black text-red-900 mt-1">{{ $totalObatKritis }} Item</p>
-      <span class="text-[10px] text-red-600 font-medium mt-1">Item obat dengan stok habis atau menipis</span>
+      <span class="text-[10px] text-green-600 font-medium mt-1">Berdasarkan data operasional</span>
     </div>
   </div>
 </div>

@@ -4,6 +4,41 @@
 @section('page-title', 'Stok Obat')
 @section('page-subtitle', 'Kelola stok dan informasi obat di apotek')
 
+@push('styles')
+<style>
+  /* ── AKSI DROPDOWN ── */
+  .aksi-btn {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 14px; font-size:12px; font-weight:700;
+    border:1.5px solid #e5e7eb; border-radius:10px;
+    background:#fff; color:#374151; cursor:pointer;
+    transition:all .15s; user-select:none; white-space:nowrap;
+  }
+  .aksi-btn:hover { background:#f8fafc; border-color:#d1d5db; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+  .aksi-btn i.fa-chevron-down { font-size:9px; transition:transform .15s; }
+  .aksi-btn.is-open i.fa-chevron-down { transform:rotate(180deg); }
+
+  .aksi-menu {
+    position:fixed; background:#fff;
+    border:1px solid #e5e7eb; border-radius:12px;
+    box-shadow:0 12px 36px rgba(15,23,42,.15);
+    z-index:9999; min-width:175px; overflow:hidden;
+    display:none;
+  }
+  .aksi-menu.open { display:block; animation:aksiIn .12s ease; }
+  @keyframes aksiIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+  .aksi-menu-item {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 16px; font-size:13px; font-weight:600;
+    color:#374151; cursor:pointer; transition:background .1s;
+    border:none; background:none; width:100%; text-align:left; text-decoration:none;
+  }
+  .aksi-menu-item:hover { background:#f8fafc; }
+  .aksi-menu-item i { font-size:11px; width:14px; text-align:center; flex-shrink:0; }
+  .aksi-menu-sep { height:1px; background:#f0f4f8; margin:4px 0; }
+</style>
+@endpush
+
 @section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -104,44 +139,37 @@
               <span class="px-2 py-1 bg-green-100 text-green-700 font-medium text-xs rounded-full">Tersedia</span>
             @endif
           </td>
-          <td class="px-4 py-3 text-center whitespace-nowrap">
-            <div class="inline-flex items-center gap-1 justify-center">
-
+          <td class="px-4 py-3 text-right whitespace-nowrap">
+            <button class="aksi-btn" onclick="toggleAksiMenu(this,'aksi-obat-{{ $obat->id }}')">
+              Aksi <i class="fas fa-chevron-down"></i>
+            </button>
+            <div id="aksi-obat-{{ $obat->id }}" class="aksi-menu">
               {{-- Restok --}}
-              <button onclick="openModalRestok({{ json_encode($obat) }})"
-                title="Tambah Stok / Restok"
-                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition text-xs">
-                <i class="fas fa-plus-circle"></i>
+              <button class="aksi-menu-item"
+                onclick="openModalRestok({{ json_encode($obat) }});closeAksiMenu();">
+                <i class="fas fa-plus-circle" style="color:#4f46e5"></i> Tambah Stok
               </button>
-
               {{-- Opname --}}
-              <button onclick="openModalStokOpname({{ json_encode($obat) }})"
-                title="Stok Opname"
-                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition text-xs">
-                <i class="fas fa-boxes"></i>
+              <button class="aksi-menu-item"
+                onclick="openModalStokOpname({{ json_encode($obat) }});closeAksiMenu();">
+                <i class="fas fa-boxes" style="color:#d97706"></i> Stok Opname
               </button>
-
               {{-- Riwayat --}}
-              <button onclick="openModalRiwayatStokOpname({{ $obat->id }}, '{{ addslashes($obat->nama) }}')"
-                title="Riwayat Opname"
-                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition text-xs">
-                <i class="fas fa-history"></i>
+              <button class="aksi-menu-item"
+                onclick="openModalRiwayatStokOpname({{ $obat->id }}, '{{ addslashes($obat->nama) }}');closeAksiMenu();">
+                <i class="fas fa-history" style="color:#6b7280"></i> Riwayat Opname
               </button>
-
+              <div class="aksi-menu-sep"></div>
               {{-- Edit --}}
-              <button onclick="openModal({{ json_encode($obat) }})"
-                title="Edit Obat"
-                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition text-xs">
-                <i class="fas fa-edit"></i>
+              <button class="aksi-menu-item"
+                onclick="openModal({{ json_encode($obat) }});closeAksiMenu();">
+                <i class="fas fa-edit" style="color:#2563eb"></i> Edit Obat
               </button>
-
               {{-- Hapus --}}
-              <button onclick="confirmDelete({{ $obat->id }}, '{{ addslashes($obat->nama) }}')"
-                title="Hapus Obat"
-                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition text-xs">
-                <i class="fas fa-trash"></i>
+              <button class="aksi-menu-item"
+                onclick="confirmDelete({{ $obat->id }}, '{{ addslashes($obat->nama) }}');closeAksiMenu();">
+                <i class="fas fa-trash" style="color:#dc2626"></i> Hapus Obat
               </button>
-
             </div>
           </td>
         </tr>
@@ -172,10 +200,10 @@
 </div>
 
 {{-- ===== MODAL TAMBAH / EDIT ===== --}}
-<div id="modalObat" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
+<div id="modalObat" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 hidden">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
     {{-- Header --}}
-    <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-green-600 to-green-700">
+    <div class="flex items-center justify-between px-6 py-4 bg-blue-900">
       <h3 class="text-white font-bold text-base flex items-center gap-2">
         <i class="fas fa-pills"></i>
         <span id="modalTitle">Tambah Obat</span>
@@ -267,7 +295,7 @@
 </div>
 
 {{-- ===== MODAL KONFIRMASI HAPUS ===== --}}
-<div id="modalHapus" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
+<div id="modalHapus" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 hidden">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 text-center">
     <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
       <i class="fas fa-trash-alt"></i>
@@ -285,10 +313,10 @@
 </div>
 
 {{-- ===== MODAL TAMBAH STOK / RESTOK ===== --}}
-<div id="modalRestok" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
+<div id="modalRestok" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 hidden">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
     {{-- Header --}}
-    <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700">
+    <div class="flex items-center justify-between px-6 py-4 bg-blue-900">
       <h3 class="text-white font-bold text-base flex items-center gap-2">
         <i class="fas fa-plus-circle"></i>
         <span>Penerimaan / Tambah Stok Obat</span>
@@ -351,10 +379,10 @@
 </div>
 
 {{-- ===== MODAL STOK OPNAME ===== --}}
-<div id="modalStokOpname" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
+<div id="modalStokOpname" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 hidden">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
     {{-- Header --}}
-    <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-amber-500 to-amber-600">
+    <div class="flex items-center justify-between px-6 py-4 bg-blue-900">
       <h3 class="text-white font-bold text-base flex items-center gap-2">
         <i class="fas fa-boxes"></i>
         <span>Stok Opname Obat</span>
@@ -411,10 +439,10 @@
 </div>
 
 {{-- ===== MODAL RIWAYAT STOK OPNAME ===== --}}
-<div id="modalRiwayatStokOpname" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
+<div id="modalRiwayatStokOpname" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 hidden">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden">
     {{-- Header --}}
-    <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-gray-700 to-gray-800">
+    <div class="flex items-center justify-between px-6 py-4 bg-blue-900">
       <h3 class="text-white font-bold text-base flex items-center gap-2">
         <i class="fas fa-history"></i>
         <span>Riwayat Penyesuaian Stok (Stok Opname)</span>
@@ -818,8 +846,53 @@ document.addEventListener('keydown', function(e) {
     closeModalRestok();
     closeModalStokOpname();
     closeModalRiwayatStokOpname();
+    closeAksiMenu();
   }
 });
+
+// ── AKSI DROPDOWN ──
+function toggleAksiMenu(btn, menuId) {
+  const menu = document.getElementById(menuId);
+  const isOpen = menu.classList.contains('open');
+  closeAksiMenu();
+  if (!isOpen) {
+    const rect    = btn.getBoundingClientRect();
+    const menuH   = menu.offsetHeight || 220; // estimasi tinggi menu sebelum visible
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    // Reset dulu agar bisa ukur tinggi sebenarnya
+    menu.style.top    = '-9999px';
+    menu.style.bottom = 'auto';
+    menu.style.right  = (window.innerWidth - rect.right) + 'px';
+    menu.style.left   = 'auto';
+    menu.classList.add('open');
+
+    // Ukur tinggi aktual setelah open
+    const actualH = menu.offsetHeight;
+
+    if (spaceBelow < actualH + 10 && spaceAbove > spaceBelow) {
+      // Muncul ke ATAS
+      menu.style.top    = 'auto';
+      menu.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+    } else {
+      // Muncul ke BAWAH (default)
+      menu.style.top    = (rect.bottom + 6) + 'px';
+      menu.style.bottom = 'auto';
+    }
+
+    btn.classList.add('is-open');
+  }
+}
+function closeAksiMenu() {
+  document.querySelectorAll('.aksi-menu.open').forEach(m => m.classList.remove('open'));
+  document.querySelectorAll('.aksi-btn.is-open').forEach(b => b.classList.remove('is-open'));
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.aksi-btn') && !e.target.closest('.aksi-menu')) closeAksiMenu();
+});
+window.addEventListener('scroll', closeAksiMenu, { passive: true });
+document.querySelector('.overflow-x-auto')?.addEventListener('scroll', closeAksiMenu, { passive: true });
 
 </script>
 @endsection

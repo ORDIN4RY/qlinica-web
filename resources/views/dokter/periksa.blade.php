@@ -191,12 +191,17 @@
               <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div class="md:col-span-2">
                   <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Nama Obat</label>
-                  <select name="obat_id[]" class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-sm">
-                    <option value="">Pilih obat...</option>
-                    @foreach($obats as $obat)
-                      <option value="{{ $obat->id }}">{{ $obat->nama }}</option>
-                    @endforeach
-                  </select>
+                  <div class="relative">
+                    <input type="hidden" name="obat_id[]" class="obat-id" required>
+                    <input type="text"
+                           class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white obat-search font-medium text-sm"
+                           placeholder="Ketik nama obat..."
+                           oninput="searchObat(this)"
+                           onfocus="searchObat(this)"
+                           autocomplete="off">
+                    <div class="absolute left-0 right-0 z-50 mt-1 hidden max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg obat-dropdown divide-y divide-slate-100">
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Jumlah</label>
@@ -427,6 +432,18 @@
 // Preload ICD-10 data from database as JSON for supreme client-side filtering speed
 const icdxData = @json(\App\Models\Icdx::select('id', 'kode', 'nama')->orderBy('kode')->get());
 
+@php
+$obatArray = $obats->map(function($o) {
+  return [
+    'id' => $o->id,
+    'nama' => $o->nama,
+    'stok' => $o->stok,
+    'is_fornas' => $o->is_fornas
+  ];
+})->toArray();
+@endphp
+const obatData = @json($obatArray);
+
 function toggleResep(show) {
   const sectionResep = document.getElementById('section-resep');
   const sectionCatatan = document.getElementById('section-catatan-resep');
@@ -495,10 +512,69 @@ function searchIcdx(input) {
   dropdown.classList.remove('hidden');
 }
 
+function searchObat(input) {
+  const query = input.value.toLowerCase().trim();
+  const dropdown = input.nextElementSibling;
+  
+  dropdown.innerHTML = '';
+  
+  if (!query) {
+    dropdown.classList.add('hidden');
+    const item = input.closest('.obat-item');
+    const hiddenId = item.querySelector('.obat-id');
+    if (hiddenId) hiddenId.value = '';
+    return;
+  }
+  
+  const matches = [];
+  for (let i = 0; i < obatData.length; i++) {
+    const item = obatData[i];
+    if (item.nama.toLowerCase().includes(query)) {
+      matches.push(item);
+      if (matches.length >= 10) break;
+    }
+  }
+  
+  if (matches.length === 0) {
+    dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-slate-500 font-medium">Tidak ada obat cocok</div>';
+    dropdown.classList.remove('hidden');
+    return;
+  }
+  
+  matches.forEach(item => {
+    const option = document.createElement('div');
+    option.className = 'px-4 py-2.5 hover:bg-purple-50 text-sm text-slate-700 cursor-pointer font-medium transition flex justify-between items-center';
+    
+    let fornasBadge = item.is_fornas ? `<span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-bold uppercase ml-2 border border-green-200" title="Ditanggung BPJS">Fornas</span>` : '';
+    let stokBadge = `<span class="text-xs text-slate-400">Stok: ${item.stok}</span>`;
+    
+    option.innerHTML = `
+      <div class="flex items-center"><span>${item.nama}</span>${fornasBadge}</div>
+      ${stokBadge}
+    `;
+    
+    option.onclick = function() {
+      const hiddenId = input.previousElementSibling;
+      if (hiddenId) hiddenId.value = item.id;
+      input.value = item.nama;
+      dropdown.classList.add('hidden');
+    };
+    dropdown.appendChild(option);
+  });
+  
+  dropdown.classList.remove('hidden');
+}
+
 // Close search dropdowns when clicking outside
 document.addEventListener('click', function(e) {
   if (!e.target.classList.contains('diagnosa-search') && !e.target.closest('.icdx-dropdown')) {
     document.querySelectorAll('.icdx-dropdown').forEach(dropdown => {
+      dropdown.classList.add('hidden');
+    });
+  }
+  
+  if (!e.target.classList.contains('obat-search') && !e.target.closest('.obat-dropdown')) {
+    document.querySelectorAll('.obat-dropdown').forEach(dropdown => {
       dropdown.classList.add('hidden');
     });
   }
@@ -600,6 +676,22 @@ function addObat() {
   inputs.forEach(input => {
     input.value = '';
   });
+
+  const hiddenInput = newItem.querySelector('.obat-id');
+  if (hiddenInput) hiddenInput.value = '';
+
+  const searchInput = newItem.querySelector('.obat-search');
+  if (searchInput) {
+    searchInput.value = '';
+    searchInput.oninput = function() { searchObat(this); };
+    searchInput.onfocus = function() { searchObat(this); };
+  }
+
+  const dropdown = newItem.querySelector('.obat-dropdown');
+  if (dropdown) {
+    dropdown.innerHTML = '';
+    dropdown.classList.add('hidden');
+  }
 
   // Reset the Aturan Pakai dropdown in the cloned item
   const selectAturan = newItem.querySelector('.aturan-pakai-select');

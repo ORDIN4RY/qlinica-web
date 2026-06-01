@@ -164,10 +164,10 @@ class LaporanController extends Controller
         $pendapatanMetode = [
             'Umum' => $lunasBillings->filter(function($b) {
                 return !($b->no_bpjs || ($b->rekamMedis && $b->rekamMedis->jenis_pelayanan === 'BPJS'));
-            })->sum('grand_total'),
+            })->sum(function($b) { return $b->grand_total + $b->potongan_bpjs; }),
             'BPJS' => $lunasBillings->filter(function($b) {
                 return $b->no_bpjs || ($b->rekamMedis && $b->rekamMedis->jenis_pelayanan === 'BPJS');
-            })->sum('grand_total'),
+            })->sum(function($b) { return $b->grand_total + $b->potongan_bpjs; }),
         ];
 
         // 6. Data Grafik Harian

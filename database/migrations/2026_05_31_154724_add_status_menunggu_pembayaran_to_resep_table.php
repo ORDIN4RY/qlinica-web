@@ -16,8 +16,10 @@ return new class extends Migration
     {
         // Di PostgreSQL, enum diimplementasikan sebagai CHECK constraint.
         // Kita perlu drop constraint lama dan buat yang baru.
-        DB::statement('ALTER TABLE resep DROP CONSTRAINT IF EXISTS resep_status_check');
-        DB::statement("ALTER TABLE resep ADD CONSTRAINT resep_status_check CHECK (status IN ('Menunggu', 'Diproses', 'Menunggu Pembayaran', 'Sudah Dibayar', 'Selesai', 'Dibatalkan'))");
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE resep DROP CONSTRAINT IF EXISTS resep_status_check');
+            DB::statement("ALTER TABLE resep ADD CONSTRAINT resep_status_check CHECK (status IN ('Menunggu', 'Diproses', 'Menunggu Pembayaran', 'Sudah Dibayar', 'Selesai', 'Dibatalkan'))");
+        }
     }
 
     /**
@@ -25,7 +27,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement('ALTER TABLE resep DROP CONSTRAINT IF EXISTS resep_status_check');
-        DB::statement("ALTER TABLE resep ADD CONSTRAINT resep_status_check CHECK (status IN ('Menunggu', 'Diproses', 'Selesai', 'Dibatalkan'))");
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE resep DROP CONSTRAINT IF EXISTS resep_status_check');
+            DB::statement("ALTER TABLE resep ADD CONSTRAINT resep_status_check CHECK (status IN ('Menunggu', 'Diproses', 'Selesai', 'Dibatalkan'))");
+        }
     }
 };

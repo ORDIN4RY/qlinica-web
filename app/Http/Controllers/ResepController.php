@@ -87,7 +87,10 @@ class ResepController extends Controller
         }
 
         if ($action === 'selesai') {
-            if ($resep->rawat_inap_id) {
+            $isRekomendasiInap = $resep->rekamMedis && ($resep->rekamMedis->is_rekomendasi_rawat_inap || $resep->rekamMedis->keadaan_keluar === 'Dirawat');
+            $isRawatInap = $resep->rawat_inap_id || $isRekomendasiInap;
+
+            if ($isRawatInap) {
                 if ($resep->status !== 'Diproses') {
                     return redirect()->route('apoteker.resep')->with('error', 'Resep rawat inap hanya dapat diselesaikan jika statusnya Diproses.');
                 }
@@ -115,7 +118,10 @@ class ResepController extends Controller
         }
 
         if ($action === 'kembalikan') {
-            if ($resep->rawat_inap_id) {
+            $isRekomendasiInap = $resep->rekamMedis && ($resep->rekamMedis->is_rekomendasi_rawat_inap || $resep->rekamMedis->keadaan_keluar === 'Dirawat');
+            $isRawatInap = $resep->rawat_inap_id || $isRekomendasiInap;
+
+            if ($isRawatInap) {
                 if (!in_array($resep->status, ['Menunggu', 'Diproses'])) {
                     return redirect()->route('apoteker.resep')->with('error', 'Resep rawat inap hanya bisa dikembalikan jika statusnya Menunggu atau Diproses.');
                 }
@@ -212,7 +218,9 @@ class ResepController extends Controller
                     $billing->recalculateTotals();
                     $billing->save();
 
-                    $newStatus = $resep->rawat_inap_id ? 'Diproses' : 'Menunggu Pembayaran';
+                    $isRekomendasiInap = $resep->rekamMedis && ($resep->rekamMedis->is_rekomendasi_rawat_inap || $resep->rekamMedis->keadaan_keluar === 'Dirawat');
+                    $isRawatInap = $resep->rawat_inap_id || $isRekomendasiInap;
+                    $newStatus = $isRawatInap ? 'Diproses' : 'Menunggu Pembayaran';
 
                     $resep->update([
                         'status' => $newStatus,
@@ -241,15 +249,26 @@ class ResepController extends Controller
                 }
 
                 if ($action === 'kembalikan') {
-                    if ($resep->rawat_inap_id) {
+                    $isRekomendasiInap = $resep->rekamMedis && ($resep->rekamMedis->is_rekomendasi_rawat_inap || $resep->rekamMedis->keadaan_keluar === 'Dirawat');
+                    $isRawatInap = $resep->rawat_inap_id || $isRekomendasiInap;
+
+                    if ($isRawatInap) {
                         if ($oldStatus === 'Diproses') {
-                            $billing = \App\Models\Billing::where('rawat_inap_id', $resep->rawat_inap_id)->first();
+                            $billing = $resep->rawat_inap_id 
+                                ? \App\Models\Billing::where('rawat_inap_id', $resep->rawat_inap_id)->first()
+                                : \App\Models\Billing::where('rekam_medis_id', $resep->rekam_medis_id)->first();
+                                
                             if ($billing && $billing->status === 'Belum Bayar') {
-                                // Hapus rincian obat resep ini saja dari invoice
-                                \App\Models\BillingDetail::where('billing_id', $billing->id)
-                                    ->where('kategori', 'Obat')
-                                    ->where('nama_item', 'like', "%[Resep #{$resep->id}]%")
-                                    ->delete();
+                                if ($resep->rawat_inap_id) {
+                                    \App\Models\BillingDetail::where('billing_id', $billing->id)
+                                        ->where('kategori', 'Obat')
+                                        ->where('nama_item', 'like', "%[Resep #{$resep->id}]%")
+                                        ->delete();
+                                } else {
+                                    \App\Models\BillingDetail::where('billing_id', $billing->id)
+                                        ->where('kategori', 'Obat')
+                                        ->delete();
+                                }
 
                                 // Update total biaya obat & hitung ulang total dengan BPJS dinamis
                                 $totalHargaObatCumulative = \App\Models\BillingDetail::where('billing_id', $billing->id)

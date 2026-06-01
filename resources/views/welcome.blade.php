@@ -13,6 +13,7 @@
   <!-- AOS (Animate On Scroll) Library -->
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <style>
+    html, body { overflow-x: hidden; }
     html { scroll-behavior: smooth; }
     
     /* Animasi halus yang sudah disepakati */
@@ -139,79 +140,102 @@
       transform: scaleX(1);
     }
     
-    /* Style untuk modal/login overlay */
+    /* ── Auth Modal ── */
     .auth-modal {
+      display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 100;
-      opacity: 0;
-      visibility: hidden;
-      /* Mobile: sheet dari bawah */
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      transition: opacity 0.3s ease, visibility 0.3s ease;
-      box-sizing: border-box;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%; height: 100%;
+      z-index: 9999;
     }
-    .auth-modal.show {
-      opacity: 1;
-      visibility: visible;
-    }
+    .auth-modal.show { display: block; }
 
-    /* Modal content — mobile default: bottom sheet */
-    .auth-modal .modal-content {
+    /* Backdrop */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.65);
+      animation: backdropIn 0.25s ease;
+      transition: opacity 0.3s ease;
+    }
+    .auth-modal.closing .modal-backdrop {
+      opacity: 0;
+    }
+    @keyframes backdropIn { from { opacity:0; } to { opacity:1; } }
+
+    /* Positioner — MOBILE: bottom sheet */
+    .modal-positioner {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: center;
+      animation: sheetUp 0.35s cubic-bezier(0.15,0.75,0.45,1);
+      will-change: transform;
+    }
+    @keyframes sheetUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+
+    /* Content box — mobile */
+    .modal-positioner .modal-content {
       width: 100%;
       max-width: 100%;
-      margin: 0;
-      border-radius: 24px 24px 0 0;
-      max-height: 96dvh;
-      max-height: 96vh;
+      background: #fff;
+      border-radius: 20px 20px 0 0;
       overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: env(safe-area-inset-bottom, 0);
-      transform: translateY(40px);
-      transition: transform 0.4s cubic-bezier(0.15, 0.75, 0.45, 1);
+      max-height: 88vh;
+      padding-bottom: 24px;
       box-sizing: border-box;
-    }
-    .auth-modal.show .modal-content {
-      transform: translateY(0);
+      /* Interaction setup */
+      touch-action: auto;
+      user-select: auto;
+      -webkit-user-select: auto;
     }
 
-    .auth-modal *, .auth-modal *::before, .auth-modal *::after {
-      box-sizing: border-box;
+    /* Handle bar area — cursor grab */
+    .modal-drag-handle {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px 0 8px;
+      cursor: grab;
+      touch-action: none;
     }
+    .modal-drag-handle:active { cursor: grabbing; }
+    .modal-drag-handle div {
+      width: 40px; height: 4px;
+      border-radius: 99px;
+      background: #cbd5e1;
+      transition: background 0.2s, width 0.2s;
+    }
+    .modal-drag-handle:hover div,
+    .modal-drag-handle:active div { background: #94a3b8; width: 52px; }
 
-    /* Desktop: tengah layar, rounded semua sisi */
+    /* DESKTOP: centered dialog */
     @media (min-width: 640px) {
-      .auth-modal {
+      .modal-positioner {
+        top: 0; bottom: 0;
         align-items: center;
-        padding: 16px;
+        padding: 20px;
+        animation: dialogIn 0.25s cubic-bezier(0.15,0.75,0.45,1);
       }
-      .auth-modal .modal-content {
-        max-width: 448px;
-        border-radius: 24px;
+      @keyframes dialogIn  { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+      .modal-positioner .modal-content {
+        max-width: 420px;
+        border-radius: 20px;
         max-height: 90vh;
         padding-bottom: 0;
-        transform: scale(0.95);
+        touch-action: auto;
       }
-      .auth-modal.show .modal-content {
-        transform: scale(1);
-      }
+      .modal-drag-handle { display: none; }
     }
 
-    /* Cegah auto-zoom iOS saat tap input */
+    /* Cegah auto-zoom iOS */
     .input-focus {
-      transition: all 0.2s;
-      font-size: max(16px, 0.875rem);
+      font-size: 16px;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
     .input-focus:focus {
       border-color: #1e3a8a;
-      box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+      box-shadow: 0 0 0 3px rgba(30,58,138,0.12);
       outline: none;
     }
 
@@ -222,7 +246,7 @@
     }
   </style>
 </head>
-<body class="bg-white font-sans antialiased text-gray-700 overflow-x-hidden">
+<body class="bg-white font-sans antialiased text-gray-700" style="overflow-x:hidden;max-width:100vw;">
 
   <!-- ===== NAVBAR ===== dengan tombol Login saja ===== -->
   <header class="bg-white/90 backdrop-blur-sm sticky top-0 z-30 border-b border-blue-900/10 shadow-sm transition-all duration-300">
@@ -500,68 +524,74 @@
   </footer>
 
   <!-- ===== MODAL LOGIN ===== -->
-  <div id="loginModal" class="auth-modal fixed inset-0 bg-black/50 z-50">
-    <div class="modal-content bg-white shadow-2xl">
+  <div id="loginModal" class="auth-modal">
+    <!-- Backdrop gelap (klik untuk tutup) -->
+    <div class="modal-backdrop" id="loginBackdrop"></div>
 
-      <!-- Handle bar (mobile only) -->
-      <div class="flex justify-center pt-3 pb-1 sm:hidden">
-        <div style="width:40px;height:4px;border-radius:99px;background:#e2e8f0;"></div>
-      </div>
+    <!-- Positioner (atur layout bottom-sheet / center) -->
+    <div class="modal-positioner">
+      <div class="modal-content shadow-2xl">
 
-      <!-- Header -->
-      <div class="flex justify-between items-center px-6 pt-5 pb-4 border-b border-gray-100">
-        <div>
-          <h3 class="text-xl font-bold text-gray-800">Masuk ke QLINICA</h3>
-          <p class="text-xs text-gray-400 mt-0.5">Gunakan No. Rekam Medik Anda</p>
+        <!-- Handle bar — drag ke bawah untuk tutup (mobile only) -->
+        <div class="modal-drag-handle">
+          <div></div>
         </div>
-        <button class="close-modal w-9 h-9 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center text-gray-400 text-xl transition">&times;</button>
-      </div>
 
-      <!-- Body -->
-      <div class="px-6 py-5">
-
-        @if($errors->has('session'))
-          <div class="mb-4 bg-amber-50 border border-amber-300 text-amber-800 px-4 py-3 rounded-xl text-sm">
-            <i class="fas fa-clock mr-2"></i>{{ $errors->first('session') }}
-          </div>
-        @elseif($errors->any())
-          <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
-            <i class="fas fa-exclamation-circle mr-2"></i>{{ $errors->first() }}
-          </div>
-        @endif
-
-        <form id="loginForm" method="POST" action="/login" class="space-y-4">
-          @csrf
+        <!-- Header -->
+        <div class="flex justify-between items-center px-6 pt-5 pb-4 border-b border-gray-100">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">No. Rekam Medik</label>
-            <input type="text" name="login_id" value="{{ old('login_id') }}" required
-              autocomplete="username"
-              class="input-focus w-full px-4 py-3 border border-gray-200 rounded-xl"
-              placeholder="RM-YYYYMMDD-XXXX">
+            <h3 class="text-xl font-bold text-gray-800">Masuk ke QLINICA</h3>
+            <p class="text-xs text-gray-400 mt-0.5">Gunakan No. Rekam Medik Anda</p>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-            <input type="password" name="password" required
-              autocomplete="current-password"
-              class="input-focus w-full px-4 py-3 border border-gray-200 rounded-xl"
-              placeholder="••••••••">
-          </div>
-          <div class="flex items-center justify-between pt-1">
-            <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-              <input type="checkbox" name="remember" class="rounded border-gray-300"> Ingat saya
-            </label>
-          </div>
+          <button class="close-modal w-9 h-9 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center text-gray-400 text-xl transition">&times;</button>
+        </div>
 
-          <button type="submit"
-            class="w-full btn-subtle bg-blue-900 hover:bg-blue-800 text-white py-3.5 rounded-xl font-semibold text-base mt-1 flex items-center justify-center gap-2">
-            <i class="fas fa-sign-in-alt"></i> Login
-          </button>
+        <!-- Body -->
+        <div class="px-6 py-5">
 
-          <p class="text-xs text-gray-400 text-center pt-1">
-            Belum punya akun? Silahkan datang langsung ke klinik.
-          </p>
-        </form>
+          @if($errors->has('session'))
+            <div class="mb-4 bg-amber-50 border border-amber-300 text-amber-800 px-4 py-3 rounded-xl text-sm">
+              <i class="fas fa-clock mr-2"></i>{{ $errors->first('session') }}
+            </div>
+          @elseif($errors->any())
+            <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+              <i class="fas fa-exclamation-circle mr-2"></i>{{ $errors->first() }}
+            </div>
+          @endif
 
+          <form id="loginForm" method="POST" action="/login" class="space-y-4">
+            @csrf
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">No. Rekam Medik</label>
+              <input type="text" name="login_id" value="{{ old('login_id') }}" required
+                autocomplete="username"
+                class="input-focus w-full px-4 py-3 border border-gray-200 rounded-xl"
+                placeholder="RM-YYYYMMDD-XXXX">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+              <input type="password" name="password" required
+                autocomplete="current-password"
+                class="input-focus w-full px-4 py-3 border border-gray-200 rounded-xl"
+                placeholder="••••••••">
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                <input type="checkbox" name="remember" class="rounded border-gray-300"> Ingat saya
+              </label>
+            </div>
+
+            <button type="submit"
+              class="w-full btn-subtle bg-blue-900 hover:bg-blue-800 text-white py-3.5 rounded-xl font-semibold text-base mt-1 flex items-center justify-center gap-2">
+              <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+
+            <p class="text-xs text-gray-400 text-center pt-1">
+              Belum punya akun? Silahkan datang langsung ke klinik.
+            </p>
+          </form>
+
+        </div>
       </div>
     </div>
   </div>
@@ -577,39 +607,102 @@
       easing: 'ease-out-cubic'
     });
 
-    // ===== MODAL LOGIN ONLY =====
-    const loginModal = document.getElementById('loginModal');
-    const loginBtn = document.getElementById('loginBtn');
-    const buatJanjiBtn = document.getElementById('buatJanjiBtn');
-    const closeButtons = document.querySelectorAll('.close-modal');
+    // ===== MODAL LOGIN =====
+    const loginModal    = document.getElementById('loginModal');
+    const loginBtn      = document.getElementById('loginBtn');
+    const buatJanjiBtn  = document.getElementById('buatJanjiBtn');
+    const loginBackdrop = document.getElementById('loginBackdrop');
+    const modalPos      = loginModal ? loginModal.querySelector('.modal-positioner') : null;
 
-    // Open Login Modal
-    const openLogin = (e) => {
-      e.preventDefault();
-      loginModal.classList.add('show');
-    };
-
-    if (loginBtn) loginBtn.addEventListener('click', openLogin);
-    if (buatJanjiBtn) buatJanjiBtn.addEventListener('click', openLogin);
-
-
-    // Close modals with close button
-    closeButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        loginModal.classList.remove('show');
-      });
-    });
-
-    // Close modals when clicking outside
-    window.addEventListener('click', (e) => {
-      if (e.target === loginModal) {
-        loginModal.classList.remove('show');
+    function openLoginModal(e) {
+      if (e) e.preventDefault();
+      // Reset semua state animasi
+      loginModal.classList.remove('closing');
+      if (modalPos) {
+        modalPos.style.transition = '';
+        modalPos.style.transform  = '';
+        
+        // Force re-trigger CSS animations (sheetUp on mobile, dialogIn on desktop)
+        modalPos.style.animation = 'none';
+        modalPos.offsetHeight; // force reflow
+        modalPos.style.animation = '';
       }
+      if (loginBackdrop) {
+        loginBackdrop.style.transition = '';
+        loginBackdrop.style.opacity    = '';
+      }
+      loginModal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    /**
+     * closeLoginModal(fromY)
+     * fromY: posisi Y saat ini (px) — default 0
+     * Selalu animasi via JS transition agar tidak jump
+     */
+    function closeLoginModal(fromY) {
+      fromY = fromY || 0;
+      const isMobile = window.innerWidth < 640;
+
+      if (isMobile && modalPos) {
+        // ─ Mobile: JS transition dari posisi saat ini ke bawah layar ─
+        const targetY = window.innerHeight + 40; // pastikan keluar dari layar
+        const dist    = targetY - fromY;
+        const dur     = Math.min(Math.max(dist * 0.5, 180), 350); // proporsional
+
+        // Fade backdrop
+        if (loginBackdrop) {
+          loginBackdrop.style.transition = `opacity ${dur}ms ease`;
+          loginBackdrop.style.opacity    = '0';
+        }
+
+        // Geser positioner turun
+        modalPos.style.transition = `transform ${dur}ms cubic-bezier(0.4,0,1,1)`;
+        modalPos.style.transform  = `translateY(${targetY}px)`;
+
+        setTimeout(() => {
+          loginModal.classList.remove('show');
+          modalPos.style.transition = '';
+          modalPos.style.transform  = '';
+          modalPos.style.animation  = '';
+          if (loginBackdrop) {
+            loginBackdrop.style.transition = '';
+            loginBackdrop.style.opacity    = '';
+          }
+          document.body.style.overflow = '';
+        }, dur + 20);
+
+      } else {
+        // ─ Desktop: CSS class closing (scale-out) ─
+        loginModal.classList.add('closing');
+        setTimeout(() => {
+          loginModal.classList.remove('show', 'closing');
+          document.body.style.overflow = '';
+        }, 220);
+      }
+    }
+
+    if (loginBtn)     loginBtn.addEventListener('click', openLoginModal);
+    if (buatJanjiBtn) buatJanjiBtn.addEventListener('click', openLoginModal);
+
+    // Tutup via tombol ×
+    document.querySelectorAll('.close-modal').forEach(btn => {
+      btn.addEventListener('click', () => closeLoginModal(0));
     });
 
-    // Auto-open login modal if there are server-side errors
+    // Tutup via klik backdrop
+    if (loginBackdrop) loginBackdrop.addEventListener('click', () => closeLoginModal(0));
+
+    // Tutup via Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeLoginModal(0);
+    });
+
+
+
+    // Auto-open jika ada error server
     @if($errors->any())
-      loginModal.classList.add('show');
+      openLoginModal();
     @endif
 
     // Mobile menu toggle

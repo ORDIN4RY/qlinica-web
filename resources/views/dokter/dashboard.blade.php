@@ -2,7 +2,7 @@
 
 @section('title', 'Dashboard Dokter')
 @section('page-title', 'Dashboard Dokter')
-@section('page-subtitle', 'Selamat datang, Dr. {{ Auth::user()?->name ?? "Dokter" }}')
+@section('page-subtitle', 'Selamat datang, ' . (Auth::user()?->pegawai?->nama ?? Auth::user()?->name ?? 'Dokter'))
 
 @section('content')
 @php
@@ -22,7 +22,7 @@
 @endif
 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
 
-  <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 shadow-sm text-white">
+  <div class="bg-blue-900 rounded-2xl p-6 shadow-sm text-white">
     <div class="flex items-center justify-between mb-4">
       <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
         <i class="fas fa-stethoscope text-white"></i>
@@ -33,7 +33,7 @@
     <p class="text-white/80 text-sm mt-1">Rekam Medis</p>
   </div>
 
-  <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 shadow-sm text-white">
+  <div class="bg-[#2E7D32] rounded-2xl p-6 shadow-sm text-white">
     <div class="flex items-center justify-between mb-4">
       <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
         <i class="fas fa-user-clock text-white"></i>
@@ -44,7 +44,7 @@
     <p class="text-white/80 text-sm mt-1">Antrian Pasien</p>
   </div>
 
-  <div class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-6 shadow-sm text-white">
+  <div class="bg-[#F57C00] rounded-2xl p-6 shadow-sm text-white">
     <div class="flex items-center justify-between mb-4">
       <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
         <i class="fas fa-check-circle text-white"></i>

@@ -8,7 +8,7 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
   
   <!-- Total Antrian -->
-  <div class="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
+  <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
     <div>
       <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Antrian</p>
       <p class="text-3xl font-extrabold text-slate-800">{{ $jumlahAntrian }}</p>
@@ -19,7 +19,7 @@
   </div>
 
   <!-- Belum Diperiksa -->
-  <div class="bg-gradient-to-br from-white to-amber-50/10 rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
+  <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
     <div>
       <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Belum Diperiksa</p>
       <p class="text-3xl font-extrabold text-amber-600">{{ $Dipanggil }}</p>
@@ -30,7 +30,7 @@
   </div>
 
   <!-- Selesai -->
-  <div class="bg-gradient-to-br from-white to-emerald-50/10 rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
+  <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
     <div>
       <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Selesai</p>
       <p class="text-3xl font-extrabold text-emerald-600">{{ $selesai }}</p>
@@ -41,7 +41,7 @@
   </div>
 
   <!-- Batal -->
-  <div class="bg-gradient-to-br from-white to-rose-50/10 rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
+  <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
     <div>
       <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Batal</p>
       <p class="text-3xl font-extrabold text-rose-600">{{ $antrians->where('status', 'Batal')->count() }}</p>

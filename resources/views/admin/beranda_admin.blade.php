@@ -62,9 +62,9 @@
       top: 0; left: 0; right: 0;
       height: 3px;
     }
-    .kpi-card.biru::before   { background: linear-gradient(90deg,#2563eb,#6366f1); }
-    .kpi-card.hijau::before  { background: linear-gradient(90deg,#10b981,#06b6d4); }
-    .kpi-card.kuning::before { background: linear-gradient(90deg,#f59e0b,#ef4444); }
+    .kpi-card.biru::before   { background: var(--navy, #1e3a8a); }
+    .kpi-card.hijau::before  { background: #2E7D32; }
+    .kpi-card.kuning::before { background: #F57C00; }
 
     .kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 
@@ -124,7 +124,7 @@
     .urut.biasa { background: #f1f5f9; color: var(--abu, #94a3b8); border: 1px solid var(--border, #e2e8f0); }
     .penyakit-nama { flex: 1; font-size: 12.5px; font-weight: 500; color: var(--teks, #1e293b); line-height: 1.3; min-width: 0; word-break: break-word; }
     .bar-wrap { width: 52px; height: 5px; background: #f1f5f9; border-radius: 99px; flex-shrink: 0; }
-    .bar-fill { height: 5px; border-radius: 99px; background: linear-gradient(90deg,var(--biru,#2563eb),#6366f1); }
+    .bar-fill { height: 5px; border-radius: 99px; background: var(--navy, #1e3a8a); }
     .penyakit-angka { font-size: 12.5px; font-weight: 700; color: var(--teks, #1e293b); min-width: 46px; text-align: right; }
 
     /* ============================================================
@@ -150,7 +150,7 @@
     .gender-angka { font-family: 'Sora',sans-serif; font-size: 18px; font-weight: 800; color: var(--teks, #1e293b); }
     .gender-pct   { font-size: 10px; font-weight: 700; }
     .gender-bar-wrap { height: 5px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin-bottom: 12px; }
-    .gender-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--biru, #2563eb) 41.3%, var(--ungu, #7c3aed) 41.3%); }
+    .gender-bar-fill { height: 100%; border-radius: 99px; background: var(--navy, #1e3a8a); }
 
     /* ============================================================
        DATE PICKER
@@ -367,7 +367,7 @@
             </div>
           </div>
           <div class="gender-bar-wrap">
-            <div class="gender-bar-fill" style="width:100%; background: linear-gradient(90deg, #2563eb {{ $lakiPct }}%, #7c3aed {{ $lakiPct }}%)"></div>
+            <div class="gender-bar-fill" style="width:100%; background: linear-gradient(90deg, #1E3A8A {{ $lakiPct }}%, #0288D1 {{ $lakiPct }}%)"></div>
           </div>
           <div class="grafik-kecil"><canvas id="grafikGender"></canvas></div>
         </div>

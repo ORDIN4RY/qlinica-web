@@ -84,8 +84,8 @@
   }
 
   /* ── MODAL ── */
-  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55);
-    z-index:999; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.65);
+    z-index:999; align-items:center; justify-content:center; }
   .modal-overlay.open { display:flex; }
   .modal-box { background:#fff; border-radius:20px; width:100%; max-width:680px;
     height:90vh; display:flex; flex-direction:column;
@@ -445,6 +445,13 @@
             <p class="err-text" id="errNik"></p>
           </div>
 
+          {{-- BPJS --}}
+          <div class="form-group">
+            <label>No BPJS</label>
+            <input type="text" name="no_bpjs" id="fBpjs" class="form-input"
+              placeholder="13 digit No BPJS" maxlength="13">
+          </div>
+
           {{-- Nama --}}
           <div class="form-group span2">
             <label>Nama Lengkap <span class="text-red-500 normal-case font-normal">*</span></label>
@@ -648,6 +655,10 @@
           <div class="text-[15px] font-semibold text-gray-800" id="infoNik">-</div>
         </div>
         <div>
+          <label class="block text-xs font-bold text-gray-400 uppercase mb-1">No BPJS</label>
+          <div class="text-[15px] font-semibold text-gray-800" id="infoBpjs">-</div>
+        </div>
+        <div>
           <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Nama Kepala Keluarga</label>
           <div class="text-[15px] font-semibold text-gray-800" id="infoKk">-</div>
         </div>
@@ -701,6 +712,7 @@
     'id'              => $p->id,
     'no_rm'           => $p->no_rm,
     'nik'             => $p->nik ?? '',
+    'no_bpjs'         => $p->no_bpjs ?? '',
     'nama'            => $p->nama,
     'nama_kk'         => $p->nama_kk ?? '',
     'tgl_lahir'       => $p->tgl_lahir ? \Carbon\Carbon::parse($p->tgl_lahir)->format('Y-m-d') : '',
@@ -737,6 +749,10 @@
 
     clearForm();
     clearErrors();
+    
+    // Default No RM saat tambah pasien
+    document.getElementById('fRm').value = '{{ $nextRm }}';
+
     document.getElementById('modalOverlay').classList.add('open');
   }
 
@@ -753,6 +769,7 @@
 
     document.getElementById('fRm').value         = p.no_rm;
     document.getElementById('fNik').value         = p.nik;
+    document.getElementById('fBpjs').value        = p.no_bpjs;
     document.getElementById('fNama').value        = p.nama;
     document.getElementById('fKk').value          = p.nama_kk;
     document.getElementById('fTgl').value         = p.tgl_lahir;
@@ -777,7 +794,7 @@
   }
 
   function clearForm() {
-    ['fRm','fNik','fNama','fKk','fHp','fAlamat','fDesa','fKota','fAlergi'].forEach(function(id) {
+    ['fRm','fNik','fBpjs','fNama','fKk','fHp','fAlamat','fDesa','fKota','fAlergi'].forEach(function(id) {
       document.getElementById(id).value = '';
     });
     ['fJenkel','fDarah','fAgama','fPendidikan','fPekerjaan'].forEach(function(id) {

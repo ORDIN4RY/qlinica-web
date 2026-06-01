@@ -18,8 +18,8 @@
   .jabatan-badge { background:#f0f7ff; color:#1e40af; }
 
   /* ── MODAL ── */
-  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55);
-    z-index:999; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.65);
+    z-index:999; align-items:center; justify-content:center; }
   .modal-overlay.open { display:flex; }
   .modal-box { background:#fff; border-radius:20px; width:100%; max-width:640px;
     height:90vh; display:flex; flex-direction:column;

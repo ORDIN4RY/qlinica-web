@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Download Flowchart Web Klinik</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f3f4f6; }
+        .btn {
+            background-color: #059669; color: white; padding: 15px 30px; font-size: 18px; 
+            border: none; border-radius: 8px; cursor: pointer; margin-bottom: 20px; font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn:hover { background-color: #047857; }
+        #diagram-container {
+            background: white; padding: 20px; border-radius: 8px; display: inline-block;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Flowchart Aplikasi Web (Klinik & Apotek)</h1>
+    <button class="btn" onclick="downloadPNG()">⬇️ DOWNLOAD GAMBAR PNG (WEB) ⬇️</button>
+
+    <div id="diagram-container">
+        <div class="mermaid" id="mermaid-graph">
+flowchart TD
+    classDef startEnd fill:#111827,stroke:#374151,stroke-width:2px,color:#fff,font-weight:bold
+    classDef process fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#fff
+    classDef io fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#fff
+    classDef decision fill:#78350f,stroke:#f59e0b,stroke-width:2px,color:#fff
+    
+    Start(["Mulai Buka Web"]):::startEnd
+    End(["Selesai"]):::startEnd
+
+    subgraph Admin ["1. ADMIN: PENDAFTARAN, MASTER DATA & LAPORAN"]
+        direction TB
+        A_Beranda["Dashboard Admin"]:::process
+        
+        A_Menu{"Pilih Menu<br/>Admin?"}:::decision
+        
+        A_Pasien["Kelola Data Pasien"]:::process
+        A_Pegawai["Kelola Data Pegawai"]:::process
+        A_Absen["Kelola Data Absensi / Cuti"]:::process
+        A_Laporan["Lihat Laporan Penanganan<br/>Filter Harian/Mingguan/Bulanan/Tahunan"]:::process
+        
+        A_Antrian["Menu Pemesanan / Pendaftaran"]:::process
+        A_Daftar[/"Input Form Antrian<br/>& Biodata Pasien"/]:::io
+        
+        A_Inap{"Admisi<br/>Rawat Inap?"}:::decision
+        A_Kamar[/"Input Kamar &<br/>Data BPJS (Jika Ada)"/]:::io
+    end
+
+    subgraph Dokter ["2. POLIKLINIK / DOKTER"]
+        direction TB
+        D_Panggil["Panggil Antrian<br/>Pasien"]:::process
+        D_Riwayat["Lihat Riwayat<br/>Kunjungan Pasien"]:::process
+        D_Periksa[/"Input Diagnosa<br/>& Tindakan"/]:::io
+        D_Resep[/"Buat e-Resep Obat"/]:::io
+        D_Inap{"Rekomendasi<br/>Rawat Inap?"}:::decision
+    end
+
+    subgraph Apoteker ["3. APOTEK / FARMASI"]
+        direction TB
+        F_Tampil["Tampil Daftar<br/>Antrean Resep"]:::process
+        F_Skrining["Skrining &<br/>Siapkan Obat"]:::process
+        F_Inap{"Status Pasien<br/>Menginap?"}:::decision
+        F_Serah1[/"Serahkan Obat<br/>ke Perawat Inap"/]:::io
+        F_CekBayar{"Cek Status<br/>Pembayaran?"}:::decision
+        F_Serah2[/"Serahkan Obat<br/>ke Pasien Jalan"/]:::io
+    end
+
+    subgraph Kasir ["4. KASIR / BILLING"]
+        direction TB
+        K_Tampil["Tampil Rincian<br/>Tagihan Sistem"]:::process
+        K_Penjamin{"Jenis<br/>Penjamin?"}:::decision
+        K_Bayar[/"Terima Pembayaran<br/>Tunai / Transfer"/]:::io
+        K_Klaim["Klaim BPJS<br/>Tagihan Rp 0"]:::process
+        K_Cetak[/"Cetak Kuitansi"/]:::io
+    end
+
+    Start --> A_Beranda
+    A_Beranda --> A_Menu
+    
+    A_Menu -->|"Menu Master & HR"| A_Pasien
+    A_Menu -->|"Menu Master & HR"| A_Pegawai
+    A_Menu -->|"Menu Master & HR"| A_Absen
+    A_Menu -->|"Menu Laporan"| A_Laporan
+    
+    A_Pasien --> End
+    A_Pegawai --> End
+    A_Absen --> End
+    A_Laporan --> End
+    
+    A_Menu -->|"Menu Pemesanan"| A_Antrian
+    A_Antrian -->|"Ambil Antrian Baru"| A_Daftar
+    
+    A_Daftar -->|"Panggil Pasien"| D_Panggil
+    D_Panggil --> D_Riwayat
+    D_Riwayat --> D_Periksa
+    D_Periksa --> D_Resep
+    D_Resep --> D_Inap
+    
+    D_Inap -->|"Y"| A_Inap
+    D_Inap -->|"T"| F_Tampil
+    
+    A_Inap -->|"Proses Admisi"| A_Kamar
+    A_Kamar --> F_Tampil
+    
+    F_Tampil --> F_Skrining
+    F_Skrining --> F_Inap
+    
+    F_Inap -->|"Y"| F_Serah1
+    F_Serah1 -->|"Waktu Checkout"| K_Tampil
+    
+    F_Inap -->|"T"| K_Tampil
+    
+    K_Tampil --> K_Penjamin
+    K_Penjamin -->|"Umum"| K_Bayar
+    K_Penjamin -->|"BPJS"| K_Klaim
+    
+    K_Bayar --> K_Cetak
+    K_Klaim --> K_Cetak
+    
+    K_Cetak --> F_CekBayar
+    F_CekBayar -->|"Lunas / Rp 0"| F_Serah2
+    F_Serah2 --> End
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+
+        function downloadPNG() {
+            const container = document.getElementById('diagram-container');
+            const svg = document.querySelector('.mermaid svg');
+            
+            if (!svg) {
+                alert("Gambar belum termuat!");
+                return;
+            }
+
+            // Simpan style asli
+            const originalMaxHeight = container.style.maxHeight;
+            const originalOverflow = container.style.overflow;
+            const originalSvgMaxWidth = svg.style.maxWidth;
+            const originalSvgWidth = svg.style.width;
+
+            // Paksa ukuran menjadi sangat besar agar tidak buram/burik
+            container.style.maxHeight = 'none';
+            container.style.overflow = 'visible';
+            svg.style.maxWidth = 'none';
+            svg.style.width = '3000px'; // Resolusi super tinggi
+            svg.style.height = 'auto';
+
+            // Beri sedikit waktu agar browser me-render ulang ukuran besar
+            setTimeout(() => {
+                html2canvas(container, {
+                    scale: 3, // Skala dikali 3 untuk ketajaman ekstra
+                    backgroundColor: "#ffffff",
+                    logging: false,
+                    useCORS: true
+                }).then(canvas => {
+                    // Kembalikan style ke aslinya
+                    container.style.maxHeight = originalMaxHeight;
+                    container.style.overflow = originalOverflow;
+                    svg.style.maxWidth = originalSvgMaxWidth;
+                    svg.style.width = originalSvgWidth;
+
+                    const pngFile = canvas.toDataURL("image/png", 1.0);
+                    const downloadLink = document.createElement("a");
+                    downloadLink.download = "Flowchart_Web_Klinik_HD.png";
+                    downloadLink.href = pngFile;
+                    downloadLink.click();
+                }).catch(err => {
+                    alert("Gagal men-download gambar: " + err.message);
+                });
+            }, 500); // Jeda 0.5 detik
+        }
+    </script>
+</body>
+</html>

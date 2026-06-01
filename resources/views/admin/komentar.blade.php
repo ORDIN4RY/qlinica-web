@@ -65,11 +65,10 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(15, 33, 68, .45);
+    background: rgba(15, 33, 68, .6);
     z-index: 500;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(4px);
   }
   .modal-overlay.open { display: flex; }
   .modal-box {
@@ -119,7 +118,7 @@
 @endif
 
 {{-- ─── STAT BANNER ──────────────────────────────────────────────────── --}}
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-7">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-7 max-w-5xl mx-auto">
 
   <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
     <div class="flex items-center justify-between mb-3">
@@ -161,19 +160,6 @@
     <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">
       {{ $search ? 'Hasil "' . $search . '"' : 'Menampilkan Semua' }}
     </div>
-  </div>
-
-  <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-    <div class="flex items-center justify-between mb-3">
-      <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
-        <i class="fas fa-file-alt text-purple-600 text-base"></i>
-      </div>
-      <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-full">Halaman</span>
-    </div>
-    <div class="text-3xl font-extrabold text-gray-800 leading-none mb-1">
-      {{ $komentars->currentPage() }} / {{ $komentars->lastPage() }}
-    </div>
-    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Halaman Saat Ini</div>
   </div>
 
 </div>
@@ -286,12 +272,21 @@
             </td>
           @if(auth()->user()->hasMenuAccess('Komentar', 'hapus'))
             <td class="px-5 py-4">
-              <button
-                onclick="openModal({{ $item->id }}, '{{ addslashes($item->pasien->nama ?? 'Pasien') }}')"
-                class="inline-flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 hover:border-red-300 px-3 py-1.5 rounded-lg text-xs font-bold transition">
-                <i class="fas fa-trash-alt text-xs"></i>
-                Hapus
-              </button>
+              @if($item->is_visible)
+                <button
+                  onclick="openModal({{ $item->id }}, '{{ addslashes($item->pasien->nama ?? 'Pasien') }}', 'hide')"
+                  class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200 hover:border-amber-300 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                  <i class="fas fa-eye-slash text-xs"></i>
+                  Sembunyikan
+                </button>
+              @else
+                <button
+                  onclick="openModal({{ $item->id }}, '{{ addslashes($item->pasien->nama ?? 'Pasien') }}', 'show')"
+                  class="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 hover:border-blue-300 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                  <i class="fas fa-eye text-xs"></i>
+                  Tampilkan
+                </button>
+              @endif
             </td>
           @endif
           </tr>
@@ -383,27 +378,27 @@
   @endif
 </div>
 
-{{-- ─── MODAL HAPUS ─────────────────────────────────────────────────── --}}
+{{-- ─── MODAL VISIBILITAS ────────────────────────────────────────────── --}}
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-box">
-    <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-      <i class="fas fa-trash-alt text-red-500 text-xl"></i>
+    <div id="modalIconContainer" class="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <i id="modalIcon" class="fas fa-eye-slash text-amber-500 text-xl"></i>
     </div>
-    <h3 class="text-lg font-bold text-gray-800 mb-2">Hapus Komentar?</h3>
+    <h3 id="modalTitle" class="text-lg font-bold text-gray-800 mb-2">Sembunyikan Komentar?</h3>
     <p class="text-sm text-gray-500 mb-6 leading-relaxed" id="modalMsg">
-      Komentar ini akan dihapus secara permanen dan tidak dapat dikembalikan.
+      Komentar ini akan disembunyikan dari halaman utama.
     </p>
     <div class="flex justify-center gap-3">
       <button onclick="closeModal()"
         class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">
         Batal
       </button>
-      <form id="deleteForm" method="POST" action="">
+      <form id="toggleForm" method="POST" action="">
         @csrf
-        @method('DELETE')
-        <button type="submit"
-          class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition">
-          Ya, Hapus
+        @method('PATCH')
+        <button id="modalSubmitBtn" type="submit"
+          class="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold transition">
+          Ya, Sembunyikan
         </button>
       </form>
     </div>
@@ -414,10 +409,32 @@
 
 @push('scripts')
 <script>
-  function openModal(id, nama) {
-    document.getElementById('modalMsg').textContent =
-      'Komentar dari "' + nama + '" akan dihapus permanen dan tidak dapat dikembalikan.';
-    document.getElementById('deleteForm').action = '/admin/komentar/' + id;
+  function openModal(id, nama, action) {
+    const form = document.getElementById('toggleForm');
+    form.action = '/admin/komentar/' + id + '/toggle';
+
+    const iconContainer = document.getElementById('modalIconContainer');
+    const icon = document.getElementById('modalIcon');
+    const title = document.getElementById('modalTitle');
+    const msg = document.getElementById('modalMsg');
+    const submitBtn = document.getElementById('modalSubmitBtn');
+
+    if (action === 'hide') {
+      iconContainer.className = "w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4";
+      icon.className = "fas fa-eye-slash text-amber-500 text-xl";
+      title.textContent = "Sembunyikan Komentar?";
+      msg.textContent = 'Komentar dari "' + nama + '" akan disembunyikan dari halaman ulasan pasien.';
+      submitBtn.className = "px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold transition";
+      submitBtn.textContent = "Ya, Sembunyikan";
+    } else {
+      iconContainer.className = "w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4";
+      icon.className = "fas fa-eye text-blue-500 text-xl";
+      title.textContent = "Tampilkan Komentar?";
+      msg.textContent = 'Komentar dari "' + nama + '" akan ditampilkan kembali di halaman ulasan pasien.';
+      submitBtn.className = "px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition";
+      submitBtn.textContent = "Ya, Tampilkan";
+    }
+
     document.getElementById('modalOverlay').classList.add('open');
   }
   function closeModal() {

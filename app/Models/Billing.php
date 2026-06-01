@@ -26,17 +26,10 @@ class Billing extends Model
         'kembalian',
         'kasir_id',
         'paid_at',
-        // Midtrans QRIS
-        'midtrans_order_id',
-        'midtrans_transaction_id',
-        'midtrans_qr_url',
-        'midtrans_status',
-        'midtrans_qr_generated_at',
     ];
 
     protected $casts = [
         'paid_at'                  => 'datetime',
-        'midtrans_qr_generated_at' => 'datetime',
     ];
 
     public function rekamMedis()
@@ -202,7 +195,10 @@ class Billing extends Model
                  * ─────────────────────────────────────────────────────
                  * BPJS FKTP non-kapitasi: maks 5 hari ditanggung.
                  * Hari ke-6+ + obat non-fornas = co-payment pasien.
+                 * Jika pasien masuk IGD/Poli awalnya dengan UMUM, biaya pendaftaran/konsultasi 
+                 * tidak ditanggung BPJS Rawat Inap.
                  */
+                $isRawatJalanBpjs = $this->rekamMedis && $this->rekamMedis->jenis_pelayanan === 'BPJS';
                 $tglMasuk  = \Carbon\Carbon::parse($this->rawatInap->tgl_masuk)->startOfDay();
                 $tglKeluar = $this->rawatInap->tgl_keluar
                     ? \Carbon\Carbon::parse($this->rawatInap->tgl_keluar)->startOfDay()
