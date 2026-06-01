@@ -6,8 +6,8 @@
 
 @push('styles')
 <style>
-  .modal-overlay { background-color: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); transition: all 0.3s ease; }
-  .modal-backdrop { background-color: rgba(15, 23, 42, 0.55); backdrop-filter: blur(4px); }
+  .modal-overlay { background-color: rgba(15, 23, 42, 0.55); transition: all 0.3s ease; }
+  .modal-backdrop { background-color: rgba(15, 23, 42, 0.65); }
   /* ── AKSI DROPDOWN ── */
   .aksi-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; font-size:12px; font-weight:700; border:1.5px solid #e5e7eb; border-radius:10px; background:#fff; color:#374151; cursor:pointer; transition:all .15s; user-select:none; white-space:nowrap; }
   .aksi-btn:hover { background:#f8fafc; border-color:#d1d5db; box-shadow:0 2px 8px rgba(0,0,0,.07); }
@@ -70,8 +70,8 @@
                 <span>{{ $resep->rekamMedis?->pasien?->nama ?? ($resep->rawatInap?->pasien?->nama ?? 'Pasien') }}</span>
               </h3>
               <p class="text-xs text-gray-400 mt-1">
-                Tanggal: <strong>{{ optional($resep->rekamMedis?->tanggal_periksa)->isoFormat('D MMMM YYYY') ?? $resep->created_at->isoFormat('D MMMM YYYY') }}</strong> 
-                <span class="mx-2">•</span> 
+                Tanggal: <strong>{{ optional($resep->rekamMedis?->tanggal_periksa)->isoFormat('D MMMM YYYY') ?? $resep->created_at->isoFormat('D MMMM YYYY') }}</strong>
+                <span class="mx-2">•</span>
                 Dokter Pemeriksa: <strong>{{ $resep->dokter?->nama ?? '-' }}</strong>
               </p>
             </div>
@@ -132,7 +132,7 @@
             </button>
             <div id="aksi-{{ $resep->id }}" class="aksi-menu">
               @if($resep->status === 'Menunggu')
-                
+
                 {{-- TRIGGER SKRINING MODAL --}}
                 <button class="aksi-menu-item" onclick="openSkriningModal('{{ $resep->id }}', {{ $resep->rawat_inap_id ? 'true' : 'false' }});closeAksiMenu();">
                   <i class="fas fa-stethoscope" style="color:#1e3a8a"></i> Lakukan Skrining
@@ -143,7 +143,7 @@
                 </button>
 
               @elseif($resep->status === 'Menunggu Pembayaran')
-                
+
                 <span class="aksi-menu-item text-amber-700" style="cursor:default; background:none;">
                   <i class="fas fa-clock animate-pulse text-amber-500"></i> Menunggu Kasir
                 </span>
@@ -153,7 +153,7 @@
                 </button>
 
               @elseif($resep->status === 'Sudah Dibayar' || ($resep->rawat_inap_id && $resep->status === 'Diproses'))
-                
+
                 {{-- TRIGGER HANDOVER MODAL --}}
                 <button class="aksi-menu-item" onclick="openHandoverModal('{{ $resep->id }}', '{{ addslashes($resep->rekamMedis?->pasien?->nama ?? ($resep->rawatInap?->pasien?->nama ?? 'Pasien')) }}', '{{ $resep->rekamMedis?->pasien?->no_rm ?? ($resep->rawatInap?->pasien?->no_rm ?? '-') }}');closeAksiMenu();">
                   <i class="fas fa-check-double" style="color:#059669"></i> Serahkan Obat
@@ -172,7 +172,7 @@
                 @endif
 
               @elseif($resep->status === 'Selesai')
-                
+
                 <button class="aksi-menu-item" disabled>
                   <i class="fas fa-handshake" style="color:#9ca3af"></i> Obat Telah Diserahkan
                 </button>
@@ -186,7 +186,7 @@
                 <span class="aksi-menu-item text-gray-500" style="cursor:default; background:none;">Resep {{ $resep->status }}</span>
               @endif
             </div>
-            
+
             {{-- HIDDEN FORMS FOR ACTIONS --}}
             @if($resep->status === 'Menunggu')
               <form action="{{ route('apoteker.resep.update', $resep) }}" method="POST" id="form-kembalikan-{{ $resep->id }}" style="display:none;">
@@ -224,10 +224,10 @@
       @csrf
       @method('PATCH')
       <input type="hidden" name="action" value="proses">
-      
+
       <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
         <p class="text-xs text-gray-500 leading-normal">Berdasarkan Peraturan Menteri Kesehatan RI (SOP Akreditasi), Apoteker wajib melakukan skrining administratif, farmasetik, dan klinis sebelum memproses resep:</p>
-        
+
         <div class="space-y-2.5 border-t border-gray-100 pt-3">
           <label class="flex items-start gap-2.5 text-xs text-gray-700 leading-normal cursor-pointer">
             <input type="checkbox" required class="mt-0.5 rounded border-gray-300 text-blue-900 focus:ring-blue-900/30">
@@ -273,7 +273,7 @@
       @csrf
       @method('PATCH')
       <input type="hidden" name="action" value="selesai">
-      
+
       <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
         <div class="p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
           <p class="text-xs text-emerald-800 flex items-center gap-1.5"><i class="fas fa-user-circle"></i> Pasien: <strong id="handover-pasien-nama"></strong> (<strong id="handover-pasien-rm"></strong>)</p>
@@ -303,7 +303,7 @@
     const modal = document.getElementById('skriningModal');
     const form = document.getElementById('skriningForm');
     form.action = `/apoteker/resep/${resepId}`;
-    
+
     const submitBtn = modal.querySelector('button[type="submit"]');
     if (submitBtn) {
       if (isRawatInap) {
@@ -312,7 +312,7 @@
         submitBtn.innerText = 'Setujui & Kirim ke Kasir';
       }
     }
-    
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
   }
@@ -328,10 +328,10 @@
     const modal = document.getElementById('handoverModal');
     const form = document.getElementById('handoverForm');
     form.action = `/apoteker/resep/${resepId}`;
-    
+
     document.getElementById('handover-pasien-nama').innerText = pasienNama;
     document.getElementById('handover-pasien-rm').innerText = pasienRm;
-    
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
   }
@@ -354,14 +354,14 @@
   // ──── PRINT ETIKET OBAT ENGINE (CLINIC ACCREDITED STANDARD) ────
   function printEtiket(resepId, pasienNama, pasienRm, tglResep, arrayObat) {
     const printWindow = window.open('', '_blank', 'width=800,height=600');
-    
+
     let labelsHtml = '';
 
     arrayObat.forEach((obat, idx) => {
       // Auto-detect etiket color based on category
       const externalCats = ['salep', 'krim', 'tetes', 'gel', 'obat luar', 'spray', 'inhaler', 'tetes telinga', 'tetes mata', 'salep mata'];
       const katLower = (obat.kategori || '').toLowerCase();
-      
+
       let isExternal = false;
       externalCats.forEach(c => {
         if (katLower.includes(c)) isExternal = true;
@@ -434,7 +434,7 @@
             page-break-after: always;
             margin: 0.5mm auto;
           }
-          
+
           /* Color borders for clinical standard */
           .internal-label {
             border-color: #1e3a8a; /* Deep Blue for Internal */
@@ -442,7 +442,7 @@
           .external-label {
             border-color: #b91c1c; /* Deep Red/Blue for External */
           }
-          
+
           .header {
             text-align: center;
           }

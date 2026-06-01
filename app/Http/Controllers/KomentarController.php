@@ -33,16 +33,18 @@ class KomentarController extends Controller
     }
 
     /**
-     * Hapus feedback.
-     * DELETE /admin/komentar/{id}
+     * Toggle visibilitas komentar.
+     * PATCH /admin/komentar/{id}/toggle
      */
-    public function destroy($id)
+    public function toggleVisibility($id)
     {
         $feedback = Feedback::findOrFail($id);
-        $feedback->delete();
+        $feedback->is_visible = !$feedback->is_visible;
+        $feedback->save();
 
+        $status = $feedback->is_visible ? 'ditampilkan' : 'disembunyikan';
         return redirect()
             ->route('admin.komentar')
-            ->with('success', 'Komentar berhasil dihapus.');
+            ->with('success', "Komentar berhasil {$status}.");
     }
 }

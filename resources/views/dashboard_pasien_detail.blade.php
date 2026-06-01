@@ -18,15 +18,17 @@
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
   <style>
+    html, body {
+      overflow-x: hidden;
+      max-width: 100vw;
+    }
     body {
       font-family: 'Outfit', sans-serif;
       background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
       min-height: 100vh;
     }
     .glass-card {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: #ffffff;
     }
     .custom-shadow {
       box-shadow: 0 10px 30px -10px rgba(30, 41, 59, 0.05), 0 1px 3px -1px rgba(30, 41, 59, 0.02);
@@ -37,9 +39,77 @@
     .btn-anim:hover {
       transform: translateY(-2px);
     }
+
+    /* ── Ambil Antrian Modal ── */
+    .ambil-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100%; height: 100%;
+      z-index: 9999;
+    }
+    .ambil-modal.show { display: block; }
+
+    /* Backdrop */
+    .ambil-modal .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      animation: backdropIn 0.25s ease;
+      transition: opacity 0.3s ease;
+    }
+    .ambil-modal.closing .modal-backdrop {
+      opacity: 0;
+    }
+    @keyframes backdropIn { from { opacity:0; } to { opacity:1; } }
+
+    /* Positioner — MOBILE: bottom sheet */
+    .ambil-modal .modal-positioner {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: center;
+      animation: sheetUp 0.35s cubic-bezier(0.15,0.75,0.45,1);
+      will-change: transform;
+      z-index: 10000;
+    }
+    @keyframes sheetUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+
+    /* Content box — mobile */
+    .ambil-modal .modal-positioner .modal-content {
+      width: 100%;
+      max-width: 100%;
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      overflow-y: auto;
+      max-height: 88vh;
+      box-sizing: border-box;
+      /* Interaction setup */
+      touch-action: auto;
+      user-select: auto;
+      -webkit-user-select: auto;
+    }
+
+    /* DESKTOP: centered dialog */
+    @media (min-width: 640px) {
+      .ambil-modal .modal-positioner {
+        top: 0; bottom: 0;
+        align-items: center;
+        padding: 20px;
+        animation: dialogIn 0.25s cubic-bezier(0.15,0.75,0.45,1);
+      }
+      @keyframes dialogIn  { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+      .ambil-modal .modal-positioner .modal-content {
+        max-width: 460px;
+        border-radius: 24px;
+        max-height: 90vh;
+        touch-action: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      }
+    }
   </style>
 </head>
-<body class="text-slate-800 antialiased py-8">
+<body class="text-slate-800 antialiased py-8 overflow-x-hidden" style="overflow-x:hidden;max-width:100vw;">
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     
@@ -57,14 +127,14 @@
 
       <!-- Quick Action Feedback -->
       @if(strtolower($antrian->status) === 'selesai')
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
           @if($antrian->rekamMedis && $antrian->rekamMedis->feedback)
-            <span class="text-xs font-semibold text-green-600 bg-green-50 border border-green-100 px-4.5 py-2.5 rounded-2xl flex items-center gap-1.5 shadow-sm">
+            <span class="text-xs font-semibold text-green-600 bg-green-50 border border-green-100 px-5 py-3 rounded-2xl flex items-center gap-1.5 shadow-sm whitespace-nowrap">
               <i class="fas fa-check-circle"></i> Sudah Diulas
             </span>
           @else
             <span class="text-xs font-semibold text-slate-400">Punya ulasan untuk kunjungan ini?</span>
-            <button onclick="showModalFeedback({{ $antrian->id }})" class="btn-anim text-blue-900 bg-white hover:bg-blue-50 border border-blue-900/15 px-4.5 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-sm">
+            <button onclick="showModalFeedback({{ $antrian->id }})" class="btn-anim text-blue-900 bg-white hover:bg-blue-50 border border-blue-900/15 px-5 py-3 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-sm whitespace-nowrap">
               <i class="fas fa-star text-yellow-400"></i> Beri Ulasan
             </button>
           @endif
@@ -506,36 +576,46 @@
   </div>
 
   <!-- Modal Feedback (Jika diperlukan) -->
-  <div id="modalFeedback" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-300 relative border border-blue-900/10">
-      <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
-        <i class="fas fa-star text-yellow-400"></i> Beri Ulasan Kunjungan
-      </h3>
-      <p class="text-xs text-slate-400 leading-relaxed mb-4">Masukan Anda sangat berharga bagi kami untuk meningkatkan kualitas pelayanan dokter dan staf medis.</p>
-      
-      <form id="formFeedback" onsubmit="submitFeedback(event)">
-        @csrf
-        <input type="hidden" id="feedbackAntrianId" name="antrian_id">
-        
-        <!-- Stars -->
-        <div class="flex justify-center gap-2.5 mb-5">
-          @for($i=1; $i<=5; $i++)
-            <i class="fas fa-star text-2xl text-slate-200 cursor-pointer transition-colors hover:text-yellow-400 rating-star" onclick="setRating({{ $i }})" data-val="{{ $i }}"></i>
-          @endfor
-        </div>
-        <input type="hidden" id="ratingInput" name="rating" value="0">
+  <div id="modalFeedback" class="ambil-modal">
+    <div id="modalFeedbackBackdrop" class="modal-backdrop"></div>
+    <div class="modal-positioner">
+      <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden relative modal-content" id="modalFeedbackContent">
 
-        <!-- Comment -->
-        <div class="mb-4">
-          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">Komentar &amp; Ulasan</label>
-          <textarea id="feedbackUlasan" name="ulasan" rows="3" placeholder="Tuliskan ulasan Anda..." class="w-full border border-slate-200 rounded-xl px-4 py-3 text-xs focus:border-blue-900 outline-none resize-none bg-slate-50"></textarea>
-        </div>
+        <button type="button" onclick="closeModalFeedback()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
+          <i class="fas fa-times text-xl"></i>
+        </button>
 
-        <div class="flex justify-end gap-2.5">
-          <button type="button" onclick="closeModalFeedback()" class="px-4.5 py-2.5 border border-slate-200 text-slate-500 rounded-2xl text-xs font-bold hover:bg-slate-50 transition">Batal</button>
-          <button type="submit" id="btnSubmitFeedback" class="px-5 py-2.5 bg-blue-900 text-white rounded-2xl text-xs font-bold hover:bg-blue-800 transition flex items-center gap-1.5">Kirim Ulasan</button>
+        <div class="p-8 pt-4 sm:pt-8">
+          <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+            <i class="fas fa-star text-yellow-400"></i> Beri Ulasan Kunjungan
+          </h3>
+          <p class="text-xs text-slate-400 leading-relaxed mb-4">Masukan Anda sangat berharga bagi kami untuk meningkatkan kualitas pelayanan dokter dan staf medis.</p>
+          
+          <form id="formFeedback" onsubmit="submitFeedback(event)">
+            @csrf
+            <input type="hidden" id="feedbackAntrianId" name="antrian_id">
+            
+            <!-- Stars -->
+            <div class="flex justify-center gap-2.5 mb-5">
+              @for($i=1; $i<=5; $i++)
+                <i class="fas fa-star text-2xl text-slate-200 cursor-pointer transition-colors hover:text-yellow-400 rating-star" onclick="setRating({{ $i }})" data-val="{{ $i }}"></i>
+              @endfor
+            </div>
+            <input type="hidden" id="ratingInput" name="rating" value="0">
+
+            <!-- Comment -->
+            <div class="mb-4">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">Komentar &amp; Ulasan</label>
+              <textarea id="feedbackUlasan" name="ulasan" rows="3" placeholder="Tuliskan ulasan Anda..." class="w-full border border-slate-200 rounded-xl px-4 py-3 text-xs focus:border-blue-900 outline-none resize-none bg-slate-50"></textarea>
+            </div>
+
+            <div class="flex justify-end gap-2.5">
+              <button type="button" onclick="closeModalFeedback()" class="px-5 py-2.5 border border-slate-200 text-slate-500 rounded-2xl text-xs font-bold hover:bg-slate-50 transition">Batal</button>
+              <button type="submit" id="btnSubmitFeedback" class="px-5 py-2.5 bg-blue-900 text-white rounded-2xl text-xs font-bold hover:bg-blue-800 transition flex items-center gap-1.5">Kirim Ulasan</button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 
@@ -553,22 +633,76 @@
     // ================================================================
     // MODAL FEEDBACK / REVIEW
     // ================================================================
+    const modalFeedback         = document.getElementById('modalFeedback');
+    const modalFeedbackBackdrop = document.getElementById('modalFeedbackBackdrop');
+    const modalFeedbackPos      = modalFeedback ? modalFeedback.querySelector('.modal-positioner') : null;
+
     function showModalFeedback(id) {
       document.getElementById('feedbackAntrianId').value = id;
       setRating(0);
       document.getElementById('feedbackUlasan').value = '';
       
-      const modal = document.getElementById('modalFeedback');
-      modal.classList.remove('opacity-0', 'pointer-events-none');
-      modal.firstElementChild.classList.remove('scale-95');
-      modal.firstElementChild.classList.add('scale-100');
+      if (modalFeedback) {
+        modalFeedback.classList.remove('closing');
+        if (modalFeedbackPos) {
+          modalFeedbackPos.style.transition = '';
+          modalFeedbackPos.style.transform  = '';
+
+          // Force re-trigger CSS animations
+          modalFeedbackPos.style.animation = 'none';
+          modalFeedbackPos.offsetHeight; // force reflow
+          modalFeedbackPos.style.animation = '';
+        }
+        if (modalFeedbackBackdrop) {
+          modalFeedbackBackdrop.style.transition = '';
+          modalFeedbackBackdrop.style.opacity    = '';
+        }
+        modalFeedback.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      }
     }
 
-    function closeModalFeedback() {
-      const modal = document.getElementById('modalFeedback');
-      modal.classList.add('opacity-0', 'pointer-events-none');
-      modal.firstElementChild.classList.remove('scale-100');
-      modal.firstElementChild.classList.add('scale-95');
+    function closeModalFeedback(fromY) {
+      fromY = fromY || 0;
+      const isMobile = window.innerWidth < 640;
+
+      if (modalFeedback) {
+        if (isMobile && modalFeedbackPos) {
+          const targetY = window.innerHeight + 40;
+          const dist    = targetY - fromY;
+          const dur     = Math.min(Math.max(dist * 0.5, 180), 350);
+
+          if (modalFeedbackBackdrop) {
+            modalFeedbackBackdrop.style.transition = `opacity ${dur}ms ease`;
+            modalFeedbackBackdrop.style.opacity    = '0';
+          }
+
+          modalFeedbackPos.style.transition = `transform ${dur}ms cubic-bezier(0.4,0,1,1)`;
+          modalFeedbackPos.style.transform  = `translateY(${targetY}px)`;
+
+          setTimeout(() => {
+            modalFeedback.classList.remove('show');
+            modalFeedbackPos.style.transition = '';
+            modalFeedbackPos.style.transform  = '';
+            modalFeedbackPos.style.animation  = '';
+            if (modalFeedbackBackdrop) {
+              modalFeedbackBackdrop.style.transition = '';
+              modalFeedbackBackdrop.style.opacity    = '';
+            }
+            document.body.style.overflow = '';
+          }, dur + 20);
+        } else {
+          modalFeedback.classList.add('closing');
+          setTimeout(() => {
+            modalFeedback.classList.remove('show', 'closing');
+            document.body.style.overflow = '';
+          }, 220);
+        }
+      }
+    }
+
+    if (modalFeedbackBackdrop) {
+      modalFeedbackBackdrop.addEventListener('click', () => closeModalFeedback(0));
     }
 
     function setRating(val) {

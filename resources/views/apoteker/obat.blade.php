@@ -200,7 +200,7 @@
 </div>
 
 {{-- ===== MODAL TAMBAH / EDIT ===== --}}
-<div id="modalObat" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
+<div id="modalObat" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 hidden">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
     {{-- Header --}}
     <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-green-600 to-green-700">
@@ -295,7 +295,7 @@
 </div>
 
 {{-- ===== MODAL KONFIRMASI HAPUS ===== --}}
-<div id="modalHapus" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
+<div id="modalHapus" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 hidden">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 text-center">
     <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
       <i class="fas fa-trash-alt"></i>
@@ -313,7 +313,7 @@
 </div>
 
 {{-- ===== MODAL TAMBAH STOK / RESTOK ===== --}}
-<div id="modalRestok" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
+<div id="modalRestok" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 hidden">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
     {{-- Header --}}
     <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700">
@@ -379,7 +379,7 @@
 </div>
 
 {{-- ===== MODAL STOK OPNAME ===== --}}
-<div id="modalStokOpname" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
+<div id="modalStokOpname" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 hidden">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
     {{-- Header --}}
     <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-amber-500 to-amber-600">
@@ -439,7 +439,7 @@
 </div>
 
 {{-- ===== MODAL RIWAYAT STOK OPNAME ===== --}}
-<div id="modalRiwayatStokOpname" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
+<div id="modalRiwayatStokOpname" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 hidden">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden">
     {{-- Header --}}
     <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-gray-700 to-gray-800">

@@ -410,22 +410,20 @@ class AntrianController extends Controller
             return response()->json(['success' => false, 'message' => 'Invalid queue'], 403);
         }
 
-        $rekamMedisId = null;
-        if ($antrian->rekamMedis) {
-            $rekamMedisId = $antrian->rekamMedis->id;
+        $rekamMedis = $antrian->rekamMedis;
+        if (!$rekamMedis) {
+            return response()->json(['success' => false, 'message' => 'Ulasan hanya dapat diberikan setelah rekam medis pemeriksaan Anda diterbitkan.'], 422);
         }
 
         // Cegah duplikat ulasan
-        if ($rekamMedisId) {
-            $sudahDiulas = Feedback::where('rekam_medis_id', $rekamMedisId)->exists();
-            if ($sudahDiulas) {
-                return response()->json(['success' => false, 'message' => 'Anda sudah memberikan ulasan untuk kunjungan ini.'], 422);
-            }
+        $sudahDiulas = Feedback::where('rekam_medis_id', $rekamMedis->id)->exists();
+        if ($sudahDiulas) {
+            return response()->json(['success' => false, 'message' => 'Anda sudah memberikan ulasan untuk kunjungan ini.'], 422);
         }
 
         Feedback::create([
             'pasien_id' => $user->pasien->id,
-            'rekam_medis_id' => $rekamMedisId,
+            'rekam_medis_id' => $rekamMedis->id,
             'ulasan' => $request->ulasan,
             'penilaian' => $request->rating,
         ]);

@@ -48,6 +48,7 @@ class WelcomeController extends Controller
         // Ambil 10 feedback terbaru — ulasan bersifat opsional,
         // yang tidak ada teks tetap ditampilkan (hanya bintang)
         $testimoni = Feedback::with('pasien')
+            ->where('is_visible', true)
             ->whereNotNull('penilaian')
             ->latest('created_at')
             ->limit(10)
