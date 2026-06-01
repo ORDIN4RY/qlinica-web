@@ -736,11 +736,30 @@
       const isOpen = menu.classList.contains('open');
       closeAksiMenu();
       if (!isOpen) {
-        const rect = btn.getBoundingClientRect();
-        menu.style.top   = (rect.bottom + 6) + 'px';
-        menu.style.right = (window.innerWidth - rect.right) + 'px';
-        menu.style.left  = 'auto';
+        const rect       = btn.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+
+        // Reset dulu agar bisa ukur tinggi sebenarnya
+        menu.style.top    = '-9999px';
+        menu.style.bottom = 'auto';
+        menu.style.right  = (window.innerWidth - rect.right) + 'px';
+        menu.style.left   = 'auto';
         menu.classList.add('open');
+
+        // Ukur tinggi aktual setelah open
+        const actualH = menu.offsetHeight;
+
+        if (spaceBelow < actualH + 10 && spaceAbove > spaceBelow) {
+          // Muncul ke ATAS
+          menu.style.top    = 'auto';
+          menu.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+        } else {
+          // Muncul ke BAWAH (default)
+          menu.style.top    = (rect.bottom + 6) + 'px';
+          menu.style.bottom = 'auto';
+        }
+
         btn.classList.add('is-open');
       }
     }
