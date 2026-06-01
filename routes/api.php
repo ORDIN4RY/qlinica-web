@@ -38,6 +38,7 @@ Route::prefix('mobile')->group(function () {
         Route::post('/update-foto', [MobileAuthController::class, 'updateFoto']);
         Route::post('/change-password', [MobileAuthController::class, 'changePassword']);
         Route::post('/update-fcm-token', [MobileAuthController::class, 'updateFcmToken']);
+        Route::post('/test-fcm', [MobileAuthController::class, 'testFcm']);
 
         // Presensi
         Route::get('/presensi', [MobilePresensiController::class, 'index']);

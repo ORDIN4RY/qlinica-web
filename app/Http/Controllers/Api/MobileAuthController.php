@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 
 class MobileAuthController extends Controller
@@ -358,5 +359,64 @@ class MobileAuthController extends Controller
             'success' => true,
             'message' => 'FCM Token berhasil diperbarui.',
         ]);
+    }
+
+    /**
+     * Endpoint untuk testing kirim notifikasi FCM ke device user.
+     * Headers: Authorization: Bearer {token}
+     * Body (opsional): title, body
+     */
+    public function testFcm(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user->fcm_token) {
+            return response()->json([
+                'success' => false,
+                'message' => 'FCM Token belum diset untuk user ini. Silakan panggil endpoint /update-fcm-token terlebih dahulu dari mobile.',
+            ], 400);
+        }
+
+        $serverKey = env('FCM_SERVER_KEY');
+        if (!$serverKey) {
+            return response()->json([
+                'success' => false,
+                'message' => 'FCM_SERVER_KEY belum dikonfigurasi di file .env. Silakan tambahkan server key Firebase Anda.',
+            ], 500);
+        }
+
+        $data = [
+            "to" => $user->fcm_token,
+            "notification" => [
+                "title" => $request->input('title', 'Test Notification Sahaduta'),
+                "body"  => $request->input('body', 'Halo! Ini adalah notifikasi percobaan dari server web Sahaduta.'),
+                "sound" => "default"
+            ],
+            "data" => [
+                "type"         => "test",
+                "click_action" => "FLUTTER_NOTIFICATION_CLICK"
+            ]
+        ];
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'key=' . $serverKey,
+                'Content-Type'  => 'application/json',
+            ])->post('https://fcm.googleapis.com/fcm/send', $data);
+
+            $result = $response->json();
+
+            return response()->json([
+                'success'           => $response->successful() && ($result['success'] ?? 0) > 0,
+                'message'           => 'Permintaan FCM selesai diproses.',
+                'firebase_response' => $result
+            ], $response->status());
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menghubungi Firebase: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }
