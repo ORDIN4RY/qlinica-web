@@ -23,7 +23,7 @@
       border: none !important;
       box-shadow: none !important;
     }
-    .md\:ml-64 {
+    [class*="md:ml-64"] {
       margin-left: 0 !important;
     }
     main {

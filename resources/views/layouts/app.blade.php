@@ -48,7 +48,10 @@
       transform: rotate(180deg);
     }
     @media print {
-      .no-print { display: none !important; }
+      .no-print, aside, #sidebar, header, nav, footer, #sidebarToggleBtn { display: none !important; }
+      [class*="md:ml-64"] { margin-left: 0 !important; }
+      main { padding: 0 !important; }
+      body { background: white !important; color: black !important; }
     }
   </style>
   @stack('styles')
