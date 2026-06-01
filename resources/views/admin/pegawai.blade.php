@@ -53,6 +53,21 @@
   /* ── DIVIDER ── */
   .section-divider { border:none; border-top:1.5px dashed #e5e7eb; margin:10px 0 4px; }
 
+  /* ── INFO AVATAR ── */
+  .info-avatar-img {
+    width: 64px; height: 64px; border-radius: 16px;
+    object-fit: cover; border: 2px solid #e0e7ff;
+    box-shadow: 0 2px 8px rgba(37,99,235,.12);
+    flex-shrink: 0;
+  }
+  .info-avatar-placeholder {
+    width: 64px; height: 64px; border-radius: 16px;
+    background: #dbeafe; color: #1d4ed8;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 800;
+    flex-shrink: 0;
+  }
+
   @media (max-width:640px) {
     .form-grid { grid-template-columns:1fr; }
     .span2 { grid-column:auto; }
@@ -63,7 +78,7 @@
 @section('content')
 
 {{-- ─── STAT CARDS ─────────────────────────────────────────────────── --}}
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-7">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-7">
 
   {{-- Total --}}
   <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
@@ -77,43 +92,28 @@
     <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Pegawai</div>
   </div>
 
-  {{-- Dengan Jabatan --}}
-  <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-    <div class="flex items-center justify-between mb-3">
-      <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-        <i class="fas fa-id-badge text-blue-600 text-base ml-3"></i>
-      </div>
-    </div>
-    <div class="text-3xl font-extrabold text-gray-800 leading-none mb-1">
-      {{ \App\Models\Pegawai::whereNotNull('jabatan_id')->count() }}
-    </div>
-    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Dengan Jabatan</div>
-  </div>
-
-  {{-- Tanpa Jabatan --}}
-  <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-    <div class="flex items-center justify-between mb-3">
-      <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
-        <i class="fas fa-triangle-exclamation text-amber-600 text-base ml-3"></i>
-      </div>
-    </div>
-    <div class="text-3xl font-extrabold text-gray-800 leading-none mb-1">
-      {{ \App\Models\Pegawai::whereNull('jabatan_id')->count() }}
-    </div>
-    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tanpa Jabatan</div>
-  </div>
-
-  {{-- Total User Pegawai --}}
+  {{-- Medis --}}
   <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
     <div class="flex items-center justify-between mb-3">
       <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
-        <i class="fas fa-user-check text-emerald-600 text-base ml-3"></i>
+        <i class="fas fa-stethoscope text-emerald-600 text-sm ml-3"></i>
       </div>
+      <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">Medis</span>
     </div>
-    <div class="text-3xl font-extrabold text-gray-800 leading-none mb-1">
-      {{ \App\Models\User::where('role','pegawai')->count() }}
+    <div class="text-3xl font-extrabold text-gray-800 leading-none mb-1">{{ $countMedis }}</div>
+    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tenaga Medis</div>
+  </div>
+
+  {{-- Non-Medis --}}
+  <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="flex items-center justify-between mb-3">
+      <div class="w-10 h-10 bg-violet-50 rounded-xl flex items-center justify-center">
+        <i class="fas fa-briefcase text-violet-600 text-sm ml-3"></i>
+      </div>
+      <span class="text-xs font-bold text-violet-600 bg-violet-50 px-2 py-1 rounded-full">Non-Medis</span>
     </div>
-    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Akun Pegawai</div>
+    <div class="text-3xl font-extrabold text-gray-800 leading-none mb-1">{{ $countNonMedis }}</div>
+    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tenaga Non-Medis</div>
   </div>
 
 </div>
@@ -444,9 +444,7 @@
 
         <div class="col-span-1 md:col-span-2 pb-5 mb-2 border-b border-gray-200">
           <div class="flex items-center gap-4">
-            <div class="w-16 h-16 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center text-3xl font-bold shadow-sm">
-              <i class="fas fa-user-doctor"></i>
-            </div>
+            <div id="infoAvatarWrap"></div>
             <div>
               <h3 class="text-2xl font-bold text-gray-800" id="infoNama">Nama Pegawai</h3>
               <p class="text-sm text-gray-500 font-mono" id="infoEmail">email@example.com</p>
@@ -502,6 +500,7 @@
     'no_hp'        => $p->no_hp ?? '',
     'alamat'       => $p->alamat ?? '',
     'poli'         => $p->poli ?? '',
+    'foto'         => $p->user->foto ?? '',
   ])->keyBy('id')) !!}
 </script>
 
@@ -633,14 +632,24 @@
     var p = pegawaiMap[id];
     if (!p) return;
 
-    document.getElementById('infoNama').textContent        = p.nama || '-';
-    document.getElementById('infoEmail').textContent       = p.email || '-';
-    document.getElementById('infoNik').textContent         = p.nik || '-';
-    document.getElementById('infoHp').textContent          = p.no_hp || '-';
+    // Avatar
+    var avatarWrap = document.getElementById('infoAvatarWrap');
+    if (p.foto) {
+      avatarWrap.innerHTML = '<img id="infoAvatarImg" class="info-avatar-img" alt="Foto Pegawai">';
+      document.getElementById('infoAvatarImg').src = '{{ asset("storage") }}/' + p.foto;
+    } else {
+      var initials = p.nama ? p.nama.split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase() : '?';
+      avatarWrap.innerHTML = '<div class="info-avatar-placeholder">' + initials + '</div>';
+    }
+
+    document.getElementById('infoNama').textContent         = p.nama || '-';
+    document.getElementById('infoEmail').textContent        = p.email || '-';
+    document.getElementById('infoNik').textContent          = p.nik || '-';
+    document.getElementById('infoHp').textContent           = p.no_hp || '-';
     document.getElementById('infoSpesialisasi').textContent = p.spesialisasi || '-';
-    document.getElementById('infoSip').textContent         = p.no_sip || '-';
-    document.getElementById('infoAlamat').textContent      = p.alamat || '-';
-    document.getElementById('infoPoli').textContent        = p.poli || '-';
+    document.getElementById('infoSip').textContent          = p.no_sip || '-';
+    document.getElementById('infoAlamat').textContent       = p.alamat || '-';
+    document.getElementById('infoPoli').textContent         = p.poli || '-';
 
     var badge = document.getElementById('infoJabatanBadge');
     badge.textContent = p.jabatan_nama || '-';

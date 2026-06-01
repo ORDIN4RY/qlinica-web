@@ -23,11 +23,6 @@
   </form>
 </div>
 
-{{-- Info badge read-only --}}
-<div class="flex items-center gap-2 mb-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
-  <i class="fas fa-eye"></i>
-  <span>Mode <strong>hanya lihat</strong> — Dokter tidak dapat menambah atau mengubah data pasien.</span>
-</div>
 
 {{-- Table --}}
 <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">

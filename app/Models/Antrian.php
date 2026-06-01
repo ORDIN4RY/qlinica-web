@@ -18,11 +18,14 @@ class Antrian extends Model
         'jenis',
         'keluhan',
         'status',
+        'last_called_at',
     ];
 
     protected $casts = [
-        'tanggal' => 'date',
+        'tanggal'        => 'date',
+        'last_called_at' => 'datetime',
     ];
+
 
     public function pasien()
     {

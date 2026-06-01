@@ -29,6 +29,37 @@
   .form-input:focus, .form-select:focus {
     border-color:#d97706; box-shadow:0 0 0 3px rgba(217,119,6,.1); }
   .modal-box-resep { max-width: 800px !important; }
+
+  /* ── AKSI DROPDOWN ── */
+  .aksi-btn {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 14px; font-size:12px; font-weight:700;
+    border:1.5px solid #e5e7eb; border-radius:10px;
+    background:#fff; color:#374151; cursor:pointer;
+    transition:all .15s; user-select:none; white-space:nowrap;
+  }
+  .aksi-btn:hover { background:#f8fafc; border-color:#d1d5db; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+  .aksi-btn i { font-size:9px; transition:transform .15s; }
+  .aksi-btn.is-open i { transform:rotate(180deg); }
+
+  .aksi-menu {
+    position:fixed; background:#fff;
+    border:1px solid #e5e7eb; border-radius:12px;
+    box-shadow:0 12px 36px rgba(15,23,42,.15);
+    z-index:9999; min-width:175px; overflow:hidden;
+    display:none;
+  }
+  .aksi-menu.open { display:block; animation:aksiIn .12s ease; }
+  @keyframes aksiIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+  .aksi-menu-item {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 16px; font-size:13px; font-weight:600;
+    color:#374151; cursor:pointer; transition:background .1s;
+    border:none; background:none; width:100%; text-align:left; text-decoration:none;
+  }
+  .aksi-menu-item:hover { background:#f8fafc; }
+  .aksi-menu-item i { font-size:11px; width:14px; text-align:center; flex-shrink:0; }
+  .aksi-menu-sep { height:1px; background:#f0f4f8; margin:4px 0; }
 </style>
 @endpush
 
@@ -42,76 +73,115 @@
       <a href="{{ route('admin.rawat_inap', ['status' => 'Selesai']) }}"
         class="px-4 py-2 text-sm font-medium rounded-xl border transition {{ request('status') == 'Selesai' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }}">Selesai
         / Pulang</a>
+      <a href="{{ route('admin.rawat_inap', ['status' => 'Antrian']) }}"
+        class="px-4 py-2 text-sm font-medium rounded-xl border transition {{ request('status') == 'Antrian' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }} flex items-center gap-2">
+        <span>Antrian Masuk</span>
+        @if($rekomendasiData->count() > 0)
+          <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+            {{ $rekomendasiData->count() }}
+          </span>
+        @endif
+      </a>
     </div>
 
     <!-- Antrian rawat inap is now inline -->
   </div>
 
-  @if($rekomendasiData->count() > 0 && auth()->user()->hasMenuAccess('Rawat Inap', 'tambah'))
-  <div class="mb-6 bg-white rounded-xl shadow-sm border border-emerald-200 overflow-hidden">
-    <div class="bg-emerald-50 px-6 py-4 border-b border-emerald-100 flex items-center gap-2">
-      <i class="fas fa-clipboard-list text-emerald-600"></i>
-      <h3 class="font-bold text-emerald-800">Antrian Masuk Rawat Inap (Rekomendasi Dokter)</h3>
-    </div>
-    <div class="overflow-x-auto p-4">
-      <div class="space-y-4">
-        @foreach($rekomendasiData as $rm)
-        <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
-          <div class="flex-1">
-            <h4 class="font-bold text-gray-800">{{ $rm->pasien->nama }}</h4>
-            <p class="text-xs text-gray-500">No. RM: {{ $rm->pasien->no_rm }} | Dokter: dr. {{ $rm->dokter->nama }}</p>
-          </div>
-          <div class="flex-1 w-full md:w-auto">
-            <form action="{{ route('admin.rawat_inap.store') }}" method="POST" class="flex flex-col md:flex-row items-center gap-3 w-full">
-              @csrf
-              <input type="hidden" name="pasien_id" value="{{ $rm->pasien_id }}">
-              <input type="hidden" name="dokter_id" value="{{ $rm->dokter_id }}">
-              <input type="hidden" name="tgl_masuk" value="{{ now()->format('Y-m-d\TH:i') }}">
-
-              <div class="w-full md:w-36">
-                <select name="jenis_penjamin" id="penjamin_{{ $rm->pasien_id }}" onchange="onPenjaminChange(this, {{ $rm->pasien_id }})" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" required>
-                  <option value="Umum">Umum (Mandiri)</option>
-                  <option value="BPJS KESEHATAN">BPJS KESEHATAN</option>
-                </select>
-              </div>
-              {{-- Catatan:
-                   - BPJS KESEHATAN rawat inap di FKTP menggunakan skema NON-KAPITASI (klaim manual ke BPJS tiap bulan via P-Care)
-                   - SEP (Surat Eligibilitas Peserta) TIDAK diperlukan di FKTP, hanya di FKRTL (Rumah Sakit)
-                   - Maksimal rawat inap 5 hari; lebih dari itu wajib dirujuk ke RS
-                   - BPJS tidak menanggung kamar kelas VIP
-              --}}
-              
-              <div class="w-full md:w-40">
-                <select class="pilih-kelas w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" data-target="kamar_select_{{ $rm->pasien_id }}" required>
-                  <option value="">-- Pilih Kelas --</option>
-                  @php
-                      $availableClasses = $kamarsTersedia->filter(function($k) { return $k->terisi < $k->kapasitas; })->pluck('kelas')->unique();
-                  @endphp
-                  @foreach($availableClasses as $kelas)
-                    <option value="{{ $kelas }}">{{ $kelas }}</option>
-                  @endforeach
-                </select>
-              </div>
-
-              <div class="w-full md:w-48">
-                <select name="kamar_id" id="kamar_select_{{ $rm->pasien_id }}" class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm" required>
-                  <option value="">-- Pilih Kamar --</option>
-                  <!-- Options populated by JS -->
-                </select>
-              </div>
-
-              <button type="submit" class="w-full md:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm shadow-sm transition whitespace-nowrap">
-                <i class="fas fa-check mr-1"></i> Accept
-              </button>
-            </form>
-          </div>
-        </div>
-        @endforeach
+  @if(request('status') == 'Antrian')
+  <div class="bg-white rounded-xl shadow-sm border border-emerald-100 overflow-hidden">
+    <div class="bg-emerald-50/60 px-6 py-4 border-b border-emerald-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-clipboard-list text-emerald-600 text-lg"></i>
+        <h3 class="font-bold text-emerald-800">Antrian Masuk Rawat Inap (Rekomendasi Dokter)</h3>
       </div>
+      <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full">{{ $rekomendasiData->count() }} Permintaan</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left min-w-max whitespace-nowrap">
+        <thead class="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
+          <tr>
+            <th class="px-6 py-4">Pasien</th>
+            <th class="px-6 py-4">Rekomendasi Oleh</th>
+            <th class="px-6 py-4">Penjamin</th>
+            <th class="px-6 py-4">Kelas</th>
+            <th class="px-6 py-4">Pilih Kamar</th>
+            @if(auth()->user()->hasMenuAccess('Rawat Inap', 'tambah'))
+              <th class="px-6 py-4 text-center">Aksi</th>
+            @endif
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @forelse($rekomendasiData as $rm)
+            <tr class="hover:bg-emerald-50/10 transition duration-150">
+              <td class="px-6 py-4">
+                <span class="block font-bold text-gray-800">{{ $rm->pasien->nama }}</span>
+                <span class="text-xs font-mono text-gray-500">RM: {{ $rm->pasien->no_rm }}</span>
+              </td>
+              <td class="px-6 py-4">
+                <span class="block font-semibold text-gray-700">dr. {{ $rm->dokter->nama }}</span>
+                <span class="text-xs text-gray-500">Periksa: {{ \Carbon\Carbon::parse($rm->tanggal_periksa)->format('d M Y') }}</span>
+              </td>
+              @if(auth()->user()->hasMenuAccess('Rawat Inap', 'tambah'))
+              <td class="px-6 py-4">
+                <form action="{{ route('admin.rawat_inap.store') }}" method="POST" class="contents">
+                  @csrf
+                  <input type="hidden" name="pasien_id" value="{{ $rm->pasien_id }}">
+                  <input type="hidden" name="dokter_id" value="{{ $rm->dokter_id }}">
+                  <input type="hidden" name="tgl_masuk" value="{{ now()->format('Y-m-d\TH:i') }}">
+
+                  <div class="w-44">
+                    <select name="jenis_penjamin" id="penjamin_{{ $rm->pasien_id }}" onchange="onPenjaminChange(this, {{ $rm->pasien_id }})" class="form-select text-xs py-2 px-3 focus:border-emerald-500 focus:ring-emerald-500/20" required>
+                      <option value="Umum">Umum (Mandiri)</option>
+                      <option value="BPJS KESEHATAN">BPJS KESEHATAN</option>
+                    </select>
+                  </div>
+              </td>
+              <td class="px-6 py-4">
+                  <div class="w-36">
+                    <select class="pilih-kelas form-select text-xs py-2 px-3 focus:border-emerald-500 focus:ring-emerald-500/20" data-target="kamar_select_{{ $rm->pasien_id }}" required>
+                      <option value="">-- Pilih Kelas --</option>
+                      @php
+                          $availableClasses = $kamarsTersedia->filter(function($k) { return $k->terisi < $k->kapasitas; })->pluck('kelas')->unique();
+                      @endphp
+                      @foreach($availableClasses as $kelas)
+                        <option value="{{ $kelas }}">{{ $kelas }}</option>
+                      @endforeach
+                    </select>
+                  </div>
+              </td>
+              <td class="px-6 py-4">
+                  <div class="w-56">
+                    <select name="kamar_id" id="kamar_select_{{ $rm->pasien_id }}" class="form-select text-xs py-2 px-3 focus:border-emerald-500 focus:ring-emerald-500/20" required>
+                      <option value="">-- Pilih Kamar --</option>
+                      <!-- Options populated by JS -->
+                    </select>
+                  </div>
+              </td>
+              <td class="px-6 py-4 text-center">
+                  <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition-all duration-200">
+                    <i class="fas fa-check"></i> Accept
+                  </button>
+                </form>
+              </td>
+              @else
+              <td colspan="4" class="px-6 py-4 text-gray-500 text-xs italic">
+                Anda tidak memiliki akses untuk memproses admisi.
+              </td>
+              @endif
+            </tr>
+          @empty
+            <tr>
+              <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                <i class="fas fa-clipboard-list text-4xl mb-3 text-emerald-100 block"></i>
+                Tidak ada antrian masuk rawat inap saat ini.
+              </td>
+            </tr>
+          @endforelse
+        </tbody>
+      </table>
     </div>
   </div>
-  @endif
-
+  @else
   <!-- Table -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
     <div class="overflow-x-auto">
@@ -190,29 +260,37 @@
               </td>
               @if (auth()->user()->hasMenuAccess('Rawat Inap', 'edit') || auth()->user()->hasMenuAccess('Rawat Inap', 'hapus'))
               <td class="px-6 py-4 text-right">
-                <div class="relative group inline-block text-left z-10">
-                  <button type="button" class="inline-flex items-center justify-center rounded-lg border border-gray-200 shadow-sm px-3 py-1.5 bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition">
-                    Aksi <i class="fas fa-chevron-down ml-1.5 text-[10px]"></i>
-                  </button>
-                  <div class="origin-top-right absolute right-0 mt-2 w-32 rounded-xl shadow-lg bg-white border border-gray-100 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 flex flex-col p-1">
-                    @if($ri->status === 'Aktif' && auth()->user()->hasMenuAccess('Rawat Inap', 'edit'))
-                      <button onclick="openResepModal({{ $ri->id }}, '{{ addslashes($ri->pasien->nama) }}')" class="text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition flex items-center w-full">
-                        <i class="fas fa-pills w-5 text-center mr-1"></i> Resep
-                      </button>
-                      <button onclick="openPindahModal({{ $ri->id }}, '{{ addslashes($ri->pasien->nama) }}', {{ $ri->kamar_id }}, '{{ $ri->kamar->kelas }}')" class="text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition flex items-center w-full">
-                        <i class="fas fa-exchange-alt w-5 text-center mr-1"></i> Pindah
-                      </button>
-                      <button onclick="openCheckoutModal({{ $ri->id }}, '{{ addslashes($ri->pasien->nama) }}')" class="text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition flex items-center w-full">
-                        <i class="fas fa-sign-out-alt w-5 text-center mr-1"></i> Pulang
-                      </button>
-                    @endif
-                    @if($ri->billing)
-                      <a href="{{ route('admin.billing.show', $ri->billing->id) }}" class="text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition flex items-center w-full">
-                        <i class="fas fa-receipt w-5 text-center mr-1"></i> Tagihan
-                      </a>
-                    @endif
-                  </div>
+                @php
+                  $hasAktifAction = $ri->status === 'Aktif' && auth()->user()->hasMenuAccess('Rawat Inap', 'edit');
+                  $hasTagihan = (bool)$ri->billing;
+                @endphp
+                @if($hasAktifAction || $hasTagihan)
+                <button class="aksi-btn" onclick="toggleAksiMenu(this,'aksi-{{ $ri->id }}')">
+                  Aksi <i class="fas fa-chevron-down"></i>
+                </button>
+                <div id="aksi-{{ $ri->id }}" class="aksi-menu">
+                  @if($hasAktifAction)
+                    <button class="aksi-menu-item"
+                      onclick="openResepModal({{ $ri->id }},'{{ addslashes($ri->pasien->nama) }}');closeAksiMenu();">
+                      <i class="fas fa-pills" style="color:#059669"></i> Resep
+                    </button>
+                    <button class="aksi-menu-item"
+                      onclick="openPindahModal({{ $ri->id }},'{{ $ri->pasien->nama }}',{{ $ri->kamar_id }},'{{ $ri->kamar->kelas }}');closeAksiMenu();">
+                      <i class="fas fa-exchange-alt" style="color:#4f46e5"></i> Pindah Kamar
+                    </button>
+                    <button class="aksi-menu-item"
+                      onclick="openCheckoutModal({{ $ri->id }},'{{ $ri->pasien->nama }}');closeAksiMenu();">
+                      <i class="fas fa-sign-out-alt" style="color:#d97706"></i> Pulang
+                    </button>
+                  @endif
+                  @if($hasTagihan)
+                    @if($hasAktifAction)<div class="aksi-menu-sep"></div>@endif
+                    <a href="{{ route('admin.billing.show', $ri->billing->id) }}" class="aksi-menu-item">
+                      <i class="fas fa-receipt" style="color:#6b7280"></i> Tagihan
+                    </a>
+                  @endif
                 </div>
+                @endif
               </td>
               @endif
             </tr>
@@ -234,6 +312,7 @@
       </div>
     @endif
   </div>
+  @endif
 
   <!-- Check-in Modal Removed -->
 
@@ -639,16 +718,33 @@
       }
     }
 
-    // Close modal on Escape key for resepModal
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        closeModal('resepModal');
+    // ── AKSI DROPDOWN ──
+    let _aksiCloseTimer = null;
+    function toggleAksiMenu(btn, menuId) {
+      const menu = document.getElementById(menuId);
+      const isOpen = menu.classList.contains('open');
+      closeAksiMenu();
+      if (!isOpen) {
+        const rect = btn.getBoundingClientRect();
+        menu.style.top   = (rect.bottom + 6) + 'px';
+        menu.style.right = (window.innerWidth - rect.right) + 'px';
+        menu.style.left  = 'auto';
+        menu.classList.add('open');
+        btn.classList.add('is-open');
       }
+    }
+    function closeAksiMenu() {
+      document.querySelectorAll('.aksi-menu.open').forEach(m => m.classList.remove('open'));
+      document.querySelectorAll('.aksi-btn.is-open').forEach(b => b.classList.remove('is-open'));
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.aksi-btn') && !e.target.closest('.aksi-menu')) closeAksiMenu();
     });
-
-    // Close modal on clicking overlay for resepModal
-    document.getElementById('resepModal').addEventListener('click', function(e) {
-      if (e.target === this) closeModal('resepModal');
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeAksiMenu();
     });
+    // Tutup dropdown saat scroll supaya tidak menimpa
+    window.addEventListener('scroll', closeAksiMenu, { passive: true });
+    document.querySelector('.overflow-x-auto')?.addEventListener('scroll', closeAksiMenu, { passive: true });
   </script>
 @endpush

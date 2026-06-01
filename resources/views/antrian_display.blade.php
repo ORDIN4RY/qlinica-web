@@ -31,18 +31,19 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
-      height: 100%;
+      height: 100vh;
+      overflow: hidden;
     }
 
     body {
       font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--teks);
-      min-height: 100vh;
-      overflow-x: hidden;
       /* Subtle dot grid background */
       background-image: radial-gradient(circle, #c8d5ee 1px, transparent 1px);
       background-size: 28px 28px;
+      display: flex;
+      flex-direction: column;
     }
 
     /* ══ HEADER ══ */
@@ -63,11 +64,16 @@
       display: flex; align-items: center; gap: 14px;
     }
     .logo-icon {
-      width: 46px; height: 46px;
-      background: linear-gradient(135deg, var(--navy), var(--biru));
+      width: 48px; height: 48px;
       border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 6px 18px rgba(30,58,138,.35);
+      transition: transform .4s ease;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .logo-icon img {
+      width: 100%; height: 100%; object-fit: contain;
+      border-radius: 12px;
     }
     .logo-text {
       font-family: 'Sora', sans-serif;
@@ -107,17 +113,20 @@
 
     /* ══ MAIN LAYOUT ══ */
     .main-grid {
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 22px;
-      padding: 22px 40px 90px;
-      min-height: calc(100vh - 72px);
-      align-items: start;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 18px 28px 54px;
+      flex: 1 1 0;
+      min-height: 0;
+      box-sizing: border-box;
     }
 
     /* ══ LEFT ══ */
     .current-section {
-      display: flex; flex-direction: column; gap: 18px;
+      display: flex; flex-direction: column; gap: 14px;
+      flex: 1 1 0;
+      min-height: 0;
     }
 
     .section-label {
@@ -131,16 +140,17 @@
     /* ══ Called Card — BESAR untuk TV ══ */
     .called-card {
       background: var(--putih);
-      border: 1.5px solid var(--border);
-      border-radius: 28px;
-      box-shadow: var(--shadow-lg);
-      padding: 52px 64px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 48px 60px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      min-height: 420px;
+      flex: 1 1 0;
+      min-height: 0;
       position: relative;
       overflow: hidden;
       transition: box-shadow .3s;
@@ -198,7 +208,7 @@
     /* ══ Nomor besar TV-friendly ══ */
     .called-number {
       font-family: 'Sora', sans-serif;
-      font-size: clamp(100px, 16vw, 176px);
+      font-size: clamp(110px, 18vw, 220px);
       font-weight: 900;
       line-height: 1;
       letter-spacing: -8px;
@@ -273,13 +283,14 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 14px;
+      flex-shrink: 0;
     }
     .stat-chip {
       background: var(--putih);
-      border: 1.5px solid var(--border);
+      border: 1px solid var(--border);
       border-radius: 20px;
       box-shadow: var(--shadow);
-      padding: 24px 18px 20px;
+      padding: 18px 20px;
       text-align: center;
       transition: transform .22s, box-shadow .22s;
       position: relative; overflow: hidden;
@@ -293,121 +304,25 @@
     .stat-chip.chip-done::before  { background: linear-gradient(90deg,var(--hijau),#06b6d4); }
     .stat-chip:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(30,58,138,.12); }
 
+    .stat-chip:hover { transform: translateY(-4px); box-shadow: 0 14px 36px rgba(30,58,138,.12); }
     .stat-chip .val {
       font-family: 'Sora', sans-serif;
-      font-size: 48px; font-weight: 900;
-      line-height: 1; letter-spacing: -3px;
+      font-size: 42px; font-weight: 900;
+      line-height: 1; letter-spacing: -2px;
     }
     .stat-chip .lbl {
       font-size: 11px; font-weight: 700;
+      font-size: 11px; font-weight: 700;
       color: var(--abu);
       text-transform: uppercase; letter-spacing: 1.5px;
+      margin-top: 7px;
       margin-top: 7px;
     }
     .val-total   { color: var(--biru); }
     .val-waiting { color: var(--kuning); }
     .val-done    { color: var(--hijau); }
 
-    /* ══ RIGHT PANEL ══ */
-    .waiting-panel {
-      display: flex; flex-direction: column; gap: 14px;
-      /* Sticky panel agar tetap kelihatan saat scroll */
-      position: sticky;
-      top: 90px;
-    }
-    .panel-card {
-      background: var(--putih);
-      border: 1.5px solid var(--border);
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-    .panel-header-inner {
-      padding: 18px 20px 16px;
-      border-bottom: 1.5px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-    }
-    .panel-title {
-      font-size: 12px; font-weight: 800;
-      color: var(--teks);
-      text-transform: uppercase; letter-spacing: 1.8px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .panel-title i { color: var(--biru); }
-    .count-badge {
-      background: #fffbeb;
-      border: 1.5px solid #fde68a;
-      color: #92400e;
-      font-size: 12px; font-weight: 800;
-      padding: 4px 12px; border-radius: 99px;
-      min-width: 32px; text-align: center;
-    }
 
-    .waiting-list {
-      display: flex; flex-direction: column; gap: 0;
-      max-height: calc(100vh - 280px);
-      overflow-y: auto;
-    }
-    .waiting-list::-webkit-scrollbar { width: 4px; }
-    .waiting-list::-webkit-scrollbar-track { background: transparent; }
-    .waiting-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-    .queue-item {
-      padding: 14px 20px;
-      display: flex; align-items: center; gap: 14px;
-      border-bottom: 1px solid #f0f4f8;
-      transition: background .18s;
-      animation: slideIn .3s ease;
-    }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(12px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-    .queue-item:last-child { border-bottom: none; }
-    .queue-item:hover { background: #f8fafc; }
-    .queue-item.is-called {
-      background: linear-gradient(135deg, #eff6ff, #f5f3ff);
-      border-left: 4px solid var(--biru);
-    }
-
-    .q-num {
-      width: 44px; height: 44px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--navy), var(--biru));
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Sora', sans-serif;
-      font-size: 14px; font-weight: 800;
-      color: #fff; flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(37,99,235,.28);
-    }
-    .q-num.called-num {
-      background: linear-gradient(135deg, var(--ungu), #a78bfa);
-      box-shadow: 0 4px 16px rgba(124,58,237,.38);
-      animation: pulseNum 1.6s infinite;
-    }
-    @keyframes pulseNum {
-      0%,100% { box-shadow: 0 4px 12px rgba(124,58,237,.35); }
-      50%      { box-shadow: 0 4px 24px rgba(124,58,237,.65); }
-    }
-    .q-info { flex: 1; min-width: 0; }
-    .q-name {
-      font-size: 14px; font-weight: 700;
-      color: var(--teks);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .q-status {
-      font-size: 11px; font-weight: 600;
-      margin-top: 3px; display: flex; align-items: center; gap: 5px;
-    }
-    .q-status.menunggu  { color: var(--kuning); }
-    .q-status.dipanggil { color: var(--ungu); }
-
-    .empty-waiting {
-      text-align: center; padding: 48px 20px;
-      color: var(--abu); font-size: 14px;
-    }
-    .empty-waiting i { display: block; font-size: 32px; margin-bottom: 10px; opacity: .3; }
 
     /* ══ TOAST ══ */
     .call-toast {
@@ -479,10 +394,18 @@
     .ticker-sep { color: rgba(255,255,255,.28); font-size: 14px; }
 
     /* ══ RESPONSIVE ══ */
-    @media (max-width: 960px) {
-      .main-grid { grid-template-columns: 1fr; padding: 16px 20px 90px; }
-      .waiting-panel { display: none; }
-      .header-bar { padding: 0 20px; }
+    @media (max-width: 900px) {
+      .main-grid { padding: 10px 14px 52px; gap: 10px; }
+      .header-bar { padding: 0 16px; height: 60px; }
+      .called-card { padding: 24px 18px; }
+      .stats-row { gap: 8px; }
+      .stat-chip .val { font-size: 30px; }
+      .stat-chip { padding: 12px 8px; }
+    }
+    @media (max-width: 480px) {
+      .stats-row { grid-template-columns: repeat(3,1fr); gap: 6px; }
+      .stat-chip { padding: 10px 6px; }
+      .stat-chip .val { font-size: 24px; }
     }
   </style>
 </head>
@@ -501,7 +424,7 @@
   <header class="header-bar">
     <div class="logo-wrap">
       <div class="logo-icon">
-        <i class="fas fa-clinic-medical" style="font-size:20px;color:#fff;"></i>
+        <img src="{{ asset('favicon.png') }}" alt="QLINICA">
       </div>
       <div>
         <div class="logo-text">QLINICA</div>
@@ -540,10 +463,6 @@
 
     <!-- ── LEFT ── -->
     <div class="current-section">
-      <div class="section-label">
-        <i class="fas fa-bullhorn"></i> Nomor Yang Sedang Dipanggil
-      </div>
-
       <!-- Called Card -->
       <div class="called-card" id="calledCard">
         <!-- No queue state -->
@@ -584,24 +503,6 @@
         <div class="stat-chip chip-done">
           <div class="val val-done" id="statDone">0</div>
           <div class="lbl">Selesai</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── RIGHT PANEL ── -->
-    <div class="waiting-panel">
-      <div class="panel-card">
-        <div class="panel-header-inner">
-          <div class="panel-title">
-            <i class="fas fa-list-ol"></i> Antrian Menunggu
-          </div>
-          <div class="count-badge" id="waitingBadge">0</div>
-        </div>
-        <div class="waiting-list" id="waitingList">
-          <div class="empty-waiting" id="emptyWaiting">
-            <i class="fas fa-inbox"></i>
-            Belum ada antrian hari ini
-          </div>
         </div>
       </div>
     </div>
@@ -652,8 +553,9 @@ setInterval(updateClock, 1000);
 /* ══════════════════════════════════
    SOUND TOGGLE
 ══════════════════════════════════ */
-let soundEnabled = true;
-let lastCalledNumber = null;
+let soundEnabled  = true;
+let lastCallKey   = null;  // format: "no_antrian|last_called_at_ts" — deteksi panggil & panggil ulang
+let isFirstLoad   = true;  // saat pertama kali load, jangan bunyikan suara untuk antrian yang sudah ada
 
 function toggleSound() {
   soundEnabled = !soundEnabled;
@@ -894,21 +796,36 @@ function renderCalledCard(data) {
   const poli   = data.dilayani.poli || null;
   const nama   = data.dilayani.nama || '';
 
-  if (lastCalledNumber !== data.dilayani.no_antrian) {
-    // Animasi nomor
-    numEl.classList.remove('number-change');
-    void numEl.offsetWidth;
-    numEl.classList.add('number-change');
+  // Gunakan no_antrian + last_called_at (dikirim server sebagai updated_at)
+  // sebagai key unik. Setiap panggil ulang mengubah last_called_at = NOW(),
+  // sehingga key pasti berubah dan suara pasti diputar di layar display.
+  const callKey = data.dilayani.no_antrian + '|' + (data.dilayani.updated_at || '0');
 
-    // Flash card
-    card.classList.remove('flash-animate');
-    void card.offsetWidth;
-    card.classList.add('flash-animate');
+  if (lastCallKey !== callKey) {
+    if (isFirstLoad) {
+      // Pertama kali halaman dibuka: tangkap key saat ini tanpa bunyikan suara.
+      // Suara hanya diputar untuk perubahan yang terjadi SETELAH halaman dimuat.
+      lastCallKey = callKey;
+      console.log('[Display] First load — key captured silently:', callKey);
+    } else {
+      // Ada panggilan baru atau panggil ulang — bunyikan suara + tampilkan animasi
+      console.log('[Display] Panggilan terdeteksi:', callKey);
 
-    speakAnnouncement(data.dilayani.no_antrian, nama, poli);
-    showCallToast(data.dilayani.no_antrian, nama, poli);
+      // Animasi nomor
+      numEl.classList.remove('number-change');
+      void numEl.offsetWidth;
+      numEl.classList.add('number-change');
 
-    lastCalledNumber = data.dilayani.no_antrian;
+      // Flash card
+      card.classList.remove('flash-animate');
+      void card.offsetWidth;
+      card.classList.add('flash-animate');
+
+      speakAnnouncement(data.dilayani.no_antrian, nama, poli);
+      showCallToast(data.dilayani.no_antrian, nama, poli);
+
+      lastCallKey = callKey;
+    }
   }
 
   numEl.textContent  = 'No. ' + data.dilayani.no_antrian;
@@ -933,7 +850,6 @@ function renderStats(data) {
   document.getElementById('statTotal').textContent   = data.total   ?? 0;
   document.getElementById('statWaiting').textContent = data.menunggu ?? 0;
   document.getElementById('statDone').textContent    = data.selesai  ?? 0;
-  document.getElementById('waitingBadge').textContent = (data.daftar_menunggu ?? []).length;
 }
 
 function renderWaitingList(items) {
@@ -981,7 +897,7 @@ function renderWaitingList(items) {
 /* ══════════════════════════════════
    POLLING
 ══════════════════════════════════ */
-const POLL_INTERVAL = 4000;
+const POLL_INTERVAL = 3000; // 3 detik untuk respons panggil ulang yang lebih cepat
 
 function fetchDisplayData() {
   fetch('{{ route("antrian.display.data") }}', {
@@ -991,7 +907,12 @@ function fetchDisplayData() {
   .then(function(data) {
     renderCalledCard(data);
     renderStats(data);
-    renderWaitingList(data.daftar_menunggu ?? []);
+    // Setelah fetch pertama selesai, tandai bahwa halaman sudah dimuat penuh
+    // sehingga polling berikutnya akan membunyikan suara untuk perubahan baru
+    if (isFirstLoad) {
+      isFirstLoad = false;
+      console.log('[Display] Halaman siap — polling aktif, suara akan berbunyi untuk panggilan baru.');
+    }
   })
   .catch(function(err) {
     console.warn('Polling error:', err);

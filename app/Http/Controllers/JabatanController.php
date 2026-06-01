@@ -149,13 +149,19 @@ class JabatanController extends Controller
     {
         $request->validate([
             'nama_jabatan' => 'required|string|max:100|unique:jabatan,nama_jabatan',
+            'jenis'        => 'required|in:medis,non-medis',
         ], [
             'nama_jabatan.required' => 'Nama jabatan wajib diisi.',
             'nama_jabatan.unique'   => 'Nama jabatan sudah ada.',
             'nama_jabatan.max'      => 'Nama jabatan maksimal 100 karakter.',
+            'jenis.required'        => 'Jenis jabatan wajib dipilih.',
+            'jenis.in'              => 'Jenis jabatan tidak valid.',
         ]);
 
-        Jabatan::create(['nama_jabatan' => $request->nama_jabatan]);
+        Jabatan::create([
+            'nama_jabatan' => $request->nama_jabatan,
+            'jenis'        => $request->jenis,
+        ]);
 
         return redirect()->route('admin.jabatan')
             ->with('success', 'Jabatan "' . $request->nama_jabatan . '" berhasil ditambahkan.');

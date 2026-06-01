@@ -7,6 +7,7 @@
 @push('styles')
 <style>
   .modal-overlay { background-color: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); transition: all 0.3s ease; }
+  .modal-backdrop { background-color: rgba(15, 23, 42, 0.55); backdrop-filter: blur(4px); }
 </style>
 @endpush
 
@@ -194,8 +195,8 @@
 {{-- ========================================================
      MODAL 1: SKRINING KEFARMASIAN (SOAP / ACCREDITATION)
      ======================================================== --}}
-<div id="skriningModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
-  <div class="fixed inset-0 modal-overlay bg-slate-900/60" onclick="closeSkriningModal()"></div>
+<div id="skriningModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+  <div class="fixed inset-0 modal-backdrop bg-slate-900/60" onclick="closeSkriningModal()"></div>
   <div class="bg-white rounded-2xl max-w-lg w-full mx-4 shadow-xl border border-slate-100 z-10 overflow-hidden">
     <div class="px-6 py-4 bg-blue-900 text-white flex items-center justify-between">
       <h3 class="font-bold text-sm uppercase tracking-wider flex items-center gap-2"><i class="fas fa-stethoscope"></i> Skrining Pelayanan Farmasi</h3>
@@ -243,8 +244,8 @@
 {{-- ========================================================
      MODAL 2: 5 BENAR PENYERAHAN OBAT (CLINICAL PATIENT SAFETY)
      ======================================================== --}}
-<div id="handoverModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
-  <div class="fixed inset-0 modal-overlay bg-slate-900/60" onclick="closeHandoverModal()"></div>
+<div id="handoverModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+  <div class="fixed inset-0 modal-backdrop bg-slate-900/60" onclick="closeHandoverModal()"></div>
   <div class="bg-white rounded-2xl max-w-lg w-full mx-4 shadow-xl border border-slate-100 z-10 overflow-hidden">
     <div class="px-6 py-4 bg-emerald-600 text-white flex items-center justify-between">
       <h3 class="font-bold text-sm uppercase tracking-wider flex items-center gap-2"><i class="fas fa-check-circle"></i> Konfirmasi Penyerahan Obat</h3>
@@ -295,11 +296,13 @@
     }
     
     modal.classList.remove('hidden');
+    modal.classList.add('flex');
   }
 
   function closeSkriningModal() {
     const modal = document.getElementById('skriningModal');
     modal.classList.add('hidden');
+    modal.classList.remove('flex');
   }
 
   // ──── Handover Modal ────
@@ -312,11 +315,13 @@
     document.getElementById('handover-pasien-rm').innerText = pasienRm;
     
     modal.classList.remove('hidden');
+    modal.classList.add('flex');
   }
 
   function closeHandoverModal() {
     const modal = document.getElementById('handoverModal');
     modal.classList.add('hidden');
+    modal.classList.remove('flex');
   }
 
   // ──── Confirm Kembalikan ────
