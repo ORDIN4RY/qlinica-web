@@ -181,7 +181,7 @@
   <div class="role-sidebar flex-shrink-0 w-full lg:w-auto bg-white border border-gray-200 rounded-2xl shadow-sm p-4 sticky top-24">
     <div class="flex justify-between items-center mb-4 px-2">
       <h3 class="font-bold text-gray-800 text-sm uppercase tracking-wider">Daftar Jabatan</h3>
-      <button type="button" onclick="document.getElementById('modalTambah').classList.add('open')"
+      <button type="button" onclick="document.getElementById('modalTambah').classList.add('open'); updateJenisStyle();"
         class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center justify-center transition" title="Tambah Jabatan">
         <i class="fas fa-plus text-sm"></i>
       </button>
@@ -618,26 +618,31 @@
   @endif
 
   /* ── Style radio button jenis jabatan ── */
+  const BASE_LABEL   = 'flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition';
+  const ACTIVE_MEDIS    = 'border-emerald-400 bg-emerald-50';
+  const INACTIVE_MEDIS  = 'border-gray-200 hover:border-emerald-200';
+  const ACTIVE_NONMEDIS = 'border-violet-400 bg-violet-50';
+  const INACTIVE_NONMEDIS = 'border-gray-200 hover:border-violet-200';
+
   function updateJenisStyle() {
     const medisRadio    = document.querySelector('input[name="jenis"][value="medis"]');
-    const nonMedisRadio = document.querySelector('input[name="jenis"][value="non-medis"]');
     const labelMedis    = document.getElementById('labelMedis');
     const labelNonMedis = document.getElementById('labelNonMedis');
-
     if (!medisRadio || !labelMedis) return;
 
     if (medisRadio.checked) {
-      labelMedis.className    = labelMedis.className.replace(/border-gray-200|border-violet-400 bg-violet-50/g, '').trim()
-        + ' border-emerald-400 bg-emerald-50';
-      labelNonMedis.className = labelNonMedis.className.replace(/border-emerald-400 bg-emerald-50/g, '').trim()
-        + ' border-gray-200';
+      labelMedis.className    = BASE_LABEL + ' ' + ACTIVE_MEDIS;
+      labelNonMedis.className = BASE_LABEL + ' ' + INACTIVE_NONMEDIS;
     } else {
-      labelNonMedis.className = labelNonMedis.className.replace(/border-gray-200|border-emerald-400 bg-emerald-50/g, '').trim()
-        + ' border-violet-400 bg-violet-50';
-      labelMedis.className    = labelMedis.className.replace(/border-violet-400 bg-violet-50|border-emerald-400 bg-emerald-50/g, '').trim()
-        + ' border-gray-200';
+      labelNonMedis.className = BASE_LABEL + ' ' + ACTIVE_NONMEDIS;
+      labelMedis.className    = BASE_LABEL + ' ' + INACTIVE_MEDIS;
     }
   }
+
+  // Jalankan saat modal dibuka agar state awal selalu sinkron
+  document.getElementById('modalTambah').addEventListener('click', function() {});
+  document.querySelectorAll('.jenis-radio').forEach(r => r.addEventListener('change', updateJenisStyle));
+  updateJenisStyle();
 
   /* ── Search Menu ── */
   function searchMenu(input, jabatanId) {
