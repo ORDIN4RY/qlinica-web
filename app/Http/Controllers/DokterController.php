@@ -619,6 +619,14 @@ class DokterController extends Controller
             return redirect()->route('dokter.antrian')->with('error', 'Pasien harus dalam status Dipanggil untuk memulai pemeriksaan.');
         }
 
+        // ── Panggil ke Poli ──
+        // Update last_called_at saat dokter membuka form Periksa & Diagnosa.
+        // Ini menjadi sinyal bagi layar display: jika last_called_at > rekam_medis.created_at
+        // maka pasien ditampilkan di panel Poli (bukan Resepsionis).
+        if ($antrian->status === 'Dipanggil' && $antrian->rekamMedis) {
+            $antrian->update(['last_called_at' => now()]);
+        }
+
         $obats = Obat::orderBy('nama')->get();
 
         return view('dokter.periksa', compact('antrian', 'obats'));

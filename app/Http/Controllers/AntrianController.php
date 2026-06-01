@@ -148,7 +148,11 @@ class AntrianController extends Controller
 
 
         DB::transaction(function () use ($antrian, $request) {
-            $antrian->update(['status' => 'Dipanggil', 'last_called_at' => now()]);
+            // Setelah TTV: status tetap Dipanggil (menunggu di resepsionis/ruang tunggu),
+            // tapi last_called_at TIDAK diperbarui di sini.
+            // last_called_at akan diperbarui oleh dokter saat membuka form Periksa & Diagnosa,
+            // sehingga panel Poli pada layar display baru muncul saat dokter memanggil pasien.
+            $antrian->update(['status' => 'Dipanggil']);
 
             if ($request->jenis_pelayanan === 'BPJS' && $request->filled('no_bpjs')) {
                 $antrian->pasien->update(['no_bpjs' => $request->input('no_bpjs')]);
@@ -423,13 +427,63 @@ class AntrianController extends Controller
     {
         $today = now()->toDateString();
 
-        // Nomor antrian yang paling terakhir dipanggil (berdasarkan last_called_at)
-        // Menggunakan last_called_at agar panggil ulang selalu terdeteksi,
-        // dan agar antrian yang dipanggil paling baru tetap menjadi yang ditampilkan.
-        $dipanggil = Antrian::with(['pasien', 'rekamMedis'])
+        // Helper: format satu station untuk response JSON
+        $fmt = function ($antrian) {
+            if (!$antrian) return null;
+            $ts = $antrian->last_called_at
+                ? $antrian->last_called_at->timestamp
+                : ($antrian->updated_at ? $antrian->updated_at->timestamp : null);
+            return [
+                'no_antrian' => str_pad($antrian->no_antrian, 3, '0', STR_PAD_LEFT),
+                'nama'       => $antrian->pasien->nama ?? '-',
+                'updated_at' => $ts,
+            ];
+        };
+
+        // ── Resepsionis: Dipanggil TANPA rekam medis (belum diperiksa TTV) ──
+        $stResepsionis = Antrian::with('pasien')
             ->where('tanggal', $today)
             ->where('status', 'Dipanggil')
+            ->whereDoesntHave('rekamMedis')
             ->orderByRaw('COALESCE(last_called_at, updated_at) DESC')
+            ->first();
+
+        // ── Poli Umum: Dipanggil dengan rekam medis Poli Umum
+        //    DAN last_called_at > rekam_medis.created_at
+        //    (artinya dokter sudah menekan tombol Periksa & Diagnosa, bukan hanya TTV selesai)
+        $stPoliUmum = Antrian::with(['pasien', 'rekamMedis'])
+            ->join('rekam_medis as rm_umum', 'rm_umum.antrian_id', '=', 'antrian.id')
+            ->where('antrian.tanggal', $today)
+            ->where('antrian.status', 'Dipanggil')
+            ->where('rm_umum.pelayanan_kesehatan', 'Poli Umum')
+            ->whereNull('rm_umum.deleted_at')
+            ->whereRaw('antrian.last_called_at > rm_umum.created_at')
+            ->orderByRaw('COALESCE(antrian.last_called_at, antrian.updated_at) DESC')
+            ->select('antrian.*')
+            ->first();
+
+        // ── Poli KIA ──
+        $stPoliKia = Antrian::with(['pasien', 'rekamMedis'])
+            ->join('rekam_medis as rm_kia', 'rm_kia.antrian_id', '=', 'antrian.id')
+            ->where('antrian.tanggal', $today)
+            ->where('antrian.status', 'Dipanggil')
+            ->where('rm_kia.pelayanan_kesehatan', 'Poli KIA')
+            ->whereNull('rm_kia.deleted_at')
+            ->whereRaw('antrian.last_called_at > rm_kia.created_at')
+            ->orderByRaw('COALESCE(antrian.last_called_at, antrian.updated_at) DESC')
+            ->select('antrian.*')
+            ->first();
+
+        // ── Poli Gigi ──
+        $stPoliGigi = Antrian::with(['pasien', 'rekamMedis'])
+            ->join('rekam_medis as rm_gigi', 'rm_gigi.antrian_id', '=', 'antrian.id')
+            ->where('antrian.tanggal', $today)
+            ->where('antrian.status', 'Dipanggil')
+            ->where('rm_gigi.pelayanan_kesehatan', 'Poli Gigi')
+            ->whereNull('rm_gigi.deleted_at')
+            ->whereRaw('antrian.last_called_at > rm_gigi.created_at')
+            ->orderByRaw('COALESCE(antrian.last_called_at, antrian.updated_at) DESC')
+            ->select('antrian.*')
             ->first();
 
         $total    = Antrian::where('tanggal', $today)->count();
@@ -438,7 +492,7 @@ class AntrianController extends Controller
             ->whereIn('status', ['Menunggu', 'Dipanggil'])
             ->count();
 
-        // Daftar antrian yang masih menunggu / baru dipanggil (sertakan poli jika ada)
+        // Daftar antrian yang masih menunggu / baru dipanggil
         $daftarMenunggu = Antrian::with(['pasien', 'rekamMedis'])
             ->where('tanggal', $today)
             ->whereIn('status', ['Menunggu', 'Dipanggil'])
@@ -452,9 +506,13 @@ class AntrianController extends Controller
                 'poli'       => $a->rekamMedis->pelayanan_kesehatan ?? null,
             ]);
 
-        // Gunakan last_called_at sebagai timestamp key untuk display.
-        // Ini memastikan setiap panggil ulang (last_called_at berubah = now())
-        // akan terdeteksi sebagai "baru" oleh layar display dan memicu suara.
+        // Backward compat: dilayani = antrian yang paling terakhir dipanggil secara keseluruhan
+        $dipanggil = Antrian::with(['pasien', 'rekamMedis'])
+            ->where('tanggal', $today)
+            ->where('status', 'Dipanggil')
+            ->orderByRaw('COALESCE(last_called_at, updated_at) DESC')
+            ->first();
+
         $calledTs = null;
         if ($dipanggil) {
             $calledTs = $dipanggil->last_called_at
@@ -463,6 +521,14 @@ class AntrianController extends Controller
         }
 
         return response()->json([
+            // Per-station data untuk layar display multi-panel
+            'stations' => [
+                'resepsionis' => $fmt($stResepsionis),
+                'poli_umum'   => $fmt($stPoliUmum),
+                'poli_kia'    => $fmt($stPoliKia),
+                'poli_gigi'   => $fmt($stPoliGigi),
+            ],
+            // Backward compat
             'dilayani'        => $dipanggil ? [
                 'no_antrian'  => str_pad($dipanggil->no_antrian, 3, '0', STR_PAD_LEFT),
                 'nama'        => $dipanggil->pasien->nama ?? '-',

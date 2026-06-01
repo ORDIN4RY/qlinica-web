@@ -104,68 +104,48 @@
               <span class="px-2 py-1 bg-green-100 text-green-700 font-medium text-xs rounded-full">Tersedia</span>
             @endif
           </td>
-          <td class="px-4 py-3 text-center whitespace-nowrap relative">
-  
-  <!-- Tombol Titik 3 -->
-  <button onclick="toggleDropdown(this)"
-    class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 transition">
-    <i class="fas fa-ellipsis-v text-gray-700"></i>
-  </button>
+          <td class="px-4 py-3 text-center whitespace-nowrap">
+            <div class="inline-flex items-center gap-1 justify-center">
 
-  <!-- Dropdown Menu -->
-  <div
-    class="dropdown-menu hidden absolute right-4 mt-2 w-52 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+              {{-- Restok --}}
+              <button onclick="openModalRestok({{ json_encode($obat) }})"
+                title="Tambah Stok / Restok"
+                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition text-xs">
+                <i class="fas fa-plus-circle"></i>
+              </button>
 
-    <button onclick="openModalRestok({{ json_encode($obat) }})"
-      class="w-full flex items-center gap-2 px-4 py-3 text-sm text-indigo-700 hover:bg-indigo-50 transition">
-      <i class="fas fa-plus-circle"></i> Restok
-    </button>
+              {{-- Opname --}}
+              <button onclick="openModalStokOpname({{ json_encode($obat) }})"
+                title="Stok Opname"
+                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition text-xs">
+                <i class="fas fa-boxes"></i>
+              </button>
 
-    <button onclick="openModalStokOpname({{ json_encode($obat) }})"
-      class="w-full flex items-center gap-2 px-4 py-3 text-sm text-amber-700 hover:bg-amber-50 transition">
-      <i class="fas fa-boxes"></i> Opname
-    </button>
+              {{-- Riwayat --}}
+              <button onclick="openModalRiwayatStokOpname({{ $obat->id }}, '{{ addslashes($obat->nama) }}')"
+                title="Riwayat Opname"
+                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition text-xs">
+                <i class="fas fa-history"></i>
+              </button>
 
-    <button onclick="openModalRiwayatStokOpname({{ $obat->id }}, '{{ addslashes($obat->nama) }}')"
-      class="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition">
-      <i class="fas fa-history"></i> Riwayat
-    </button>
+              {{-- Edit --}}
+              <button onclick="openModal({{ json_encode($obat) }})"
+                title="Edit Obat"
+                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition text-xs">
+                <i class="fas fa-edit"></i>
+              </button>
 
-    <button onclick="openModal({{ json_encode($obat) }})"
-      class="w-full flex items-center gap-2 px-4 py-3 text-sm text-blue-700 hover:bg-blue-50 transition">
-      <i class="fas fa-edit"></i> Edit
-    </button>
+              {{-- Hapus --}}
+              <button onclick="confirmDelete({{ $obat->id }}, '{{ addslashes($obat->nama) }}')"
+                title="Hapus Obat"
+                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition text-xs">
+                <i class="fas fa-trash"></i>
+              </button>
 
-    <button onclick="confirmDelete({{ $obat->id }}, '{{ addslashes($obat->nama) }}')"
-      class="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition">
-      <i class="fas fa-trash"></i> Hapus
-    </button>
-
-  </div>
-</td>
-          {{-- <td class="px-4 py-3 text-center whitespace-nowrap">
-            <button onclick="openModalRestok({{ json_encode($obat) }})"
-              class="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition mr-1" title="Tambah Stok / Restok">
-              <i class="fas fa-plus-circle"></i> Restok
-            </button>
-            <button onclick="openModalStokOpname({{ json_encode($obat) }})"
-              class="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg transition mr-1" title="Stok Opname">
-              <i class="fas fa-boxes"></i> Opname
-            </button>
-            <button onclick="openModalRiwayatStokOpname({{ $obat->id }}, '{{ addslashes($obat->nama) }}')"
-              class="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 bg-gray-50 text-gray-700 hover:bg-gray-100 rounded-lg transition mr-1" title="Riwayat Opname">
-              <i class="fas fa-history"></i> Riwayat
-            </button>
-            <button onclick="openModal({{ json_encode($obat) }})"
-              class="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg transition mr-1">
-              <i class="fas fa-edit"></i> Edit
-            </button>
-            <button onclick="confirmDelete({{ $obat->id }}, '{{ addslashes($obat->nama) }}')"
-              class="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition">
-              <i class="fas fa-trash"></i> Hapus
-            </button>
-          </td> --}}
+            </div>
+          </td>
         </tr>
+
         @empty
         <tr>
           <td colspan="9" class="px-4 py-10 text-center text-gray-400">
@@ -841,26 +821,5 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-  //titik tiga
- function toggleDropdown(button) {
-    // Tutup semua dropdown lain
-    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-      if (menu !== button.nextElementSibling) {
-        menu.classList.add('hidden');
-      }
-    });
-
-    // Toggle dropdown yang dipilih
-    button.nextElementSibling.classList.toggle('hidden');
-  }
-
-  // Klik di luar dropdown = tutup
-  document.addEventListener('click', function (e) {
-    if (!e.target.closest('td')) {
-      document.querySelectorAll('.dropdown-menu').forEach(menu => {
-        menu.classList.add('hidden');
-      });
-    }
-  });
 </script>
 @endsection
