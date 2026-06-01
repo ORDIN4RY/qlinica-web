@@ -161,9 +161,12 @@
               <span>Sub Biaya Kamar Inap:</span>
               <span class="font-mono">Rp {{ number_format($billing->biaya_kamar, 2, ',', '.') }}</span>
             </div>
-            @if($billing->no_bpjs)
+            @php
+              $isBpjs = $billing->no_bpjs || ($billing->rekamMedis && $billing->rekamMedis->jenis_pelayanan === 'BPJS');
+            @endphp
+            @if($isBpjs)
               <div class="flex justify-between text-emerald-600 font-semibold">
-                <span>Ditanggung BPJS ({{ $billing->no_bpjs }}):</span>
+                <span>Ditanggung BPJS {{ $billing->no_bpjs ? "({$billing->no_bpjs})" : '' }}:</span>
                 <span class="font-mono">-Rp {{ number_format($billing->potongan_bpjs, 2, ',', '.') }}</span>
               </div>
             @endif

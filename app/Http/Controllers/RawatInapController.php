@@ -254,6 +254,7 @@ class RawatInapController extends Controller
         }
 
         $validated = $request->validate([
+            'keadaan_keluar' => 'required|string',
             'catatan_keluar' => 'nullable|string',
         ]);
 
@@ -261,8 +262,13 @@ class RawatInapController extends Controller
         if ($tglKeluar->lt($rawatInap->tgl_masuk)) {
             $tglKeluar = Carbon::parse($rawatInap->tgl_masuk);
         }
+        
+        $catatanAkhir = "Keadaan Pasien: " . $validated['keadaan_keluar'];
+        if (!empty($validated['catatan_keluar'])) {
+            $catatanAkhir .= "\nCatatan: " . $validated['catatan_keluar'];
+        }
 
-        \DB::transaction(function() use ($rawatInap, $validated, $tglKeluar) {
+        \DB::transaction(function() use ($rawatInap, $validated, $tglKeluar, $catatanAkhir) {
             $tglMasuk = Carbon::parse($rawatInap->tgl_masuk);
             
             // Update status kamar jadi Tersedia & kurangi kapasitas
@@ -281,7 +287,7 @@ class RawatInapController extends Controller
             $rawatInap->update([
                 'tgl_keluar' => $tglKeluar,
                 'status' => 'Selesai',
-                'catatan_keluar' => $validated['catatan_keluar'],
+                'catatan_keluar' => $catatanAkhir,
             ]);
 
             // Injeksi Biaya Kamar ke Billing dan kalkulasi

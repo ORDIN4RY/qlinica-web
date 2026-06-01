@@ -162,8 +162,12 @@ class LaporanController extends Controller
 
         // 5. Pendapatan per Jenis Pasien
         $pendapatanMetode = [
-            'Umum' => $lunasBillings->whereNull('no_bpjs')->sum('grand_total'),
-            'BPJS' => $lunasBillings->whereNotNull('no_bpjs')->sum('grand_total'),
+            'Umum' => $lunasBillings->filter(function($b) {
+                return !($b->no_bpjs || ($b->rekamMedis && $b->rekamMedis->jenis_pelayanan === 'BPJS'));
+            })->sum('grand_total'),
+            'BPJS' => $lunasBillings->filter(function($b) {
+                return $b->no_bpjs || ($b->rekamMedis && $b->rekamMedis->jenis_pelayanan === 'BPJS');
+            })->sum('grand_total'),
         ];
 
         // 6. Data Grafik Harian

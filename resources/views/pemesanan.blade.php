@@ -296,15 +296,12 @@
           <span class="text-blue-900 font-semibold uppercase text-xs tracking-widest">Pilih Layanan</span>
           <h2 class="text-3xl font-bold text-gray-800 mt-2">Layanan yang <span class="text-blue-900">Tersedia</span></h2>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
           @php
             $layanan = [
               ['icon'=>'fa-stethoscope','warna'=>'blue','nama'=>'Poli Umum'],
               ['icon'=>'fa-tooth','warna'=>'green','nama'=>'Poli Gigi'],
               ['icon'=>'fa-baby','warna'=>'pink','nama'=>'Poli KIA'],
-              ['icon'=>'fa-truck-medical','warna'=>'red','nama'=>'UGD'],
-              ['icon'=>'fa-flask','warna'=>'purple','nama'=>'Laboratorium'],
-              ['icon'=>'fa-spa','warna'=>'amber','nama'=>'Baby Spa'],
             ];
           @endphp
           @foreach($layanan as $i => $l)
@@ -370,9 +367,6 @@
             <option value="Poli Umum">Poli Umum</option>
             <option value="Poli Gigi">Poli Gigi</option>
             <option value="Poli KIA">Poli KIA</option>
-            <option value="UGD">UGD</option>
-            <option value="Laboratorium">Laboratorium</option>
-            <option value="Baby Spa">Baby Spa</option>
           </select>
         </div>
         <div>

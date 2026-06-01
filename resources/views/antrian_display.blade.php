@@ -577,9 +577,6 @@ const POLI_TTS_MAP = {
   'Poli Umum'    : 'Poli Umum',
   'Poli Gigi'    : 'Poli Gigi',
   'Poli KIA'     : 'Poli K. I. A.',
-  'UGD'          : 'Unit Gawat Darurat',
-  'Laboratorium' : 'Laboratorium',
-  'Baby Spa'     : 'Baby Spa',
 };
 
 const POLI_ICON_MAP = {

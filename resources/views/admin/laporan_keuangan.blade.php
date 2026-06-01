@@ -109,9 +109,9 @@
 
     <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex items-center justify-between">
       <div class="space-y-1">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Pemasukan Bersih (Cash)</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Pemasukan Kasir</p>
         <h3 class="text-xl font-bold text-blue-900 font-mono">Rp {{ number_format($totalPendapatanBersih, 2, ',', '.') }}</h3>
-        <p class="text-[10px] text-gray-400">Dana tunai / bank yang masuk</p>
+        <p class="text-[10px] text-gray-400">Pemasukan uang langsung di kasir</p>
       </div>
       <div class="w-12 h-12 bg-blue-50 text-blue-900 rounded-xl flex items-center justify-center text-xl">
         <i class="fas fa-wallet"></i>
@@ -120,7 +120,7 @@
 
     <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex items-center justify-between">
       <div class="space-y-1">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Piutang (Belum Bayar)</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Belum Bayar</p>
         <h3 class="text-xl font-bold text-amber-600 font-mono">Rp {{ number_format($totalBelumBayar, 2, ',', '.') }}</h3>
         <p class="text-[10px] text-gray-400">Tagihan kasir tertunda</p>
       </div>
@@ -234,8 +234,11 @@
                 <div class="text-[10px] text-gray-400 font-mono">RM: {{ $b->pasien?->no_rm ?: '-' }}</div>
               </td>
               <td>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase {{ $b->no_bpjs ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-700' }}">
-                  {{ $b->no_bpjs ? 'BPJS' : 'UMUM' }}
+                @php
+                  $isBpjs = $b->no_bpjs || ($b->rekamMedis && $b->rekamMedis->jenis_pelayanan === 'BPJS');
+                @endphp
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase {{ $isBpjs ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-700' }}">
+                  {{ $isBpjs ? 'BPJS' : 'UMUM' }}
                 </span>
               </td>
               <td class="text-right font-mono">Rp {{ number_format($b->biaya_registrasi, 0, ',', '.') }}</td>
