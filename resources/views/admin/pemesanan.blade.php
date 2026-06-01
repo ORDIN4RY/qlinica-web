@@ -23,8 +23,8 @@
     background: linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 60%);
     pointer-events: none;
   }
-  .antrian-stat.biru  { background: linear-gradient(135deg, #1d4ed8, #2563eb); }
-  .antrian-stat.navy  { background: linear-gradient(135deg, #0f2144, #1e3a8a); }
+  .antrian-stat.biru  { background: #1E3A8A; }
+  .antrian-stat.navy  { background: #1E3A8A; }
   .antrian-stat .stat-angka {
     font-family: 'Sora', sans-serif;
     font-size: 56px; font-weight: 800;
@@ -56,14 +56,14 @@
   /* ── BTN AMBIL ── */
   .btn-ambil {
     display: inline-flex; align-items: center; gap: 8px;
-    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    background: #1E3A8A;
     color: #fff; font-size: 13.5px; font-weight: 700;
     padding: 10px 22px; border-radius: 12px;
     border: none; cursor: pointer;
     box-shadow: 0 4px 14px rgba(37,99,235,.35);
     transition: all .2s; white-space: nowrap;
   }
-  .btn-ambil:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(37,99,235,.4); background: linear-gradient(135deg, #1e40af, #3b82f6); }
+  .btn-ambil:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(37,99,235,.4); background: #1565C0; }
   .btn-ambil:active { transform: none; }
 
   /* ── FILTER CHIPS ── */
@@ -117,7 +117,7 @@
   /* ── NOMOR ANTRIAN ── */
   .no-antrian {
     width: 36px; height: 36px; border-radius: 10px;
-    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    background: #1E3A8A;
     color: #fff; font-weight: 800; font-size: 13px;
     display: inline-flex; align-items: center; justify-content: center;
     box-shadow: 0 3px 8px rgba(37,99,235,.3);
@@ -235,7 +235,7 @@
     <div class="stat-label">Jumlah Antrian</div>
   </div>
 
-  <div class="antrian-stat" style="background: linear-gradient(135deg, #059669, #10b981);">
+  <div class="antrian-stat" style="background: #2E7D32;">
     <div class="stat-icon">
       <i class="fas fa-check-circle text-white text-lg"></i>
     </div>
@@ -460,7 +460,7 @@
           {{-- Pasien terpilih preview --}}
           <div id="pasienPreview" style="grid-column:1/-1; display:none;">
             <div style="background:#f0f7ff; border:1.5px solid #dbeafe; border-radius:12px; padding:12px 16px; display:flex; align-items:center; gap:12px;">
-              <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#1e3a8a,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px;" id="prevAvatar">A</div>
+              <div style="width:38px;height:38px;border-radius:10px;background:#1E3A8A;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px;" id="prevAvatar">A</div>
               <div>
                 <div style="font-weight:700;color:#1e293b;font-size:14px;" id="prevNama">—</div>
                 <div style="font-size:12px;color:#2563eb;font-weight:600;" id="prevRm">—</div>
@@ -497,7 +497,7 @@
         </button>
         <button type="submit"
           class="px-6 py-2.5 rounded-xl text-white text-sm font-bold transition shadow-md"
-          style="background:linear-gradient(135deg,#1e3a8a,#2563eb)">
+          style="background:#1E3A8A">
           <i class="fas fa-plus mr-1.5"></i> Tambahkan
         </button>
       </div>
@@ -626,7 +626,7 @@
         </button>
         <button type="submit"
           class="px-6 py-2.5 rounded-xl text-white text-xs font-bold transition shadow-md hover:brightness-110 flex items-center gap-2"
-          style="background:linear-gradient(135deg,#059669,#10b981)">
+          style="background:#2E7D32">
           <i class="fas fa-check"></i> Simpan & Panggil
         </button>
       </div>
@@ -911,7 +911,7 @@
         var html = '<div style="position:absolute;top:4px;left:0;right:0;background:#fff;border:1.5px solid #dbeafe;border-radius:12px;box-shadow:0 8px 24px rgba(37,99,235,.12);overflow:hidden;z-index:50;">';
         data.forEach(function(p) {
           html += '<div class="suggest-item" style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s;" data-id="' + p.id + '" data-nama="' + p.nama + '" data-rm="' + p.no_rm + '">'
-            + '<div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#1e3a8a,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:12px;flex-shrink:0;">' + p.nama.charAt(0).toUpperCase() + '</div>'
+            + '<div style="width:32px;height:32px;border-radius:8px;background:#1E3A8A;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:12px;flex-shrink:0;">' + p.nama.charAt(0).toUpperCase() + '</div>'
             + '<div><div style="font-size:13px;font-weight:600;color:#1e293b;">' + p.nama + '</div>'
             + '<div style="font-size:11px;color:#2563eb;font-weight:600;">' + p.no_rm + '</div></div>'
             + '</div>';

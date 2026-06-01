@@ -203,7 +203,7 @@
 <div id="modalObat" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 hidden">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
     {{-- Header --}}
-    <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-green-600 to-green-700">
+    <div class="flex items-center justify-between px-6 py-4 bg-blue-900">
       <h3 class="text-white font-bold text-base flex items-center gap-2">
         <i class="fas fa-pills"></i>
         <span id="modalTitle">Tambah Obat</span>
@@ -316,7 +316,7 @@
 <div id="modalRestok" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 hidden">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
     {{-- Header --}}
-    <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700">
+    <div class="flex items-center justify-between px-6 py-4 bg-blue-900">
       <h3 class="text-white font-bold text-base flex items-center gap-2">
         <i class="fas fa-plus-circle"></i>
         <span>Penerimaan / Tambah Stok Obat</span>
@@ -382,7 +382,7 @@
 <div id="modalStokOpname" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 hidden">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
     {{-- Header --}}
-    <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-amber-500 to-amber-600">
+    <div class="flex items-center justify-between px-6 py-4 bg-blue-900">
       <h3 class="text-white font-bold text-base flex items-center gap-2">
         <i class="fas fa-boxes"></i>
         <span>Stok Opname Obat</span>
@@ -442,7 +442,7 @@
 <div id="modalRiwayatStokOpname" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 hidden">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden">
     {{-- Header --}}
-    <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-gray-700 to-gray-800">
+    <div class="flex items-center justify-between px-6 py-4 bg-blue-900">
       <h3 class="text-white font-bold text-base flex items-center gap-2">
         <i class="fas fa-history"></i>
         <span>Riwayat Penyesuaian Stok (Stok Opname)</span>

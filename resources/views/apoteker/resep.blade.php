@@ -265,7 +265,7 @@
 <div id="handoverModal" class="fixed inset-0 z-50 hidden items-center justify-center">
   <div class="fixed inset-0 modal-backdrop bg-slate-900/60" onclick="closeHandoverModal()"></div>
   <div class="bg-white rounded-2xl max-w-lg w-full mx-4 shadow-xl border border-slate-100 z-10 overflow-hidden">
-    <div class="px-6 py-4 bg-emerald-600 text-white flex items-center justify-between">
+    <div class="px-6 py-4 bg-blue-900 text-white flex items-center justify-between">
       <h3 class="font-bold text-sm uppercase tracking-wider flex items-center gap-2"><i class="fas fa-check-circle"></i> Konfirmasi Penyerahan Obat</h3>
       <button onclick="closeHandoverModal()" class="text-white/80 hover:text-white"><i class="fas fa-times"></i></button>
     </div>
