@@ -430,7 +430,7 @@
     </div>
 
     {{-- MODAL ATUR SHIFT --}}
-    <div id="shiftModal" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center backdrop-blur-sm">
+    <div id="shiftModal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center">
         <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden scale-95 transition-transform duration-300" id="modalContent">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-900 text-white">
                 <div>
@@ -477,7 +477,7 @@
     </div>
 
     {{-- MODAL BULK SHIFT --}}
-    <div id="bulkModal" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center backdrop-blur-sm">
+    <div id="bulkModal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center">
         <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden scale-95 transition-transform duration-300" id="bulkModalContent">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-900 text-white">
                 <div>
@@ -541,7 +541,7 @@
     </div>
 
     {{-- MODAL PATTERN SHIFT --}}
-    <div id="patternModal" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center backdrop-blur-sm">
+    <div id="patternModal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center">
         <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden scale-95 transition-transform duration-300" id="patternModalContent">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-purple-900 text-white">
                 <div>
@@ -604,7 +604,7 @@
     </div>
 
     {{-- MODAL KONFIRMASI SALIN BULAN LALU --}}
-    <div id="copyConfirmModal" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center backdrop-blur-sm">
+    <div id="copyConfirmModal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center">
         <div class="bg-white rounded-2xl w-full max-w-sm p-6 text-center shadow-2xl scale-95 transition-transform duration-300" id="copyConfirmModalContent">
             <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-copy text-lg"></i>

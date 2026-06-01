@@ -190,7 +190,7 @@ Route::middleware(['auth', 'menu:Rawat Inap'])->group(function () {
 // ── Komentar ──
 Route::middleware(['auth', 'menu:Komentar'])->group(function () {
     Route::get('/admin/komentar', [KomentarController::class, 'index'])->name('admin.komentar');
-    Route::delete('/admin/komentar/{id}', [KomentarController::class, 'destroy'])->name('admin.komentar.destroy')->middleware('menu:Komentar,hapus');
+    Route::patch('/admin/komentar/{id}/toggle', [KomentarController::class, 'toggleVisibility'])->name('admin.komentar.toggle')->middleware('menu:Komentar,hapus');
 });
 
 // ── Jabatan & Hak Akses (hanya Admin) ──

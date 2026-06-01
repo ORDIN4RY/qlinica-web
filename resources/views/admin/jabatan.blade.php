@@ -147,9 +147,8 @@
   /* Modals */
   .modal-overlay {
     display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,.45); z-index: 9999;
+    background: rgba(0,0,0,.55); z-index: 9999;
     align-items: center; justify-content: center;
-    backdrop-filter: blur(4px);
   }
   .modal-overlay.open { display: flex; }
   .modal-box {

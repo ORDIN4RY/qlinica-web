@@ -7,8 +7,8 @@
 @push('styles')
 <style>
   /* ── MODAL ── */
-  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55);
-    z-index:999; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.65);
+    z-index:999; align-items:center; justify-content:center; }
   .modal-overlay.open { display:flex; }
   .modal-box { background:#fff; border-radius:20px; width:100%; max-width:480px;
     box-shadow:0 32px 80px rgba(15,23,42,.22);

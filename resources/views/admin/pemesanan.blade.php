@@ -175,8 +175,8 @@
   .search-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
 
   /* ── MODAL ── */
-  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55);
-    z-index:999; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.65);
+    z-index:999; align-items:center; justify-content:center; }
   .modal-overlay.open { display:flex; }
   .modal-box {
     background:#fff; border-radius:20px; width:100%; max-width:520px;

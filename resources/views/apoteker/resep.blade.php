@@ -6,8 +6,8 @@
 
 @push('styles')
 <style>
-  .modal-overlay { background-color: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); transition: all 0.3s ease; }
-  .modal-backdrop { background-color: rgba(15, 23, 42, 0.55); backdrop-filter: blur(4px); }
+  .modal-overlay { background-color: rgba(15, 23, 42, 0.55); transition: all 0.3s ease; }
+  .modal-backdrop { background-color: rgba(15, 23, 42, 0.65); }
 </style>
 @endpush
 
