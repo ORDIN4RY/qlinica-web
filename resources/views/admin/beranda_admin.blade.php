@@ -463,19 +463,22 @@
 
     var maxPenyakit = dataPenyakit.length > 0 ? dataPenyakit[0].n : 1;
     var elList = document.getElementById('penyakitList');
-    dataPenyakit.forEach(function (p, i) {
-      var nomor = i + 1;
-      var bar   = ((p.n / maxPenyakit) * 100).toFixed(1) + '%';
-      var kelas = nomor <= 3 ? 'top' : 'biasa';
-      var li = document.createElement('li');
-      li.className = 'penyakit-item';
-      li.innerHTML =
-        '<div class="urut ' + kelas + '">' + nomor + '</div>' +
-        '<div class="penyakit-nama">' + p.nama + '</div>' +
-        '<div class="bar-wrap"><div class="bar-fill" style="width:' + bar + '"></div></div>' +
-        '<div class="penyakit-angka">' + p.n.toLocaleString('id') + '</div>';
-      elList.appendChild(li);
-    });
+    if (elList) {
+      elList.innerHTML = '';
+      dataPenyakit.forEach(function (p, i) {
+        var nomor = i + 1;
+        var bar   = ((p.n / maxPenyakit) * 100).toFixed(1) + '%';
+        var kelas = nomor <= 3 ? 'top' : 'biasa';
+        var li = document.createElement('li');
+        li.className = 'penyakit-item';
+        li.innerHTML =
+          '<div class="urut ' + kelas + '">' + nomor + '</div>' +
+          '<div class="penyakit-nama">' + p.nama + '</div>' +
+          '<div class="bar-wrap"><div class="bar-fill" style="width:' + bar + '"></div></div>' +
+          '<div class="penyakit-angka">' + p.n.toLocaleString('id') + '</div>';
+        elList.appendChild(li);
+      });
+    }
 
     // ==============================================================
     // 4. GRAFIK KEPUASAN (Donut)
@@ -483,6 +486,7 @@
     var legEl = document.getElementById('kepuasanLeg');
     var canvasEl = document.getElementById('grafikKepuasan');
     if (legEl && canvasEl) {
+      legEl.innerHTML = '';
       var kepuasan = {
         labels: ['Sangat Puas', 'Puas', 'Cukup', 'Buruk', 'Sangat Buruk'],
         data:   @json($kepuasanData),
@@ -498,6 +502,11 @@
       Chart.defaults.font.family = 'Inter';
       Chart.defaults.color = '#94a3b8';
 
+      var existingKepuasan = Chart.getChart(canvasEl);
+      if (existingKepuasan) {
+        existingKepuasan.destroy();
+      }
+
       new Chart(canvasEl, {
         type: 'doughnut',
         data: { labels: kepuasan.labels, datasets: [{ data: kepuasan.data, backgroundColor: kepuasan.warna, borderWidth: 3, borderColor: '#fff' }] },
@@ -508,30 +517,45 @@
     // ==============================================================
     // 5. GRAFIK GENDER (Donut)
     // ==============================================================
-    new Chart(document.getElementById('grafikGender'), {
-      type: 'doughnut',
-      data: { labels: ['Laki-laki', 'Perempuan'], datasets: [{ data: [{{ $lakiTotal }}, {{ $perempuanTotal }}], backgroundColor: ['#2563eb', '#7c3aed'], borderWidth: 3, borderColor: '#fff' }] },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } }
-    });
+    var canvasGender = document.getElementById('grafikGender');
+    if (canvasGender) {
+      var existingGender = Chart.getChart(canvasGender);
+      if (existingGender) {
+        existingGender.destroy();
+      }
+      new Chart(canvasGender, {
+        type: 'doughnut',
+        data: { labels: ['Laki-laki', 'Perempuan'], datasets: [{ data: [{{ $lakiTotal }}, {{ $perempuanTotal }}], backgroundColor: ['#2563eb', '#7c3aed'], borderWidth: 3, borderColor: '#fff' }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } }
+      });
+    }
 
     // ==============================================================
     // 6. GRAFIK BULANAN (Bar Chart)
     // ==============================================================
-    var grafikBulanan = new Chart(document.getElementById('grafikBulanan'), {
-      type: 'bar',
-      data: {
-        labels: BULAN_PENDEK,
-        datasets: [
-          { label: 'Laki-laki', data: dataLaki.slice(), backgroundColor: dataLaki.map(function () { return 'rgba(37,99,235,.7)'; }), borderRadius: 6, borderSkipped: false },
-          { label: 'Perempuan', data: dataPerempuan.slice(), backgroundColor: dataPerempuan.map(function () { return 'rgba(124,58,237,.7)'; }), borderRadius: 6, borderSkipped: false }
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'top', labels: { font: { family: 'Inter', size: 12, weight: '600' }, boxWidth: 9, usePointStyle: true, pointStyle: 'circle', padding: 16 } }, tooltip: { mode: 'index', intersect: false } },
-        scales: { x: { stacked: true, grid: { display: false }, border: { display: false } }, y: { stacked: true, grid: { color: '#f0f4fb' }, border: { display: false } } }
+    var grafikBulanan;
+    var canvasBulanan = document.getElementById('grafikBulanan');
+    if (canvasBulanan) {
+      var existingBulanan = Chart.getChart(canvasBulanan);
+      if (existingBulanan) {
+        existingBulanan.destroy();
       }
-    });
+      grafikBulanan = new Chart(canvasBulanan, {
+        type: 'bar',
+        data: {
+          labels: BULAN_PENDEK,
+          datasets: [
+            { label: 'Laki-laki', data: dataLaki.slice(), backgroundColor: dataLaki.map(function () { return 'rgba(37,99,235,.7)'; }), borderRadius: 6, borderSkipped: false },
+            { label: 'Perempuan', data: dataPerempuan.slice(), backgroundColor: dataPerempuan.map(function () { return 'rgba(124,58,237,.7)'; }), borderRadius: 6, borderSkipped: false }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'top', labels: { font: { family: 'Inter', size: 12, weight: '600' }, boxWidth: 9, usePointStyle: true, pointStyle: 'circle', padding: 16 } }, tooltip: { mode: 'index', intersect: false } },
+          scales: { x: { stacked: true, grid: { display: false }, border: { display: false } }, y: { stacked: true, grid: { color: '#f0f4fb' }, border: { display: false } } }
+        }
+      });
+    }
 
     // ==============================================================
     // 7. UPDATE DASHBOARD saat bulan berubah
