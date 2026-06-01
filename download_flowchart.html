@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Download Flowchart Mobile</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f3f4f6; }
+        .btn {
+            background-color: #2563eb; color: white; padding: 15px 30px; font-size: 18px; 
+            border: none; border-radius: 8px; cursor: pointer; margin-bottom: 20px; font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn:hover { background-color: #1d4ed8; }
+        #diagram-container {
+            background: white; padding: 20px; border-radius: 8px; display: inline-block;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Flowchart Aplikasi Mobile</h1>
+    <button class="btn" onclick="downloadPNG()">⬇️ DOWNLOAD GAMBAR PNG ⬇️</button>
+
+    <div id="diagram-container">
+        <div class="mermaid" id="mermaid-graph">
+flowchart TD
+    classDef startEnd fill:#111827,stroke:#374151,stroke-width:2px,color:#fff,font-weight:bold
+    classDef process fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#fff
+    classDef io fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#fff
+    classDef decision fill:#78350f,stroke:#f59e0b,stroke-width:2px,color:#fff
+
+    Start([Mulai Buka Aplikasi]):::startEnd
+    End([Selesai / Kembali ke Dashboard]):::startEnd
+
+    subgraph Auth [1. AUTENTIKASI]
+        direction TB
+        A_Cek{Session Login<br/>Aktif?}:::decision
+        A_Login[Tampil Layar Login]:::process
+        A_Input[/Input NIP/Email<br/>& Password/]:::io
+        A_Validasi{Kredensial<br/>Valid?}:::decision
+    end
+
+    subgraph Dash [2. DASHBOARD UTAMA]
+        direction TB
+        B_Menu{Pilih Menu<br/>Navigasi?}:::decision
+    end
+
+    subgraph Absen [3. PROSES PRESENSI]
+        direction TB
+        C_Tampil[Buka Kamera &<br/>Akses GPS Location]:::process
+        C_Input[/Ambil Foto Selfie<br/>& Titik Lokasi/]:::io
+        C_Proses[Sistem Mencocokkan<br/>Radius Lokasi Klinik]:::process
+        C_Simpan[/Simpan Data Presensi<br/>Masuk / Pulang/]:::io
+    end
+
+    subgraph Cuti [4. CUTI & IZIN]
+        direction TB
+        D_Tampil[Tampil Daftar<br/>Riwayat Pengajuan]:::process
+        D_Pilih{Buat<br/>Pengajuan Baru?}:::decision
+        D_Form[/Input Tanggal, Jenis,<br/>& Alasan Cuti/Izin/]:::io
+        D_Simpan[Kirim Pengajuan ke<br/>Server/Admin Web]:::process
+    end
+
+    subgraph Riwayat [5. RIWAYAT & PROFIL]
+        direction TB
+        E_Riwayat[Tampil Histori<br/>Kehadiran Bulanan]:::process
+        E_Profil[Tampil Data Diri<br/>& Tombol Logout]:::process
+    end
+
+    Start --> A_Cek
+    A_Cek -->|Tidak| A_Login
+    A_Login --> A_Input
+    A_Input --> A_Validasi
+    A_Validasi -->|T| A_Login
+    A_Validasi -->|Y| B_Menu
+    A_Cek -->|Ya| B_Menu
+
+    B_Menu -->|Tombol Presensi| C_Tampil
+    B_Menu -->|Menu Cuti & Izin| D_Tampil
+    B_Menu -->|Menu Riwayat| E_Riwayat
+    B_Menu -->|Menu Profil| E_Profil
+
+    C_Tampil --> C_Input
+    C_Input --> C_Proses
+    C_Proses --> C_Simpan
+    C_Simpan --> End
+
+    D_Tampil --> D_Pilih
+    D_Pilih -->|Y| D_Form
+    D_Form --> D_Simpan
+    D_Simpan --> End
+    D_Pilih -->|T| End
+
+    E_Riwayat --> End
+    E_Profil --> End
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+
+        function downloadPNG() {
+            const container = document.getElementById('diagram-container');
+            
+            // Temporary styles to ensure full render
+            const originalMaxHeight = container.style.maxHeight;
+            const originalOverflow = container.style.overflow;
+            container.style.maxHeight = 'none';
+            container.style.overflow = 'visible';
+
+            html2canvas(container, {
+                scale: 2, // High resolution
+                backgroundColor: "#ffffff",
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                // Restore styles
+                container.style.maxHeight = originalMaxHeight;
+                container.style.overflow = originalOverflow;
+
+                const pngFile = canvas.toDataURL("image/png", 1.0);
+                const downloadLink = document.createElement("a");
+                downloadLink.download = "Flowchart_Mobile_App.png";
+                downloadLink.href = pngFile;
+                downloadLink.click();
+            }).catch(err => {
+                alert("Gagal men-download gambar: " + err.message);
+            });
+        }
+    </script>
+</body>
+</html>
