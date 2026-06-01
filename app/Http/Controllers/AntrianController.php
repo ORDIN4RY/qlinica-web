@@ -50,6 +50,26 @@ class AntrianController extends Controller
             'catatan' => 'nullable|string|max:255',
         ]);
 
+        // Cegah jika pasien masih terdaftar dalam rawat inap aktif
+        $rawatInapAktif = \App\Models\RawatInap::where('pasien_id', $request->pasien_id)
+            ->where('status', 'Aktif')
+            ->exists();
+            
+        if ($rawatInapAktif) {
+            return redirect()->back()->with('error', 'Pasien ini masih dalam masa Rawat Inap aktif. Selesaikan rawat inap terlebih dahulu sebelum mengambil antrian baru.');
+        }
+
+        // Cegah duplikat antrian aktif pada hari yang sama
+        $sudahAdaAntrian = Antrian::where('pasien_id', $request->pasien_id)
+            ->where('tanggal', now()->toDateString())
+            ->whereIn('status', ['Menunggu', 'Dipanggil', 'Dilayani'])
+            ->whereNull('deleted_at')
+            ->exists();
+
+        if ($sudahAdaAntrian) {
+            return redirect()->back()->with('error', 'Pasien ini sudah memiliki antrian aktif hari ini.');
+        }
+
         $lastAntrian = Antrian::where('tanggal', now()->toDateString())
             ->orderBy('no_antrian', 'desc')
             ->first();

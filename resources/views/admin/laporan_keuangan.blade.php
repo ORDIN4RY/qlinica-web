@@ -13,13 +13,6 @@
   table.laporan-table th { padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 700; color: #1e293b; white-space: nowrap; }
   table.laporan-table td { padding: 12px 16px; color: #475569; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 13px; }
   table.laporan-table tbody tr:hover { background: #f8fafc; }
-  
-  @media print {
-      body * { visibility: hidden; }
-      .print-area, .print-area * { visibility: visible; }
-      .print-area { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; }
-      nav, aside, header, form, .no-print { display: none !important; }
-  }
 </style>
 @endpush
 
@@ -68,7 +61,7 @@
 
       <div class="flex items-center justify-between border-t border-gray-100 pt-4">
         <div class="flex gap-2">
-          <button type="button" onclick="window.print()" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition">
+          <button type="button" onclick="doPrint()" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition">
             <i class="fas fa-print mr-2"></i> Print Laporan
           </button>
           <button type="button" onclick="exportCSV()" class="px-5 py-2.5 bg-green-50 hover:bg-green-100 text-green-700 text-sm font-semibold rounded-xl transition">
@@ -374,6 +367,79 @@
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  }
+
+  function doPrint() {
+    const rows = document.querySelectorAll('#dataTable tbody tr');
+    const tanggal = new Date().toLocaleString('id-ID', { dateStyle:'long', timeStyle:'short' });
+
+    let rowsHtml = '';
+    rows.forEach(tr => {
+      const cells = tr.querySelectorAll('td');
+      if (cells.length <= 1) return;
+      rowsHtml += '<tr>';
+      cells.forEach(td => {
+        rowsHtml += '<td>' + (td.innerText.replace(/\n+/g,' ').trim() || '-') + '</td>';
+      });
+      rowsHtml += '</tr>';
+    });
+
+    const html = `<!DOCTYPE html>
+<html lang="id"><head><meta charset="UTF-8">
+<title>Laporan Keuangan | QLINICA</title>
+<style>
+  @page { size: A4 landscape; margin: 12mm 10mm; }
+  body  { font-family: Arial, sans-serif; font-size: 9pt; margin: 0; }
+  .hdr  { text-align:center; margin-bottom: 10px; }
+  .hdr h1 { font-size:13pt; font-weight:800; color:#1e3a8a; margin:0; }
+  .hdr p  { font-size:8pt; color:#64748b; margin:2px 0 0; }
+  table { width:100%; border-collapse:collapse; font-size:8pt; margin-bottom: 15px; }
+  th    { background:#dbeafe; color:#1e3a8a; padding:5px 6px; border:1px solid #93c5fd; font-weight:700; text-align:left; white-space:nowrap; }
+  td    { padding:4px 6px; border:1px solid #cbd5e1; vertical-align:top; word-wrap:break-word; }
+  tr:nth-child(even) td { background:#f8fafc; }
+  thead { display:table-header-group; }
+  tr    { page-break-inside:avoid; }
+  .summary { border: 1px solid #cbd5e1; padding: 10px; display: inline-block; min-width: 300px; background: #f8fafc; }
+  .summary table { border: none; margin: 0; width: 100%; }
+  .summary td { border: none; padding: 3px 0; background: transparent; font-size: 9pt; font-weight: bold; }
+</style></head><body>
+<div class="hdr">
+  <h1>LAPORAN KEUANGAN TRANSAKSI PASIEN &mdash; QLINICA</h1>
+  <p>Dicetak: ${tanggal}</p>
+  @if(request()->anyFilled(['periode','jenis_pasien','tgl_awal','tgl_akhir']))
+  <div style="font-size:8pt;color:#94a3b8;margin-top:2px;">
+    Filter aktif:
+    @if(request('periode')) Periode: {{ ucfirst(request('periode')) }} @endif
+    @if(request('tgl_awal')) {{ request('tgl_awal') }} s/d {{ request('tgl_akhir') }} @endif
+    @if(request('jenis_pasien')) | Jenis Pasien: {{ request('jenis_pasien') }} @endif
+  </div>
+  @endif
+</div>
+<table>
+  <thead><tr>
+    <th>Tanggal</th><th>No Invoice</th><th>Nama Pasien</th><th>Kasus</th>
+    <th>Konsultasi</th><th>Rawat Inap</th><th>Obat</th><th>Ditanggung BPJS</th>
+    <th>Total Tagihan</th><th>Status</th><th>Kasir</th>
+  </tr></thead>
+  <tbody>${rowsHtml}</tbody>
+</table>
+<div style="display: flex; justify-content: flex-end;">
+  <div class="summary">
+    <table>
+      <tr><td style="color:#64748b;">Pendapatan Kotor:</td><td style="text-align:right;">Rp {{ number_format($totalPendapatanKotor, 0, ',', '.') }}</td></tr>
+      <tr><td style="color:#10b981;">Tanggungan Klaim BPJS:</td><td style="text-align:right; color:#10b981;">Rp {{ number_format($totalKlaimBpjs, 0, ',', '.') }}</td></tr>
+      <tr><td style="color:#1e3a8a;">Total Pemasukan Kasir:</td><td style="text-align:right; font-size:11pt; color:#1e3a8a;">Rp {{ number_format($totalPendapatanBersih, 0, ',', '.') }}</td></tr>
+    </table>
+  </div>
+</div>
+</body></html>`;
+
+    const w = window.open('', '_blank', 'width=1200,height=800');
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    w.onload = () => { w.print(); };
+    setTimeout(() => { try { w.print(); } catch(e){} }, 800);
   }
 </script>
 @endpush
