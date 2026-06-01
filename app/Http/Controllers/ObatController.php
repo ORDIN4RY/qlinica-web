@@ -222,10 +222,9 @@ class ObatController extends Controller
         $totalResepKeluar = \App\Models\ResepDetail::whereHas('resep', function($q) use ($tglAwal, $tglAkhir) {
             $q->where('status', 'Selesai');
             if ($tglAwal && $tglAkhir) {
-                $q->whereBetween('selesai_at', [$tglAwal . ' 00:00:00', $tglAkhir . ' 23:59:59']);
+                $q->whereRaw('DATE(COALESCE(selesai_at, updated_at)) BETWEEN ? AND ?', [$tglAwal, $tglAkhir]);
             } else {
-                $q->whereMonth('selesai_at', now()->month)
-                  ->whereYear('selesai_at', now()->year);
+                $q->whereRaw('MONTH(COALESCE(selesai_at, updated_at)) = ? AND YEAR(COALESCE(selesai_at, updated_at)) = ?', [now()->month, now()->year]);
             }
         })->sum('jumlah');
 
@@ -243,10 +242,9 @@ class ObatController extends Controller
         // Total Resep Diproses
         $resepQuery = \App\Models\Resep::where('status', 'Selesai');
         if ($tglAwal && $tglAkhir) {
-            $resepQuery->whereBetween('selesai_at', [$tglAwal . ' 00:00:00', $tglAkhir . ' 23:59:59']);
+            $resepQuery->whereRaw('DATE(COALESCE(selesai_at, updated_at)) BETWEEN ? AND ?', [$tglAwal, $tglAkhir]);
         } else {
-            $resepQuery->whereMonth('selesai_at', $now->month)
-                       ->whereYear('selesai_at', $now->year);
+            $resepQuery->whereRaw('MONTH(COALESCE(selesai_at, updated_at)) = ? AND YEAR(COALESCE(selesai_at, updated_at)) = ?', [$now->month, $now->year]);
         }
         $resepCount = $resepQuery->count();
 
@@ -256,10 +254,9 @@ class ObatController extends Controller
             ->whereHas('resep', function($q) use ($tglAwal, $tglAkhir) {
                 $q->where('status', 'Selesai');
                 if ($tglAwal && $tglAkhir) {
-                    $q->whereBetween('selesai_at', [$tglAwal . ' 00:00:00', $tglAkhir . ' 23:59:59']);
+                    $q->whereRaw('DATE(COALESCE(selesai_at, updated_at)) BETWEEN ? AND ?', [$tglAwal, $tglAkhir]);
                 } else {
-                    $q->whereMonth('selesai_at', now()->month)
-                      ->whereYear('selesai_at', now()->year);
+                    $q->whereRaw('MONTH(COALESCE(selesai_at, updated_at)) = ? AND YEAR(COALESCE(selesai_at, updated_at)) = ?', [now()->month, now()->year]);
                 }
             })
             ->groupBy('obat_id')
@@ -300,7 +297,7 @@ class ObatController extends Controller
             $grafikHari[] = $date->translatedFormat('l');
             
             $dailyResep = \App\Models\Resep::where('status', 'Selesai')
-                ->whereDate('selesai_at', $date->toDateString())
+                ->whereRaw('DATE(COALESCE(selesai_at, updated_at)) = ?', [$date->toDateString()])
                 ->count();
             $grafikData[] = $dailyResep;
         }

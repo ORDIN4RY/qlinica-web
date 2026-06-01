@@ -211,7 +211,7 @@ class MobilePresensiController extends Controller
             'latitude'          => 'required|numeric',
             'longitude'         => 'required|numeric',
             'is_location_valid' => 'required|boolean',
-            'foto'              => 'nullable|string',
+            'foto'              => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
         ]);
 
         // ★ Enforce lokasi: tolak jika di luar radius
@@ -303,6 +303,7 @@ class MobilePresensiController extends Controller
             'latitude'          => 'required|numeric',
             'longitude'         => 'required|numeric',
             'is_location_valid' => 'required|boolean',
+            'foto'              => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
         ]);
 
         // ★ Enforce lokasi
