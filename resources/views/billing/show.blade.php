@@ -22,12 +22,18 @@
       padding: 0 !important;
       border: none !important;
       box-shadow: none !important;
+      overflow: visible !important;
     }
     [class*="md:ml-64"] {
       margin-left: 0 !important;
     }
     main {
       padding: 0 !important;
+      overflow: visible !important;
+    }
+    html, body {
+      overflow: visible !important;
+      height: auto !important;
     }
   }
 </style>

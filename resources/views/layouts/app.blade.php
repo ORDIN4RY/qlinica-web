@@ -50,8 +50,8 @@
     @media print {
       .no-print, aside, #sidebar, header, nav, footer, #sidebarToggleBtn { display: none !important; }
       [class*="md:ml-64"] { margin-left: 0 !important; }
-      main { padding: 0 !important; }
-      body { background: white !important; color: black !important; }
+      main { padding: 0 !important; overflow: visible !important; }
+      body, html { background: white !important; color: black !important; overflow: visible !important; height: auto !important; }
     }
   </style>
   @stack('styles')
