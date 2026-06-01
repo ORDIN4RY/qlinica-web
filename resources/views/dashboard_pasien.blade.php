@@ -52,7 +52,7 @@
           <a href="#beranda"  class="text-gray-700 hover:text-blue-900 transition">Beranda</a>
           <a href="#antrian"  class="text-gray-700 hover:text-blue-900 transition">Antrian</a>
           <a href="#profil"   class="text-gray-700 hover:text-blue-900 transition">Profil</a>
-          <a href="#riwayat"  class="text-gray-700 hover:text-blue-900 transition">Riwayat</a>
+          <a href="#profil" onclick="goToRiwayat(event)" class="text-gray-700 hover:text-blue-900 transition">Riwayat</a>
         </nav>
 
         <!-- User + Logout -->
