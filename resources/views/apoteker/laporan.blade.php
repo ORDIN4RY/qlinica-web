@@ -93,8 +93,8 @@
           <p class="text-sm font-medium text-gray-700">Tersedia (Stok &gt; Minimum)</p>
           <span class="text-sm font-bold text-green-600">{{ $pctTersedia }}%</span>
         </div>
-        <div class="w-full bg-gray-200 rounded-full h-2">
-          <div class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width: {{ $pctTersedia }}%"></div>
+        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <div class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width: {{ min($pctTersedia, 100) }}%"></div>
         </div>
       </div>
 
@@ -103,8 +103,8 @@
           <p class="text-sm font-medium text-gray-700">Menipis (Stok &le; Minimum)</p>
           <span class="text-sm font-bold text-amber-600">{{ $pctMenipis }}%</span>
         </div>
-        <div class="w-full bg-gray-200 rounded-full h-2">
-          <div class="bg-amber-500 h-2 rounded-full transition-all duration-500" style="width: {{ $pctMenipis }}%"></div>
+        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <div class="bg-amber-500 h-2 rounded-full transition-all duration-500" style="width: {{ min($pctMenipis, 100) }}%"></div>
         </div>
       </div>
 
@@ -113,8 +113,8 @@
           <p class="text-sm font-medium text-gray-700">Habis (Stok 0)</p>
           <span class="text-sm font-bold text-red-600">{{ $pctHabis }}%</span>
         </div>
-        <div class="w-full bg-gray-200 rounded-full h-2">
-          <div class="bg-red-500 h-2 rounded-full transition-all duration-500" style="width: {{ $pctHabis }}%"></div>
+        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <div class="bg-red-500 h-2 rounded-full transition-all duration-500" style="width: {{ min($pctHabis, 100) }}%"></div>
         </div>
       </div>
     </div>

@@ -162,7 +162,7 @@
 
         @foreach($pendapatanMetode as $m => $val)
           @php
-            $percentage = $totalPendapatanBersih > 0 ? ($val / $totalPendapatanBersih) * 100 : 0;
+            $percentage = $totalPendapatanKotor > 0 ? ($val / $totalPendapatanKotor) * 100 : 0;
             $colorClasses = [
               'Umum' => 'bg-indigo-600',
               'BPJS' => 'bg-emerald-500',
@@ -182,8 +182,8 @@
               </div>
               <span class="font-bold font-mono">Rp {{ number_format($val, 2, ',', '.') }} ({{ round($percentage, 1) }}%)</span>
             </div>
-            <div class="w-full bg-gray-100 rounded-full h-2">
-              <div class="{{ $colorClasses[$m] ?? 'bg-gray-600' }} h-2 rounded-full transition-all duration-500" style="width: {{ $percentage }}%"></div>
+            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+              <div class="{{ $colorClasses[$m] ?? 'bg-gray-600' }} h-2 rounded-full transition-all duration-500" style="width: {{ min($percentage, 100) }}%"></div>
             </div>
           </div>
         @endforeach
