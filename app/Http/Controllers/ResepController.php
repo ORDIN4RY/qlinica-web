@@ -87,7 +87,7 @@ class ResepController extends Controller
         }
 
         if ($action === 'selesai') {
-            $isRekomendasiInap = $resep->rekamMedis && $resep->rekamMedis->is_rekomendasi_rawat_inap;
+            $isRekomendasiInap = $resep->rekamMedis && ($resep->rekamMedis->is_rekomendasi_rawat_inap || $resep->rekamMedis->keadaan_keluar === 'Dirawat');
             $isRawatInap = $resep->rawat_inap_id || $isRekomendasiInap;
 
             if ($isRawatInap) {
@@ -118,7 +118,7 @@ class ResepController extends Controller
         }
 
         if ($action === 'kembalikan') {
-            $isRekomendasiInap = $resep->rekamMedis && $resep->rekamMedis->is_rekomendasi_rawat_inap;
+            $isRekomendasiInap = $resep->rekamMedis && ($resep->rekamMedis->is_rekomendasi_rawat_inap || $resep->rekamMedis->keadaan_keluar === 'Dirawat');
             $isRawatInap = $resep->rawat_inap_id || $isRekomendasiInap;
 
             if ($isRawatInap) {
@@ -218,7 +218,7 @@ class ResepController extends Controller
                     $billing->recalculateTotals();
                     $billing->save();
 
-                    $isRekomendasiInap = $resep->rekamMedis && $resep->rekamMedis->is_rekomendasi_rawat_inap;
+                    $isRekomendasiInap = $resep->rekamMedis && ($resep->rekamMedis->is_rekomendasi_rawat_inap || $resep->rekamMedis->keadaan_keluar === 'Dirawat');
                     $isRawatInap = $resep->rawat_inap_id || $isRekomendasiInap;
                     $newStatus = $isRawatInap ? 'Diproses' : 'Menunggu Pembayaran';
 
@@ -249,7 +249,7 @@ class ResepController extends Controller
                 }
 
                 if ($action === 'kembalikan') {
-                    $isRekomendasiInap = $resep->rekamMedis && $resep->rekamMedis->is_rekomendasi_rawat_inap;
+                    $isRekomendasiInap = $resep->rekamMedis && ($resep->rekamMedis->is_rekomendasi_rawat_inap || $resep->rekamMedis->keadaan_keluar === 'Dirawat');
                     $isRawatInap = $resep->rawat_inap_id || $isRekomendasiInap;
 
                     if ($isRawatInap) {

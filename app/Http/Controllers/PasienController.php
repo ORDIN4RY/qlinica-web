@@ -32,7 +32,20 @@ class PasienController extends Controller
         $pendidikans = Pendidikan::orderBy('pendidikan')->get(['id', 'pendidikan']);
         $pekerjaans  = Pekerjaan::orderBy('pekerjaan')->get(['id', 'pekerjaan']);
 
-        return view('admin.pasien', compact('pasiens', 'search', 'agamas', 'pendidikans', 'pekerjaans'));
+        // Generate next No RM automatically based on RM-YYYY-urutan
+        $currentYear = now()->format('Y');
+        $prefix = "RM-{$currentYear}-";
+        $lastRm = Pasien::where('no_rm', 'like', "{$prefix}%")->orderByRaw('LENGTH(no_rm) DESC, no_rm DESC')->first();
+        
+        if ($lastRm) {
+            $lastNumber = (int) str_replace($prefix, '', $lastRm->no_rm);
+            $nextNumber = str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
+            $nextRm = $prefix . $nextNumber;
+        } else {
+            $nextRm = $prefix . '00001';
+        }
+
+        return view('admin.pasien', compact('pasiens', 'search', 'agamas', 'pendidikans', 'pekerjaans', 'nextRm'));
     }
 
     /** Ambil semua data pasien (AJAX). */

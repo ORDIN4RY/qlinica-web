@@ -749,6 +749,10 @@
 
     clearForm();
     clearErrors();
+    
+    // Default No RM saat tambah pasien
+    document.getElementById('fRm').value = '{{ $nextRm }}';
+
     document.getElementById('modalOverlay').classList.add('open');
   }
 

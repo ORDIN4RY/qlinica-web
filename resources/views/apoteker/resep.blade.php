@@ -152,7 +152,7 @@
                   <i class="fas fa-times-circle" style="color:#b91c1c"></i> Batalkan & Tarik Tagihan
                 </button>
 
-              @elseif($resep->status === 'Sudah Dibayar' || (($resep->rawat_inap_id || ($resep->rekamMedis && $resep->rekamMedis->is_rekomendasi_rawat_inap)) && $resep->status === 'Diproses'))
+              @elseif($resep->status === 'Sudah Dibayar' || (($resep->rawat_inap_id || ($resep->rekamMedis && ($resep->rekamMedis->is_rekomendasi_rawat_inap || $resep->rekamMedis->keadaan_keluar === 'Dirawat'))) && $resep->status === 'Diproses'))
 
                 {{-- TRIGGER HANDOVER MODAL --}}
                 <button class="aksi-menu-item" onclick="openHandoverModal('{{ $resep->id }}', '{{ addslashes($resep->rekamMedis?->pasien?->nama ?? ($resep->rawatInap?->pasien?->nama ?? 'Pasien')) }}', '{{ $resep->rekamMedis?->pasien?->no_rm ?? ($resep->rawatInap?->pasien?->no_rm ?? '-') }}');closeAksiMenu();">
@@ -164,7 +164,7 @@
                   <i class="fas fa-print" style="color:#2563eb"></i> Cetak Etiket Obat
                 </button>
 
-                @if(($resep->rawat_inap_id || ($resep->rekamMedis && $resep->rekamMedis->is_rekomendasi_rawat_inap)) && $resep->status === 'Diproses')
+                @if(($resep->rawat_inap_id || ($resep->rekamMedis && ($resep->rekamMedis->is_rekomendasi_rawat_inap || $resep->rekamMedis->keadaan_keluar === 'Dirawat'))) && $resep->status === 'Diproses')
                   <div class="aksi-menu-sep"></div>
                   <button class="aksi-menu-item" onclick="document.getElementById('form-batal-{{ $resep->id }}').submit();">
                     <i class="fas fa-times-circle" style="color:#b91c1c"></i> Batalkan & Tarik Tagihan
@@ -196,7 +196,7 @@
                 <input type="hidden" name="catatan_apoteker" id="catatan-kembalikan-{{ $resep->id }}">
               </form>
             @endif
-            @if($resep->status === 'Menunggu Pembayaran' || (($resep->rawat_inap_id || ($resep->rekamMedis && $resep->rekamMedis->is_rekomendasi_rawat_inap)) && $resep->status === 'Diproses'))
+            @if($resep->status === 'Menunggu Pembayaran' || (($resep->rawat_inap_id || ($resep->rekamMedis && ($resep->rekamMedis->is_rekomendasi_rawat_inap || $resep->rekamMedis->keadaan_keluar === 'Dirawat'))) && $resep->status === 'Diproses'))
               <form action="{{ route('apoteker.resep.update', $resep) }}" method="POST" id="form-batal-{{ $resep->id }}" style="display:none;">
                 @csrf
                 @method('PATCH')
