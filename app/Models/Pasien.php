@@ -16,6 +16,7 @@ class Pasien extends Model
         'user_id',
         'no_rm',
         'nik',
+        'no_bpjs',
         'nama',
         'nama_kk',
         'tgl_lahir',

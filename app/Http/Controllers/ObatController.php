@@ -246,8 +246,14 @@ class ObatController extends Controller
         $topSelling = \App\Models\BillingDetail::select('nama_item')
             ->selectRaw('SUM(jumlah) as total_terjual')
             ->where('kategori', 'obat')
-            ->whereHas('billing', function($q) {
+            ->whereHas('billing', function($q) use ($tglAwal, $tglAkhir) {
                 $q->where('status', 'Lunas');
+                if ($tglAwal && $tglAkhir) {
+                    $q->whereBetween('created_at', [$tglAwal . ' 00:00:00', $tglAkhir . ' 23:59:59']);
+                } else {
+                    $q->whereMonth('created_at', now()->month)
+                      ->whereYear('created_at', now()->year);
+                }
             })
             ->groupBy('nama_item')
             ->orderByRaw('SUM(jumlah) DESC')
