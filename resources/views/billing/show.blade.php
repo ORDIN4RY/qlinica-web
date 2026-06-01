@@ -156,16 +156,8 @@
           
           <div class="w-full sm:w-80 space-y-2 text-sm">
             <div class="flex justify-between text-gray-600">
-              <span>Sub Biaya Konsultasi:</span>
-              <span class="font-mono">Rp {{ number_format($billing->biaya_registrasi, 2, ',', '.') }}</span>
-            </div>
-            <div class="flex justify-between text-gray-600">
-              <span>Sub Biaya Obat-obatan:</span>
-              <span class="font-mono">Rp {{ number_format($billing->biaya_obat, 2, ',', '.') }}</span>
-            </div>
-            <div class="flex justify-between text-gray-600">
-              <span>Sub Biaya Kamar Inap:</span>
-              <span class="font-mono">Rp {{ number_format($billing->biaya_kamar, 2, ',', '.') }}</span>
+              <span>Subtotal:</span>
+              <span class="font-mono">Rp {{ number_format($billing->details->sum('subtotal'), 2, ',', '.') }}</span>
             </div>
             @php
               $isBpjs = $billing->no_bpjs || ($billing->rekamMedis && $billing->rekamMedis->jenis_pelayanan === 'BPJS');
