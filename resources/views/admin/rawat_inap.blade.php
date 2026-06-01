@@ -131,9 +131,12 @@
 
                   <div class="w-44">
                     <select name="jenis_penjamin" id="penjamin_{{ $rm->pasien_id }}" onchange="onPenjaminChange(this, {{ $rm->pasien_id }})" class="form-select text-xs py-2 px-3 focus:border-emerald-500 focus:ring-emerald-500/20" required>
-                      <option value="Umum">Umum (Mandiri)</option>
-                      <option value="BPJS KESEHATAN">BPJS KESEHATAN</option>
+                      <option value="Umum" {{ $rm->jenis_pelayanan === 'Umum' ? 'selected' : '' }}>Umum (Mandiri)</option>
+                      <option value="BPJS KESEHATAN" {{ $rm->jenis_pelayanan === 'BPJS' ? 'selected' : '' }}>BPJS KESEHATAN</option>
                     </select>
+                    <div id="container_nobpjs_{{ $rm->pasien_id }}" class="mt-2 {{ $rm->jenis_pelayanan === 'BPJS' ? '' : 'hidden' }}">
+                      <input type="text" name="no_bpjs" id="input_nobpjs_{{ $rm->pasien_id }}" class="form-input text-xs w-full px-2 py-1.5 border border-gray-300 rounded" placeholder="Masukkan No BPJS" value="{{ $rm->pasien->no_bpjs ?? '' }}" {{ $rm->jenis_pelayanan === 'BPJS' ? 'required' : '' }}>
+                    </div>
                   </div>
               </td>
               <td class="px-6 py-4">
@@ -533,6 +536,19 @@
         if (firstValid) {
           kelasSelect.value = firstValid.value;
           kelasSelect.dispatchEvent(new Event('change'));
+        }
+      }
+
+      // Handle no_bpjs input
+      const noBpjsContainer = document.getElementById(`container_nobpjs_${pasienId}`);
+      const noBpjsInput = document.getElementById(`input_nobpjs_${pasienId}`);
+      if (noBpjsContainer && noBpjsInput) {
+        if (isBpjs) {
+          noBpjsContainer.classList.remove('hidden');
+          noBpjsInput.setAttribute('required', 'required');
+        } else {
+          noBpjsContainer.classList.add('hidden');
+          noBpjsInput.removeAttribute('required');
         }
       }
     }

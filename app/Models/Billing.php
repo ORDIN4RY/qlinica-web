@@ -195,7 +195,10 @@ class Billing extends Model
                  * ─────────────────────────────────────────────────────
                  * BPJS FKTP non-kapitasi: maks 5 hari ditanggung.
                  * Hari ke-6+ + obat non-fornas = co-payment pasien.
+                 * Jika pasien masuk IGD/Poli awalnya dengan UMUM, biaya pendaftaran/konsultasi 
+                 * tidak ditanggung BPJS Rawat Inap.
                  */
+                $isRawatJalanBpjs = $this->rekamMedis && $this->rekamMedis->jenis_pelayanan === 'BPJS';
                 $tglMasuk  = \Carbon\Carbon::parse($this->rawatInap->tgl_masuk)->startOfDay();
                 $tglKeluar = $this->rawatInap->tgl_keluar
                     ? \Carbon\Carbon::parse($this->rawatInap->tgl_keluar)->startOfDay()

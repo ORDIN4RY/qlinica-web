@@ -94,6 +94,7 @@ class RawatInapController extends Controller
             'kamar_id'       => 'required|exists:kamar,id',
             'dokter_id'      => 'required|exists:pegawai,id',
             'jenis_penjamin' => 'required|in:Umum,BPJS KESEHATAN',
+            'no_bpjs'        => 'nullable|string',
         ]);
 
         // Validasi kelas kamar untuk pasien BPJS:
@@ -105,6 +106,14 @@ class RawatInapController extends Controller
                 return redirect()->back()->withErrors([
                     'kamar_id' => 'Pasien BPJS tidak dapat memilih kamar kelas VIP. Silakan pilih Kelas 1, 2, atau 3.',
                 ])->withInput();
+            }
+            
+            // Simpan/update no BPJS di tabel pasien jika diisi
+            if (!empty($validated['no_bpjs'])) {
+                $pasien = \App\Models\Pasien::find($validated['pasien_id']);
+                if ($pasien) {
+                    $pasien->update(['no_bpjs' => $validated['no_bpjs']]);
+                }
             }
         }
 
