@@ -192,7 +192,7 @@ class Billing extends Model
 
         $totalBiayaAwal = $bReg + $bKam + $bTin + $bOba;
 
-        if ($this->no_bpjs) {
+        if ($this->no_bpjs || ($this->rekamMedis && $this->rekamMedis->jenis_pelayanan === 'BPJS')) {
             // ── Cek jenis penjamin rawat inap (jika ada) ──
             $penjaminRawatInap = $this->rawatInap?->jenis_penjamin ?? null;
 
