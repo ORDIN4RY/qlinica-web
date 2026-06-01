@@ -267,11 +267,17 @@ class MobilePresensiController extends Controller
             $keterangan = "Telat {$telatMenit} menit pada {$jadwal->shift->nama_shift}";
         }
 
+        $pathFoto = null;
+        if ($request->hasFile('foto')) {
+            $pathFoto = $request->file('foto')->store('presensi', 'public');
+        }
+
         $presensi = Presensi::updateOrCreate(
             ['pegawai_id' => $pegawai->id, 'tanggal' => $today],
             [
                 'jadwal_shift_id'   => $jadwal->id,
                 'jam_masuk'         => now()->toTimeString(),
+                'foto_masuk'        => $pathFoto,
                 'telat_menit'       => $telatMenit,
                 'status'            => 'Hadir',
                 'approval_status'   => 'Pending',
@@ -364,8 +370,14 @@ class MobilePresensiController extends Controller
             }
         }
 
+        $pathFoto = null;
+        if ($request->hasFile('foto')) {
+            $pathFoto = $request->file('foto')->store('presensi', 'public');
+        }
+
         $presensi->update([
             'jam_keluar'      => now()->toTimeString(),
+            'foto_keluar'     => $pathFoto,
             'approval_status' => 'Pending',
         ]);
 

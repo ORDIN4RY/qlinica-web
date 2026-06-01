@@ -219,7 +219,7 @@ class ObatController extends Controller
         $tglAwal = $request->get('tgl_awal');
         $tglAkhir = $request->get('tgl_akhir');
         
-        $totalObatKeluar = \App\Models\ResepDetail::whereHas('resep', function($q) use ($tglAwal, $tglAkhir) {
+        $totalResepKeluar = \App\Models\ResepDetail::whereHas('resep', function($q) use ($tglAwal, $tglAkhir) {
             $q->where('status', 'Selesai');
             if ($tglAwal && $tglAkhir) {
                 $q->whereBetween('selesai_at', [$tglAwal . ' 00:00:00', $tglAkhir . ' 23:59:59']);
@@ -228,6 +228,17 @@ class ObatController extends Controller
                   ->whereYear('selesai_at', now()->year);
             }
         })->sum('jumlah');
+
+        $totalStokKeluarManualQuery = \App\Models\StokOpname::where('selisih', '<', 0);
+        if ($tglAwal && $tglAkhir) {
+            $totalStokKeluarManualQuery->whereBetween('created_at', [$tglAwal . ' 00:00:00', $tglAkhir . ' 23:59:59']);
+        } else {
+            $totalStokKeluarManualQuery->whereMonth('created_at', now()->month)
+                                       ->whereYear('created_at', now()->year);
+        }
+        $totalStokKeluarManual = abs($totalStokKeluarManualQuery->sum('selisih'));
+
+        $totalObatKeluar = $totalResepKeluar + $totalStokKeluarManual;
 
         // Total Resep Diproses
         $resepQuery = \App\Models\Resep::where('status', 'Selesai');
