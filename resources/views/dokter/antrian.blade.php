@@ -198,27 +198,20 @@
               @elseif($antrian->status === 'Dipanggil')
                 <div class="flex items-center gap-2 w-full sm:w-auto">
                   @if($sudahDipanggilDokter)
-                    <!-- Tombol Panggil Ulang -->
-                    <form action="{{ route('dokter.antrian.panggil', $antrian->id) }}" method="POST" class="inline">
-                      @csrf
-                      <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold rounded-xl transition border border-amber-200/50">
-                        <i class="fas fa-redo"></i> Panggil Ulang
-                      </button>
-                    </form>
+                    <!-- Tombol Diagnosa (Karena sudah dipanggil) -->
+                    <a href="{{ route('dokter.antrian.periksa', $antrian->id) }}"
+                       class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-xs font-bold rounded-xl transition-all shadow-sm hover:shadow-md shadow-blue-500/10">
+                      <i class="fas fa-notes-medical"></i> Diagnosa
+                    </a>
                   @else
                     <!-- Tombol Panggil Pertama -->
-                    <form action="{{ route('dokter.antrian.panggil', $antrian->id) }}" method="POST" class="inline">
+                    <form action="{{ route('dokter.antrian.panggil', $antrian->id) }}" method="POST" class="inline w-full sm:w-auto">
                       @csrf
                       <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-sm hover:shadow-md shadow-emerald-500/10">
                         <i class="fas fa-bullhorn"></i> Panggil
                       </button>
                     </form>
                   @endif
-                  
-                  <a href="{{ route('dokter.antrian.periksa', $antrian->id) }}"
-                     class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-xs font-bold rounded-xl transition-all shadow-sm hover:shadow-md shadow-blue-500/10">
-                    <i class="fas fa-notes-medical"></i> Diagnosa
-                  </a>
                 </div>
               @elseif($antrian->status === 'Selesai')
                 <a href="{{ route('dokter.pasien.show', $antrian->pasien_id) }}" 

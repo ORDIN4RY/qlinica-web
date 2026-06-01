@@ -854,6 +854,7 @@ const STATIONS = {
 };
 
 const stKeys = { resepsionis:null, poli_umum:null, poli_kia:null, poli_gigi:null };
+const maxTimestamps = { resepsionis: 0, poli_umum: 0, poli_kia: 0, poli_gigi: 0 };
 
 function renderStation(stId, data) {
   const cfg    = STATIONS[stId];
@@ -870,13 +871,23 @@ function renderStation(stId, data) {
     return;
   }
 
-  const key = data.no_antrian + '|' + (data.updated_at || '0');
+  const ts = parseInt(data.updated_at) || 0;
+
+  // Set initial max timestamp on first load to prevent repeating old announcements
+  if (isFirstLoad) {
+    if (ts > maxTimestamps[stId]) {
+      maxTimestamps[stId] = ts;
+    }
+  }
+
+  const key = data.no_antrian + '|' + ts;
   if (stKeys[stId] !== key) {
-    if (!isFirstLoad) {
+    if (!isFirstLoad && ts > maxTimestamps[stId]) {
       if (numEl)  { numEl.classList.remove('number-change'); void numEl.offsetWidth; numEl.classList.add('number-change'); }
       if (card)   { card.classList.remove('flash-animate');  void card.offsetWidth;  card.classList.add('flash-animate');  }
       queueAnnouncement(data.no_antrian, data.nama, cfg.ttsDest);
       showCallToast(data.no_antrian, cfg.displayDest);
+      maxTimestamps[stId] = ts;
     }
     stKeys[stId] = key;
   }
