@@ -272,7 +272,7 @@ class MidtransService
                 'id'       => 'REG',
                 'price'    => (int) $billing->biaya_registrasi,
                 'quantity' => 1,
-                'name'     => 'Biaya Registrasi',
+                'name'     => 'Biaya Konsultasi',
             ];
         }
 

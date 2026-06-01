@@ -49,7 +49,7 @@
           <select name="metode_pembayaran" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
             <option value="">Semua Metode</option>
             <option value="Bayar Mandiri" {{ request('metode_pembayaran') == 'Bayar Mandiri' ? 'selected' : '' }}>Bayar Mandiri</option>
-            <option value="Asuransi" {{ request('metode_pembayaran') == 'Asuransi' ? 'selected' : '' }}>Asuransi / BPJS</option>
+            <option value="BPJS" {{ request('metode_pembayaran') == 'BPJS' ? 'selected' : '' }}>BPJS</option>
           </select>
         </div>
 
@@ -116,7 +116,7 @@
 
     <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex items-center justify-between">
       <div class="space-y-1">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ditanggung BPJS / Asuransi</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ditanggung BPJS</p>
         <h3 class="text-xl font-bold text-emerald-600 font-mono">Rp {{ number_format($totalKlaimBpjs, 2, ',', '.') }}</h3>
         <p class="text-[10px] text-gray-400">Tanggungan pihak ketiga</p>
       </div>
@@ -183,11 +183,11 @@
             $percentage = $totalPendapatanBersih > 0 ? ($val / $totalPendapatanBersih) * 100 : 0;
             $colorClasses = [
               'Bayar Mandiri' => 'bg-indigo-600',
-              'Asuransi' => 'bg-emerald-500',
+              'BPJS' => 'bg-emerald-500',
             ];
             $iconClasses = [
               'Bayar Mandiri' => 'fa-money-bill-wave text-indigo-600 bg-indigo-50',
-              'Asuransi' => 'fa-shield-alt text-emerald-500 bg-emerald-50',
+              'BPJS' => 'fa-shield-alt text-emerald-500 bg-emerald-50',
             ];
           @endphp
           <div class="space-y-1.5">
@@ -196,7 +196,7 @@
                 <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] {{ $iconClasses[$m] ?? 'fa-wallet text-gray-500 bg-gray-50' }}">
                   <i class="fas {{ explode(' ', $iconClasses[$m])[0] }}"></i>
                 </div>
-                <span class="font-semibold">{{ $m === 'Asuransi' ? 'BPJS / Asuransi' : $m }}</span>
+                <span class="font-semibold">{{ $m }}</span>
               </div>
               <span class="font-bold font-mono">Rp {{ number_format($val, 2, ',', '.') }} ({{ round($percentage, 1) }}%)</span>
             </div>
@@ -226,8 +226,8 @@
             <th>No. Invoice</th>
             <th>Nama Pasien</th>
             <th>Status Pasien</th>
-            <th class="text-right">Biaya Registrasi</th>
-            <th class="text-right">Biaya Tindakan</th>
+            <th class="text-right">Biaya Konsultasi</th>
+            <th class="text-right">Biaya Rawat Inap</th>
             <th class="text-right">Biaya Obat</th>
             <th class="text-right">Ditanggung BPJS</th>
             <th class="text-right">Total Bersih</th>
@@ -257,11 +257,11 @@
                   {{ $b->no_bpjs ? 'BPJS' : 'UMUM' }}
                 </span>
               </td>
-              <td class="text-right font-mono">Rp {{ number_format($b->biaya_registrasi, 2, ',', '.') }}</td>
-              <td class="text-right font-mono">Rp {{ number_format($b->biaya_tindakan, 2, ',', '.') }}</td>
-              <td class="text-right font-mono">Rp {{ number_format($b->biaya_obat, 2, ',', '.') }}</td>
-              <td class="text-right font-mono text-emerald-600 font-semibold">-Rp {{ number_format($b->potongan_bpjs, 2, ',', '.') }}</td>
-              <td class="text-right font-bold text-gray-900 font-mono">Rp {{ number_format($b->grand_total, 2, ',', '.') }}</td>
+              <td class="text-right font-mono">Rp {{ number_format($b->biaya_registrasi, 0, ',', '.') }}</td>
+              <td class="text-right font-mono">Rp {{ number_format($b->biaya_kamar, 0, ',', '.') }}</td>
+              <td class="text-right font-mono">Rp {{ number_format($b->biaya_obat, 0, ',', '.') }}</td>
+              <td class="text-right font-mono text-emerald-600 font-semibold">{{ $b->potongan_bpjs > 0 ? '-' : '' }}Rp {{ number_format($b->potongan_bpjs, 0, ',', '.') }}</td>
+              <td class="text-right font-bold text-gray-900 font-mono">Rp {{ number_format($b->grand_total, 0, ',', '.') }}</td>
               <td class="text-center font-semibold text-xs text-gray-700">{{ $b->metode_pembayaran ?: '–' }}</td>
               <td class="text-center">
                 <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold border {{ $statusClasses[$b->status] ?? 'bg-gray-100 text-gray-800' }}">
@@ -357,7 +357,7 @@
 
   function exportCSV() {
     let rows = [];
-    let headers = ['Tanggal Pembuatan', 'No Invoice', 'Nama Pasien', 'Jenis Kasus', 'Biaya Registrasi', 'Biaya Tindakan', 'Biaya Obat', 'Ditanggung BPJS', 'Total Bersih', 'Metode Pembayaran', 'Status', 'Kasir Penerima'];
+    let headers = ['Tanggal Pembuatan', 'No Invoice', 'Nama Pasien', 'Jenis Kasus', 'Biaya Konsultasi', 'Biaya Rawat Inap', 'Biaya Obat', 'Ditanggung BPJS', 'Total Bersih', 'Metode Pembayaran', 'Status', 'Kasir Penerima'];
     rows.push(headers.join(','));
 
     let tableRows = document.querySelectorAll('#dataTable tbody tr');

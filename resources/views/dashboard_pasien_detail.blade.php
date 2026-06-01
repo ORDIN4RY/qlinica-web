@@ -426,22 +426,13 @@
               <!-- Item 1: Registrasi -->
               <div class="flex justify-between text-xs">
                 <div class="flex flex-col">
-                  <span class="font-bold text-slate-700">Biaya Registrasi &amp; Administrasi</span>
-                  <span class="text-[10px] text-slate-400 mt-0.5">Biaya pendaftaran loket pasien</span>
+                  <span class="font-bold text-slate-700">Biaya Konsultasi &amp; Administrasi</span>
+                  <span class="text-[10px] text-slate-400 mt-0.5">Biaya pendaftaran dan jasa dokter</span>
                 </div>
                 <span class="font-bold text-slate-700">Rp {{ number_format($biayaRegistrasi, 0, ',', '.') }}</span>
               </div>
 
-              <!-- Item 2: Pemeriksaan/Tindakan -->
-              @if($biayaTindakan > 0)
-                <div class="flex justify-between text-xs">
-                  <div class="flex flex-col">
-                    <span class="font-bold text-slate-700">Pemeriksaan &amp; Tindakan Medis</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">Jasa konsultasi dokter &amp; penanganan</span>
-                  </div>
-                  <span class="font-bold text-slate-700">Rp {{ number_format($biayaTindakan, 0, ',', '.') }}</span>
-                </div>
-              @endif
+              <!-- Item 2: Pemeriksaan/Tindakan (Dihilangkan/Digabung ke Konsultasi jika dibutuhkan) -->
 
               <!-- Item 3: Farmasi/Obat -->
               @if($biayaObat > 0)

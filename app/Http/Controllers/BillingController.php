@@ -98,7 +98,7 @@ class BillingController extends Controller
     public function bayar(Request $request, Billing $billing)
     {
         $request->validate([
-            'metode_pembayaran' => 'required|string|in:Bayar Mandiri,Asuransi',
+            'metode_pembayaran' => 'required|string|in:Bayar Mandiri,BPJS',
             'jumlah_dibayar'    => 'nullable|numeric|min:0',
         ]);
 

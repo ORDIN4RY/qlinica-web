@@ -150,12 +150,8 @@
           
           <div class="w-full sm:w-80 space-y-2 text-sm">
             <div class="flex justify-between text-gray-600">
-              <span>Sub Biaya Registrasi:</span>
+              <span>Sub Biaya Konsultasi:</span>
               <span class="font-mono">Rp {{ number_format($billing->biaya_registrasi, 2, ',', '.') }}</span>
-            </div>
-            <div class="flex justify-between text-gray-600">
-              <span>Sub Biaya Tindakan:</span>
-              <span class="font-mono">Rp {{ number_format($billing->biaya_tindakan, 2, ',', '.') }}</span>
             </div>
             <div class="flex justify-between text-gray-600">
               <span>Sub Biaya Obat-obatan:</span>
@@ -238,12 +234,17 @@
                   <span class="text-xs font-semibold text-gray-700 text-center leading-tight">Bayar Mandiri</span>
                 </label>
               @else
-                <label class="col-span-2 border border-emerald-200 bg-emerald-50 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-emerald-100 transition group">
-                  <input type="radio" name="metode_pembayaran" value="Asuransi" checked class="sr-only peer">
-                  <div class="peer-checked:bg-emerald-600 text-emerald-600 w-8 h-8 rounded-full flex items-center justify-center bg-white transition group-hover:bg-emerald-100">
-                    <i class="fas fa-shield-alt text-sm peer-checked:text-white"></i>
+                <label class="cursor-pointer relative">
+                  <input type="radio" name="metode_pembayaran" value="BPJS" checked class="sr-only peer">
+                  <div class="h-full border-2 border-slate-100 rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all peer-checked:border-emerald-600 peer-checked:bg-emerald-50 hover:bg-slate-50">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg">
+                      <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <span class="text-xs font-bold text-emerald-800 text-center">BPJS</span>
                   </div>
-                  <span class="text-xs font-bold text-emerald-800 text-center">Asuransi / BPJS</span>
+                  <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-emerald-600 transition-opacity">
+                    <i class="fas fa-check-circle"></i>
+                  </div>
                 </label>
               @endif
             </div>
@@ -351,7 +352,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const radios        = document.querySelectorAll('input[type="radio"][name="metode_pembayaran"]');
-    const bpjsRadio     = document.querySelector('input[type="radio"][name="metode_pembayaran"][value="Asuransi"]');
+    const bpjsRadio     = document.querySelector('input[type="radio"][name="metode_pembayaran"][value="BPJS"]');
     const bpjsWrapper   = document.getElementById('bpjs-input-wrapper');
     const btnCekBpjs    = document.getElementById('btn-cek-bpjs');
     const noBpjsInput   = document.getElementById('no_bpjs_input');
