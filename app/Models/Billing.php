@@ -26,17 +26,10 @@ class Billing extends Model
         'kembalian',
         'kasir_id',
         'paid_at',
-        // Midtrans QRIS
-        'midtrans_order_id',
-        'midtrans_transaction_id',
-        'midtrans_qr_url',
-        'midtrans_status',
-        'midtrans_qr_generated_at',
     ];
 
     protected $casts = [
         'paid_at'                  => 'datetime',
-        'midtrans_qr_generated_at' => 'datetime',
     ];
 
     public function rekamMedis()

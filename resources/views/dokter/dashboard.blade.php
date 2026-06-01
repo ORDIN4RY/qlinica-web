@@ -2,7 +2,7 @@
 
 @section('title', 'Dashboard Dokter')
 @section('page-title', 'Dashboard Dokter')
-@section('page-subtitle', 'Selamat datang, Dr. {{ Auth::user()?->name ?? "Dokter" }}')
+@section('page-subtitle', 'Selamat datang, ' . (Auth::user()?->pegawai?->nama ?? Auth::user()?->name ?? 'Dokter'))
 
 @section('content')
 @php

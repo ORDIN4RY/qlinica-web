@@ -8,6 +8,19 @@
 <style>
   .modal-overlay { background-color: rgba(15, 23, 42, 0.55); transition: all 0.3s ease; }
   .modal-backdrop { background-color: rgba(15, 23, 42, 0.65); }
+  /* ── AKSI DROPDOWN ── */
+  .aksi-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; font-size:12px; font-weight:700; border:1.5px solid #e5e7eb; border-radius:10px; background:#fff; color:#374151; cursor:pointer; transition:all .15s; user-select:none; white-space:nowrap; }
+  .aksi-btn:hover { background:#f8fafc; border-color:#d1d5db; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+  .aksi-btn i { font-size:9px; transition:transform .15s; }
+  .aksi-btn.is-open i { transform:rotate(180deg); }
+  .aksi-menu { position:fixed; background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 12px 36px rgba(15,23,42,.15); z-index:9999; min-width:175px; overflow:hidden; display:none; }
+  .aksi-menu.open { display:block; animation:aksiIn .12s ease; }
+  @keyframes aksiIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+  .aksi-menu-item { display:flex; align-items:center; gap:10px; padding:10px 16px; font-size:13px; font-weight:600; color:#374151; cursor:pointer; transition:background .1s; border:none; background:none; width:100%; text-align:left; text-decoration:none; }
+  .aksi-menu-item:hover { background:#f8fafc; }
+  .aksi-menu-item:disabled { opacity: 0.6; cursor: not-allowed; }
+  .aksi-menu-item i { font-size:11px; width:14px; text-align:center; flex-shrink:0; }
+  .aksi-menu-sep { height:1px; background:#f0f4f8; margin:4px 0; }
 </style>
 @endpush
 
@@ -57,8 +70,8 @@
                 <span>{{ $resep->rekamMedis?->pasien?->nama ?? ($resep->rawatInap?->pasien?->nama ?? 'Pasien') }}</span>
               </h3>
               <p class="text-xs text-gray-400 mt-1">
-                Tanggal: <strong>{{ optional($resep->rekamMedis?->tanggal_periksa)->isoFormat('D MMMM YYYY') ?? $resep->created_at->isoFormat('D MMMM YYYY') }}</strong> 
-                <span class="mx-2">•</span> 
+                Tanggal: <strong>{{ optional($resep->rekamMedis?->tanggal_periksa)->isoFormat('D MMMM YYYY') ?? $resep->created_at->isoFormat('D MMMM YYYY') }}</strong>
+                <span class="mx-2">•</span>
                 Dokter Pemeriksa: <strong>{{ $resep->dokter?->nama ?? '-' }}</strong>
               </p>
             </div>
@@ -113,78 +126,83 @@
           </div>
 
           {{-- ACTIONS BUTTONS --}}
-          <div class="flex flex-wrap gap-2.5 border-t border-gray-100 pt-4">
-            
+          <div class="flex flex-wrap gap-2.5 border-t border-gray-100 pt-4 relative">
+            <button class="aksi-btn" onclick="toggleAksiMenu(this,'aksi-{{ $resep->id }}')">
+              Aksi <i class="fas fa-chevron-down"></i>
+            </button>
+            <div id="aksi-{{ $resep->id }}" class="aksi-menu">
+              @if($resep->status === 'Menunggu')
+
+                {{-- TRIGGER SKRINING MODAL --}}
+                <button class="aksi-menu-item" onclick="openSkriningModal('{{ $resep->id }}', {{ $resep->rawat_inap_id ? 'true' : 'false' }});closeAksiMenu();">
+                  <i class="fas fa-stethoscope" style="color:#1e3a8a"></i> Lakukan Skrining
+                </button>
+                <div class="aksi-menu-sep"></div>
+                <button class="aksi-menu-item" onclick="confirmKembalikan('{{ $resep->id }}');closeAksiMenu();">
+                  <i class="fas fa-undo" style="color:#b91c1c"></i> Kembalikan Resep
+                </button>
+
+              @elseif($resep->status === 'Menunggu Pembayaran')
+
+                <span class="aksi-menu-item text-amber-700" style="cursor:default; background:none;">
+                  <i class="fas fa-clock animate-pulse text-amber-500"></i> Menunggu Kasir
+                </span>
+                <div class="aksi-menu-sep"></div>
+                <button class="aksi-menu-item" onclick="document.getElementById('form-batal-{{ $resep->id }}').submit();">
+                  <i class="fas fa-times-circle" style="color:#b91c1c"></i> Batalkan & Tarik Tagihan
+                </button>
+
+              @elseif($resep->status === 'Sudah Dibayar' || ($resep->rawat_inap_id && $resep->status === 'Diproses'))
+
+                {{-- TRIGGER HANDOVER MODAL --}}
+                <button class="aksi-menu-item" onclick="openHandoverModal('{{ $resep->id }}', '{{ addslashes($resep->rekamMedis?->pasien?->nama ?? ($resep->rawatInap?->pasien?->nama ?? 'Pasien')) }}', '{{ $resep->rekamMedis?->pasien?->no_rm ?? ($resep->rawatInap?->pasien?->no_rm ?? '-') }}');closeAksiMenu();">
+                  <i class="fas fa-check-double" style="color:#059669"></i> Serahkan Obat
+                </button>
+                <div class="aksi-menu-sep"></div>
+                {{-- CETAK ETIKET --}}
+                <button class="aksi-menu-item" onclick="printEtiket('{{ $resep->id }}', '{{ addslashes($resep->rekamMedis?->pasien?->nama ?? ($resep->rawatInap?->pasien?->nama ?? 'Pasien')) }}', '{{ $resep->rekamMedis?->pasien?->no_rm ?? ($resep->rawatInap?->pasien?->no_rm ?? '-') }}', '{{ optional($resep->rekamMedis?->tanggal_periksa)->format('d/m/Y') ?? $resep->created_at->format('d/m/Y') }}', {{ json_encode($resep->details->map(function($d) { return ['nama' => $d->obat?->nama, 'kategori' => $d->obat?->kategori, 'jumlah' => $d->jumlah, 'dosis' => $d->dosis, 'aturan_pakai' => $d->aturan_pakai]; })) }});closeAksiMenu();">
+                  <i class="fas fa-print" style="color:#2563eb"></i> Cetak Etiket Obat
+                </button>
+
+                @if($resep->rawat_inap_id && $resep->status === 'Diproses')
+                  <div class="aksi-menu-sep"></div>
+                  <button class="aksi-menu-item" onclick="document.getElementById('form-batal-{{ $resep->id }}').submit();">
+                    <i class="fas fa-times-circle" style="color:#b91c1c"></i> Batalkan & Tarik Tagihan
+                  </button>
+                @endif
+
+              @elseif($resep->status === 'Selesai')
+
+                <button class="aksi-menu-item" disabled>
+                  <i class="fas fa-handshake" style="color:#9ca3af"></i> Obat Telah Diserahkan
+                </button>
+                <div class="aksi-menu-sep"></div>
+                {{-- CETAK ETIKET ULANG --}}
+                <button class="aksi-menu-item" onclick="printEtiket('{{ $resep->id }}', '{{ addslashes($resep->rekamMedis?->pasien?->nama ?? ($resep->rawatInap?->pasien?->nama ?? 'Pasien')) }}', '{{ $resep->rekamMedis?->pasien?->no_rm ?? ($resep->rawatInap?->pasien?->no_rm ?? '-') }}', '{{ optional($resep->rekamMedis?->tanggal_periksa)->format('d/m/Y') ?? $resep->created_at->format('d/m/Y') }}', {{ json_encode($resep->details->map(function($d) { return ['nama' => $d->obat?->nama, 'kategori' => $d->obat?->kategori, 'jumlah' => $d->jumlah, 'dosis' => $d->dosis, 'aturan_pakai' => $d->aturan_pakai]; })) }});closeAksiMenu();">
+                  <i class="fas fa-print" style="color:#4b5563"></i> Cetak Ulang Etiket
+                </button>
+
+              @else
+                <span class="aksi-menu-item text-gray-500" style="cursor:default; background:none;">Resep {{ $resep->status }}</span>
+              @endif
+            </div>
+
+            {{-- HIDDEN FORMS FOR ACTIONS --}}
             @if($resep->status === 'Menunggu')
-              
-              {{-- TRIGGER SKRINING MODAL --}}
-              <button type="button" onclick="openSkriningModal('{{ $resep->id }}', {{ $resep->rawat_inap_id ? 'true' : 'false' }})" class="px-5 py-2.5 bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold rounded-xl transition shadow-sm flex items-center gap-1.5">
-                <i class="fas fa-stethoscope"></i> Lakukan Skrining & Proses Resep
-              </button>
-              
-              <form action="{{ route('apoteker.resep.update', $resep) }}" method="POST" class="inline-block" id="form-kembalikan-{{ $resep->id }}">
+              <form action="{{ route('apoteker.resep.update', $resep) }}" method="POST" id="form-kembalikan-{{ $resep->id }}" style="display:none;">
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="action" value="kembalikan">
                 <input type="hidden" name="catatan_apoteker" id="catatan-kembalikan-{{ $resep->id }}">
-                <button type="button" onclick="confirmKembalikan('{{ $resep->id }}')" class="px-5 py-2.5 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl hover:bg-red-100 transition">
-                  Kembalikan Resep
-                </button>
               </form>
-
-            @elseif($resep->status === 'Menunggu Pembayaran')
-              
-              <span class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs rounded-xl font-bold">
-                <i class="fas fa-clock animate-pulse text-amber-500"></i> Menunggu Kasir (Belum Bayar)
-              </span>
-
-              <form action="{{ route('apoteker.resep.update', $resep) }}" method="POST" class="inline-block">
+            @endif
+            @if($resep->status === 'Menunggu Pembayaran' || ($resep->rawat_inap_id && $resep->status === 'Diproses'))
+              <form action="{{ route('apoteker.resep.update', $resep) }}" method="POST" id="form-batal-{{ $resep->id }}" style="display:none;">
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="action" value="kembalikan">
-                <button type="submit" class="px-4 py-2.5 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl hover:bg-red-100 transition">
-                  Batalkan & Tarik Tagihan
-                </button>
               </form>
-
-            @elseif($resep->status === 'Sudah Dibayar' || ($resep->rawat_inap_id && $resep->status === 'Diproses'))
-              
-              {{-- TRIGGER HANDOVER MODAL --}}
-              <button type="button" onclick="openHandoverModal('{{ $resep->id }}', '{{ addslashes($resep->rekamMedis?->pasien?->nama ?? ($resep->rawatInap?->pasien?->nama ?? 'Pasien')) }}', '{{ $resep->rekamMedis?->pasien?->no_rm ?? ($resep->rawatInap?->pasien?->no_rm ?? '-') }}')" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-sm flex items-center gap-1.5">
-                <i class="fas fa-check-double"></i> Serahkan Obat
-              </button>
-
-              {{-- CETAK ETIKET --}}
-              <button type="button" onclick="printEtiket('{{ $resep->id }}', '{{ addslashes($resep->rekamMedis?->pasien?->nama ?? ($resep->rawatInap?->pasien?->nama ?? 'Pasien')) }}', '{{ $resep->rekamMedis?->pasien?->no_rm ?? ($resep->rawatInap?->pasien?->no_rm ?? '-') }}', '{{ optional($resep->rekamMedis?->tanggal_periksa)->format('d/m/Y') ?? $resep->created_at->format('d/m/Y') }}', {{ json_encode($resep->details->map(function($d) { return ['nama' => $d->obat?->nama, 'kategori' => $d->obat?->kategori, 'jumlah' => $d->jumlah, 'dosis' => $d->dosis, 'aturan_pakai' => $d->aturan_pakai]; })) }})" class="px-5 py-2.5 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold rounded-xl hover:bg-blue-100 transition flex items-center gap-1.5">
-                <i class="fas fa-print"></i> Cetak Etiket Obat
-              </button>
-
-              @if($resep->rawat_inap_id && $resep->status === 'Diproses')
-                <form action="{{ route('apoteker.resep.update', $resep) }}" method="POST" class="inline-block">
-                  @csrf
-                  @method('PATCH')
-                  <input type="hidden" name="action" value="kembalikan">
-                  <button type="submit" class="px-4 py-2.5 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl hover:bg-red-100 transition">
-                    Batalkan & Tarik Tagihan
-                  </button>
-                </form>
-              @endif
-
-            @elseif($resep->status === 'Selesai')
-              
-              <button type="button" class="px-4 py-2.5 bg-gray-100 text-gray-400 text-xs rounded-xl border border-gray-200 font-semibold cursor-not-allowed" disabled>
-                <i class="fas fa-handshake mr-1"></i> Obat Telah Diserahkan
-              </button>
-
-              {{-- CETAK ETIKET ULANG --}}
-              <button type="button" onclick="printEtiket('{{ $resep->id }}', '{{ addslashes($resep->rekamMedis?->pasien?->nama ?? ($resep->rawatInap?->pasien?->nama ?? 'Pasien')) }}', '{{ $resep->rekamMedis?->pasien?->no_rm ?? ($resep->rawatInap?->pasien?->no_rm ?? '-') }}', '{{ optional($resep->rekamMedis?->tanggal_periksa)->format('d/m/Y') ?? $resep->created_at->format('d/m/Y') }}', {{ json_encode($resep->details->map(function($d) { return ['nama' => $d->obat?->nama, 'kategori' => $d->obat?->kategori, 'jumlah' => $d->jumlah, 'dosis' => $d->dosis, 'aturan_pakai' => $d->aturan_pakai]; })) }})" class="px-5 py-2.5 bg-gray-50 border border-gray-200 text-gray-600 text-xs font-semibold rounded-xl hover:bg-gray-100 transition flex items-center gap-1.5">
-                <i class="fas fa-print"></i> Cetak Ulang Etiket
-              </button>
-
-            @else
-              <span class="px-4 py-2 bg-gray-100 text-gray-700 text-xs rounded-xl border font-semibold">Resep {{ $resep->status }}</span>
             @endif
-
           </div>
         </div>
       @endforeach
@@ -206,10 +224,10 @@
       @csrf
       @method('PATCH')
       <input type="hidden" name="action" value="proses">
-      
+
       <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
         <p class="text-xs text-gray-500 leading-normal">Berdasarkan Peraturan Menteri Kesehatan RI (SOP Akreditasi), Apoteker wajib melakukan skrining administratif, farmasetik, dan klinis sebelum memproses resep:</p>
-        
+
         <div class="space-y-2.5 border-t border-gray-100 pt-3">
           <label class="flex items-start gap-2.5 text-xs text-gray-700 leading-normal cursor-pointer">
             <input type="checkbox" required class="mt-0.5 rounded border-gray-300 text-blue-900 focus:ring-blue-900/30">
@@ -255,7 +273,7 @@
       @csrf
       @method('PATCH')
       <input type="hidden" name="action" value="selesai">
-      
+
       <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
         <div class="p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
           <p class="text-xs text-emerald-800 flex items-center gap-1.5"><i class="fas fa-user-circle"></i> Pasien: <strong id="handover-pasien-nama"></strong> (<strong id="handover-pasien-rm"></strong>)</p>
@@ -285,7 +303,7 @@
     const modal = document.getElementById('skriningModal');
     const form = document.getElementById('skriningForm');
     form.action = `/apoteker/resep/${resepId}`;
-    
+
     const submitBtn = modal.querySelector('button[type="submit"]');
     if (submitBtn) {
       if (isRawatInap) {
@@ -294,7 +312,7 @@
         submitBtn.innerText = 'Setujui & Kirim ke Kasir';
       }
     }
-    
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
   }
@@ -310,10 +328,10 @@
     const modal = document.getElementById('handoverModal');
     const form = document.getElementById('handoverForm');
     form.action = `/apoteker/resep/${resepId}`;
-    
+
     document.getElementById('handover-pasien-nama').innerText = pasienNama;
     document.getElementById('handover-pasien-rm').innerText = pasienRm;
-    
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
   }
@@ -336,14 +354,14 @@
   // ──── PRINT ETIKET OBAT ENGINE (CLINIC ACCREDITED STANDARD) ────
   function printEtiket(resepId, pasienNama, pasienRm, tglResep, arrayObat) {
     const printWindow = window.open('', '_blank', 'width=800,height=600');
-    
+
     let labelsHtml = '';
 
     arrayObat.forEach((obat, idx) => {
       // Auto-detect etiket color based on category
       const externalCats = ['salep', 'krim', 'tetes', 'gel', 'obat luar', 'spray', 'inhaler', 'tetes telinga', 'tetes mata', 'salep mata'];
       const katLower = (obat.kategori || '').toLowerCase();
-      
+
       let isExternal = false;
       externalCats.forEach(c => {
         if (katLower.includes(c)) isExternal = true;
@@ -416,7 +434,7 @@
             page-break-after: always;
             margin: 0.5mm auto;
           }
-          
+
           /* Color borders for clinical standard */
           .internal-label {
             border-color: #1e3a8a; /* Deep Blue for Internal */
@@ -424,7 +442,7 @@
           .external-label {
             border-color: #b91c1c; /* Deep Red/Blue for External */
           }
-          
+
           .header {
             text-align: center;
           }
@@ -536,5 +554,31 @@
     printWindow.document.write(htmlContent);
     printWindow.document.close();
   }
+
+  // ── AKSI DROPDOWN ──
+  function toggleAksiMenu(btn, menuId) {
+    const menu = document.getElementById(menuId);
+    const isOpen = menu.classList.contains('open');
+    closeAksiMenu();
+    if (!isOpen) {
+      const rect = btn.getBoundingClientRect();
+      menu.style.top   = (rect.bottom + 6) + 'px';
+      menu.style.right = (window.innerWidth - rect.right) + 'px';
+      menu.style.left  = 'auto';
+      menu.classList.add('open');
+      btn.classList.add('is-open');
+    }
+  }
+  function closeAksiMenu() {
+    document.querySelectorAll('.aksi-menu.open').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.aksi-btn.is-open').forEach(b => b.classList.remove('is-open'));
+  }
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.aksi-btn') && !e.target.closest('.aksi-menu')) closeAksiMenu();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAksiMenu();
+  });
+  window.addEventListener('scroll', closeAksiMenu, { passive: true });
 </script>
 @endpush

@@ -432,15 +432,17 @@
 // Preload ICD-10 data from database as JSON for supreme client-side filtering speed
 const icdxData = @json(\App\Models\Icdx::select('id', 'kode', 'nama')->orderBy('kode')->get());
 
-// Preload Obat data
-const obatData = @json($obats->map(function($o) {
+@php
+$obatArray = $obats->map(function($o) {
   return [
     'id' => $o->id,
     'nama' => $o->nama,
     'stok' => $o->stok,
     'is_fornas' => $o->is_fornas
   ];
-}));
+})->toArray();
+@endphp
+const obatData = @json($obatArray);
 
 function toggleResep(show) {
   const sectionResep = document.getElementById('section-resep');

@@ -381,7 +381,7 @@
                     </button>
                   @endif
                 @endif
-                @if(!in_array($st, ['selesai','batal']))
+                @if(in_array($st, ['menunggu', 'dipanggil']) && !$a->rekamMedis)
                   <button class="btn-batal" onclick="openBatal({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Batalkan">
                     <i class="fas fa-times text-xs"></i>
                   </button>

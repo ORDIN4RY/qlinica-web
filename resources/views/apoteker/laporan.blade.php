@@ -33,7 +33,7 @@
   </div>
 
   <!-- Quick Stats -->
-  <div class="lg:w-2/3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div class="lg:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 shadow-sm flex flex-col justify-center">
       <p class="text-xs font-semibold text-blue-700 uppercase tracking-wider">Resep Selesai</p>
       <p class="text-2xl font-black text-blue-900 mt-1">{{ $resepCount }} Resep</p>
@@ -42,12 +42,7 @@
     <div class="bg-green-50 border border-green-200 rounded-xl p-5 shadow-sm flex flex-col justify-center">
       <p class="text-xs font-semibold text-green-700 uppercase tracking-wider">Total Obat Keluar</p>
       <p class="text-2xl font-black text-green-900 mt-1">{{ number_format($totalObatKeluar, 0, ',', '.') }} Unit</p>
-      <span class="text-[10px] text-green-600 font-medium mt-1">Berdasarkan data tagihan lunas</span>
-    </div>
-    <div class="bg-red-50 border border-red-200 rounded-xl p-5 shadow-sm flex flex-col justify-center">
-      <p class="text-xs font-semibold text-red-700 uppercase tracking-wider">Obat Kritis</p>
-      <p class="text-2xl font-black text-red-900 mt-1">{{ $totalObatKritis }} Item</p>
-      <span class="text-[10px] text-red-600 font-medium mt-1">Item obat dengan stok habis atau menipis</span>
+      <span class="text-[10px] text-green-600 font-medium mt-1">Berdasarkan data operasional</span>
     </div>
   </div>
 </div>

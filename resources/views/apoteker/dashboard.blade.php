@@ -32,7 +32,7 @@
 @endpush
 
 @section('content')
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-8">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5 mb-8">
   <!-- Total Obat -->
   <div class="stat-card">
     <div class="flex items-center justify-between">
@@ -63,17 +63,6 @@
         <p class="stat-value text-red-600">{{ $stokMenipis }}</p>
       </div>
       <i class="fas fa-exclamation-triangle text-red-500 text-4xl opacity-20"></i>
-    </div>
-  </div>
-
-  <!-- Penjualan Hari Ini -->
-  <div class="stat-card">
-    <div class="flex items-center justify-between">
-      <div>
-        <p class="stat-label">Resep Selesai (Hari Ini)</p>
-        <p class="stat-value text-blue-600">{{ $penjualanHariIni }}</p>
-      </div>
-      <i class="fas fa-shopping-cart text-blue-900 text-4xl opacity-20"></i>
     </div>
   </div>
 </div>

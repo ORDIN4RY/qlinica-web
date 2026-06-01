@@ -153,8 +153,22 @@
                         </td>
                         <td class="px-6 py-4 text-center">
                             @if($p->jam_masuk)
-                                <div class="font-mono font-bold text-blue-700 text-sm">{{ substr($p->jam_masuk, 0, 5) }}</div>
-                                <div class="text-[10px] text-gray-400 font-mono">{{ $p->jam_keluar ? substr($p->jam_keluar, 0, 5) : '--:--' }}</div>
+                                <div class="flex items-center justify-center gap-2">
+                                    <div class="font-mono font-bold text-blue-700 text-sm">{{ substr($p->jam_masuk, 0, 5) }}</div>
+                                    @if($p->foto_masuk)
+                                        <button onclick="openFotoModal('{{ asset('storage/'.$p->foto_masuk) }}', 'Foto Masuk - {{ $p->pegawai->nama }}')" class="text-blue-500 hover:text-blue-700" title="Lihat Foto Masuk">
+                                            <i class="fas fa-camera text-xs"></i>
+                                        </button>
+                                    @endif
+                                </div>
+                                <div class="flex items-center justify-center gap-2 mt-1">
+                                    <div class="text-[10px] text-gray-400 font-mono">{{ $p->jam_keluar ? substr($p->jam_keluar, 0, 5) : '--:--' }}</div>
+                                    @if($p->foto_keluar)
+                                        <button onclick="openFotoModal('{{ asset('storage/'.$p->foto_keluar) }}', 'Foto Keluar - {{ $p->pegawai->nama }}')" class="text-gray-400 hover:text-gray-600" title="Lihat Foto Keluar">
+                                            <i class="fas fa-camera text-xs"></i>
+                                        </button>
+                                    @endif
+                                </div>
                             @else
                                 <span class="text-gray-300">—</span>
                             @endif
@@ -620,12 +634,40 @@
         </div>
     </div>
 
+    {{-- MODAL LIHAT FOTO --}}
+    <div id="fotoModal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden scale-95 transition-transform duration-300" id="fotoModalContent">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-900 text-white">
+                <h4 class="font-bold text-sm" id="fotoModalTitle">Foto Absensi</h4>
+                <button onclick="closeFotoModal()" class="text-gray-400 hover:text-white transition"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-4 bg-black flex justify-center items-center h-[60vh]">
+                <img id="fotoModalImage" src="" alt="Foto Absensi" class="max-w-full max-h-full object-contain rounded-lg">
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @endsection
 
 @push('scripts')
 <script>
+    function openFotoModal(src, title) {
+        document.getElementById('fotoModalImage').src = src;
+        document.getElementById('fotoModalTitle').innerText = title;
+        const modal = document.getElementById('fotoModal');
+        const content = document.getElementById('fotoModalContent');
+        modal.classList.remove('hidden');
+        setTimeout(() => content.classList.remove('scale-95'), 10);
+    }
+
+    function closeFotoModal() {
+        const modal = document.getElementById('fotoModal');
+        const content = document.getElementById('fotoModalContent');
+        content.classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 200);
+    }
     function switchTab(tab) {
         // Hide all contents
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));

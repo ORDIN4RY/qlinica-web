@@ -113,6 +113,13 @@ class PresensiController extends Controller
                 $presensi->pegawai->decrement('jatah_cuti', $durasi);
             }
 
+            if ($request->approval_status === 'Approved') {
+                $dates = Presensi::where('batch_id', $presensi->batch_id)->pluck('tanggal');
+                \App\Models\JadwalShift::where('pegawai_id', $presensi->pegawai_id)
+                    ->whereIn('tanggal', $dates)
+                    ->delete();
+            }
+
             Presensi::where('batch_id', $presensi->batch_id)->update([
                 'approval_status' => $request->approval_status
             ]);
@@ -120,6 +127,12 @@ class PresensiController extends Controller
             // Jika disetujui dan statusnya Cuti, potong jatah cuti pegawai
             if ($request->approval_status === 'Approved' && $presensi->status === 'Cuti' && $presensi->approval_status === 'Pending') {
                 $presensi->pegawai->decrement('jatah_cuti', 1);
+            }
+
+            if ($request->approval_status === 'Approved') {
+                \App\Models\JadwalShift::where('pegawai_id', $presensi->pegawai_id)
+                    ->where('tanggal', $presensi->tanggal)
+                    ->delete();
             }
 
             $presensi->update([
