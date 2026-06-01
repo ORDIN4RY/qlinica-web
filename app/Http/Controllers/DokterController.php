@@ -323,6 +323,19 @@ class DokterController extends Controller
         return redirect()->route('dokter.antrian')->with('success', $message);
     }
 
+    public function panggilDokter($id)
+    {
+        $antrian = Antrian::findOrFail($id);
+
+        // Update last_called_at to now, and ensure status is Dipanggil
+        $antrian->update([
+            'last_called_at' => now(),
+            'status' => 'Dipanggil'
+        ]);
+
+        return redirect()->route('dokter.antrian')->with('success', 'Pasien berhasil dipanggil ke ruang dokter.');
+    }
+
     public function simpanDiagnosa(Request $request, $antrianId)
     {
         $antrian = Antrian::findOrFail($antrianId);

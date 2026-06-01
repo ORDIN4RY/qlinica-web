@@ -89,6 +89,7 @@ Route::middleware(['auth', 'menu:Antrian Pemeriksaan'])->group(function () {
     Route::get('/dokter/antrian', [DokterController::class, 'antrianIndex'])->name('dokter.antrian');
     Route::get('/dokter/antrian/{id}/periksa', [DokterController::class, 'periksa'])->name('dokter.antrian.periksa');
     Route::post('/dokter/antrian/{antrianId}/diagnosa', [DokterController::class, 'simpanDiagnosa'])->name('dokter.antrian.diagnosa');
+    Route::post('/dokter/antrian/{id}/panggil', [DokterController::class, 'panggilDokter'])->name('dokter.antrian.panggil');
 });
 
 // ── Rekam Medis ──

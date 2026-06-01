@@ -133,6 +133,23 @@
     transition: all .15s; white-space: nowrap;
   }
   .btn-panggil:hover { background: #dbeafe; }
+  
+  .btn-panggil:disabled {
+    background: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    border-color: #cbd5e1 !important;
+    cursor: not-allowed !important;
+  }
+
+  .btn-panggil-ulang {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 700;
+    padding: 5px 12px; border-radius: 8px;
+    background: #fffbeb; color: #b45309;
+    border: 1px solid #fde68a; cursor: pointer;
+    transition: all .15s; white-space: nowrap;
+  }
+  .btn-panggil-ulang:hover { background: #fef3c7; }
 
   .btn-ttv {
     display: inline-flex; align-items: center; gap: 5px;
@@ -308,10 +325,13 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-50" id="antrianBody">
+        @php
+          $minMenunggu = isset($antrians) ? $antrians->where('status', 'Menunggu')->min('no_antrian') : null;
+        @endphp
         @forelse($antrians ?? [] as $a)
           <tr class="tbl-row" data-status="{{ strtolower($a->status) }}">
             <td class="px-5 py-3.5">
-              <div class="no-antrian">{{ $a->nomor_antrian }}</div>
+              <div class="no-antrian">{{ str_pad($a->no_antrian, 3, '0', STR_PAD_LEFT) }}</div>
             </td>
             <td class="px-5 py-3.5">
               <span class="text-blue-700 font-bold font-mono text-xs tracking-wide">{{ $a->pasien->no_rm ?? '—' }}</span>
@@ -368,7 +388,13 @@
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-2">
                 @if($st === 'menunggu')
-                  <button type="button" class="btn-panggil" onclick="panggilStatusLangsung({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Panggil Pasien">
+                  @php
+                    $isDisabled = $minMenunggu !== null && $a->no_antrian > $minMenunggu;
+                  @endphp
+                  <button type="button" class="btn-panggil" 
+                    {{ $isDisabled ? 'disabled' : '' }}
+                    onclick="panggilStatusLangsung({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" 
+                    title="{{ $isDisabled ? 'Antrean sebelumnya harus dipanggil terlebih dahulu' : 'Panggil Pasien' }}">
                     <i class="fas fa-bullhorn text-xs"></i> Panggil
                   </button>
                 @elseif($st === 'dipanggil')
@@ -376,7 +402,7 @@
                     <button type="button" class="btn-ttv" onclick="openPanggil({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}', '{{ $a->pasien->no_bpjs ?? '' }}')" title="Pemeriksaan Awal TTV">
                       <i class="fas fa-notes-medical text-xs"></i> Pemeriksaan Awal
                     </button>
-                    <button type="button" class="btn-panggil" onclick="panggilStatusLangsung({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Panggil Ulang Pasien">
+                    <button type="button" class="btn-panggil-ulang" onclick="panggilStatusLangsung({{ $a->id }}, '{{ addslashes($a->pasien->nama ?? '') }}')" title="Panggil Ulang Pasien">
                       <i class="fas fa-redo text-xs"></i> Panggil Ulang
                     </button>
                   @endif

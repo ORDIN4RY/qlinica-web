@@ -25,7 +25,14 @@ class AntrianController extends Controller
                   ELSE 5
                 END ASC
             ")
-            ->orderBy('no_antrian')
+            ->orderByRaw("
+                CASE 
+                  WHEN LOWER(status) IN ('selesai', 'batal') THEN no_antrian 
+                END DESC,
+                CASE 
+                  WHEN LOWER(status) NOT IN ('selesai', 'batal') THEN no_antrian 
+                END ASC
+            ")
             ->get();
 
         $dokters = Pegawai::whereHas('user', function($q) {
@@ -577,10 +584,18 @@ class AntrianController extends Controller
                   ELSE 5
                 END ASC
             ")
-            ->orderBy('no_antrian')
+            ->orderByRaw("
+                CASE 
+                  WHEN LOWER(status) IN ('selesai', 'batal') THEN no_antrian 
+                END DESC,
+                CASE 
+                  WHEN LOWER(status) NOT IN ('selesai', 'batal') THEN no_antrian 
+                END ASC
+            ")
             ->get();
 
         $hasUpdate = auth()->user() && auth()->user()->hasMenuAccess('Antrian Pemesanan', 'update');
+        $minMenunggu = $antrians->where('status', 'Menunggu')->min('no_antrian');
 
         $html = '';
         foreach ($antrians as $a) {
@@ -616,14 +631,17 @@ class AntrianController extends Controller
             if ($hasUpdate) {
                 $buttonsHtml = '<td class="px-5 py-3.5"><div class="flex items-center gap-2">';
                 if ($st === 'menunggu') {
-                    $buttonsHtml .= '<button type="button" class="btn-panggil" onclick="panggilStatusLangsung(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Panggil Pasien"><i class="fas fa-bullhorn text-xs"></i> Panggil</button>';
+                    $isDisabled = $minMenunggu !== null && $a->no_antrian > $minMenunggu;
+                    $disabledAttr = $isDisabled ? ' disabled' : '';
+                    $titleAttr = $isDisabled ? 'Antrean sebelumnya harus dipanggil terlebih dahulu' : 'Panggil Pasien';
+                    $buttonsHtml .= '<button type="button" class="btn-panggil"' . $disabledAttr . ' onclick="panggilStatusLangsung(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="' . $titleAttr . '"><i class="fas fa-bullhorn text-xs"></i> Panggil</button>';
                 } elseif ($st === 'dipanggil') {
                     if (!$a->rekamMedis) {
-                        $buttonsHtml .= '<button type="button" class="btn-ttv" onclick="openPanggil(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Pemeriksaan Awal TTV"><i class="fas fa-notes-medical text-xs"></i> Pemeriksaan Awal</button>';
-                        $buttonsHtml .= '<button type="button" class="btn-panggil" onclick="panggilStatusLangsung(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Panggil Ulang Pasien"><i class="fas fa-redo text-xs"></i> Panggil Ulang</button>';
+                        $buttonsHtml .= '<button type="button" class="btn-ttv" onclick="openPanggil(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\', \'' . addslashes($a->pasien->no_bpjs ?? '') . '\')" title="Pemeriksaan Awal TTV"><i class="fas fa-notes-medical text-xs"></i> Pemeriksaan Awal</button>';
+                        $buttonsHtml .= '<button type="button" class="btn-panggil-ulang" onclick="panggilStatusLangsung(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Panggil Ulang Pasien"><i class="fas fa-redo text-xs"></i> Panggil Ulang</button>';
                     }
                 }
-                if (!in_array($st, ['selesai', 'batal'])) {
+                if (in_array($st, ['menunggu', 'dipanggil']) && !$a->rekamMedis) {
                     $buttonsHtml .= '<button class="btn-batal" onclick="openBatal(' . $a->id . ', \'' . addslashes($a->pasien->nama ?? '') . '\')" title="Batalkan"><i class="fas fa-times text-xs"></i></button>';
                 }
                 $buttonsHtml .= '</div></td>';
@@ -639,7 +657,7 @@ class AntrianController extends Controller
 
             $html .= '
               <tr class="tbl-row" data-status="' . strtolower($a->status) . '">
-                <td class="px-5 py-3.5"><div class="no-antrian">' . $a->nomor_antrian . '</div></td>
+                <td class="px-5 py-3.5"><div class="no-antrian">' . str_pad($a->no_antrian, 3, '0', STR_PAD_LEFT) . '</div></td>
                 <td class="px-5 py-3.5"><span class="text-blue-700 font-bold font-mono text-xs tracking-wide">' . $noRM . '</span></td>
                 <td class="px-5 py-3.5"><div class="font-semibold text-gray-800 text-sm">' . $namaPasien . '</div></td>
                 <td class="px-5 py-3.5">' . $genderHtml . '</td>
@@ -679,12 +697,32 @@ class AntrianController extends Controller
             'status' => 'required|in:Menunggu,Terpanggil,Dipanggil,Dilayani,Selesai,Batal',
         ]);
 
-        $updateData = ['status' => $request->status];
-
         // Setiap kali dipanggil (pertama kali maupun panggil ulang),
         // perbarui last_called_at agar display key selalu berubah
         // dan display selalu menampilkan panggilan terakhir dengan benar.
+        $updateData = ['status' => $request->status];
         if ($request->status === 'Dipanggil') {
+            if ($antrian->status === 'Menunggu') {
+                // Cek apakah ada antrian sebelumnya hari ini yang statusnya masih 'Menunggu'
+                $antrianSebelumnya = Antrian::where('tanggal', $antrian->tanggal)
+                    ->where('no_antrian', '<', $antrian->no_antrian)
+                    ->where('status', 'Menunggu')
+                    ->whereNull('deleted_at')
+                    ->first();
+
+                if ($antrianSebelumnya) {
+                    $noUrutFormatted = str_pad($antrianSebelumnya->no_antrian, 3, '0', STR_PAD_LEFT);
+                    $errorMsg = "Antrean sebelumnya (No. {$noUrutFormatted}) harus dipanggil terlebih dahulu sebelum memanggil antrean ini.";
+                    if ($request->wantsJson()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => $errorMsg
+                        ], 422);
+                    }
+                    return redirect()->back()->with('error', $errorMsg);
+                }
+            }
+
             $updateData['last_called_at'] = now();
         }
 

@@ -98,12 +98,24 @@
     <div class="divide-y divide-slate-100">
       @foreach($antrians as $antrian)
         @php
-          $statusColors = [
-            'Menunggu' => 'bg-amber-50 text-amber-700 border-amber-200/50',
-            'Dipanggil' => 'bg-blue-50 text-blue-700 border-blue-200/50 animate-pulse',
-            'Selesai' => 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
-            'Batal' => 'bg-rose-50 text-rose-700 border-rose-200/50',
-          ];
+          $sudahDipanggilDokter = $antrian->last_called_at && $antrian->rekamMedis && ($antrian->last_called_at > $antrian->rekamMedis->created_at);
+          
+          if ($antrian->status === 'Dipanggil') {
+              if ($sudahDipanggilDokter) {
+                  $statusText = 'Dipanggil';
+                  $statusBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200/50 animate-pulse';
+              } else {
+                  $statusText = 'Menunggu Dokter';
+                  $statusBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200/50';
+              }
+          } else {
+              $statusText = $antrian->status;
+              $statusBadgeClass = match($antrian->status) {
+                  'Selesai' => 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
+                  'Batal' => 'bg-rose-50 text-rose-700 border-rose-200/50',
+                  default => 'bg-slate-50 text-slate-600 border-slate-200'
+              };
+          }
         @endphp
 
         <div class="p-5 hover:bg-slate-50/50 transition duration-150 {{ $antrian->status === 'Dipanggil' ? 'bg-blue-50/30' : '' }}">
@@ -120,8 +132,8 @@
                 </div>
 
                 <!-- Small screen wrapper for badge so it shows nicely next to queue number on mobile -->
-                <span class="sm:hidden px-3 py-1 rounded-lg text-xs font-bold border {{ $statusColors[$antrian->status] ?? 'bg-slate-50 text-slate-600 border-slate-200' }}">
-                  {{ $antrian->status }}
+                <span class="sm:hidden px-3 py-1 rounded-lg text-xs font-bold border {{ $statusBadgeClass }}">
+                  {{ $statusText }}
                 </span>
               </div>
 
@@ -172,11 +184,11 @@
             </div>
 
             <!-- Right Side: Status Badge & Actions -->
-            <div class="flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-3 pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+            <div class="flex flex-col sm:flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-3 pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-100">
               
               <!-- Hidden on mobile badge since it is wrapping above -->
-              <span class="hidden sm:inline-flex px-3 py-1 rounded-lg text-xs font-bold border {{ $statusColors[$antrian->status] ?? 'bg-slate-50 text-slate-600 border-slate-200' }}">
-                <i class="fas fa-circle text-[5px] mr-1.5 align-middle"></i>{{ $antrian->status }}
+              <span class="hidden sm:inline-flex px-3 py-1 rounded-lg text-xs font-bold border {{ $statusBadgeClass }}">
+                <i class="fas fa-circle text-[5px] mr-1.5 align-middle"></i>{{ $statusText }}
               </span>
 
               @if($antrian->status === 'Menunggu')
@@ -184,14 +196,34 @@
                   <i class="fas fa-clock"></i> Menunggu Panggilan
                 </button>
               @elseif($antrian->status === 'Dipanggil')
-                <a href="{{ route('dokter.antrian.periksa', $antrian->id) }}"
-                   class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-xs font-bold rounded-xl transition-all shadow-sm hover:shadow-md shadow-blue-500/10">
-                  <i class="fas fa-notes-medical"></i> Periksa & Diagnosa
-                </a>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                  @if($sudahDipanggilDokter)
+                    <!-- Tombol Panggil Ulang -->
+                    <form action="{{ route('dokter.antrian.panggil', $antrian->id) }}" method="POST" class="inline">
+                      @csrf
+                      <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold rounded-xl transition border border-amber-200/50">
+                        <i class="fas fa-redo"></i> Panggil Ulang
+                      </button>
+                    </form>
+                  @else
+                    <!-- Tombol Panggil Pertama -->
+                    <form action="{{ route('dokter.antrian.panggil', $antrian->id) }}" method="POST" class="inline">
+                      @csrf
+                      <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-sm hover:shadow-md shadow-emerald-500/10">
+                        <i class="fas fa-bullhorn"></i> Panggil
+                      </button>
+                    </form>
+                  @endif
+                  
+                  <a href="{{ route('dokter.antrian.periksa', $antrian->id) }}"
+                     class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-xs font-bold rounded-xl transition-all shadow-sm hover:shadow-md shadow-blue-500/10">
+                    <i class="fas fa-notes-medical"></i> Diagnosa
+                  </a>
+                </div>
               @elseif($antrian->status === 'Selesai')
                 <a href="{{ route('dokter.pasien.show', $antrian->pasien_id) }}" 
                    class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-xl transition border border-emerald-200/50">
-                  <i class="fas fa-clipboard-check"></i> Riwayat Medis
+                   <i class="fas fa-clipboard-check"></i> Riwayat Medis
                 </a>
               @else
                 <span class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-rose-50 text-rose-600 text-xs font-bold rounded-xl border border-rose-200/50">

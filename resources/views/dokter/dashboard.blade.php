@@ -110,11 +110,21 @@
       @else
         <div class="space-y-3">
           @foreach($activeQueues as $aq)
+            @php
+              $sudahDipanggilDokter = $aq->last_called_at && $aq->rekamMedis && ($aq->last_called_at > $aq->rekamMedis->created_at);
+              if ($aq->status === 'Dipanggil') {
+                  $activeStatusText = $sudahDipanggilDokter ? 'Dipanggil' : 'Menunggu Dokter';
+                  $activeStatusBg = $sudahDipanggilDokter ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-amber-50 text-amber-700 border-amber-200';
+              } else {
+                  $activeStatusText = $aq->status;
+                  $activeStatusBg = 'bg-slate-50 text-slate-600 border-slate-200';
+              }
+            @endphp
             <div class="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition flex items-center justify-between gap-3">
               <div class="min-w-0">
                 <div class="flex items-center gap-2">
                   <span class="text-[10px] font-bold font-mono px-2 py-0.5 bg-blue-50 text-blue-600 rounded border border-blue-200">#{{ $aq->no_antrian }}</span>
-                  <span class="text-[10px] font-semibold px-2 py-0.5 bg-amber-50 text-amber-700 rounded border border-amber-200 capitalize">{{ $aq->status }}</span>
+                  <span class="text-[10px] font-semibold px-2 py-0.5 {{ $activeStatusBg }} rounded border capitalize">{{ $activeStatusText }}</span>
                 </div>
                 <h4 class="font-semibold text-sm text-gray-800 mt-1.5 truncate">{{ $aq->pasien->nama ?? '—' }}</h4>
                 <p class="text-[10px] text-gray-500 mt-0.5 font-mono">RM: {{ $aq->pasien->no_rm ?? '—' }}</p>
