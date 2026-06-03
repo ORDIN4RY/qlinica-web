@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Presensi;
 use App\Models\Pegawai;
+use App\Models\Pengaturan;
+use App\Models\Shift;
 use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -94,7 +96,14 @@ class PresensiController extends Controller
             }
         }
 
-        return view('admin.presensi', compact('presensis', 'pegawais', 'pengajuans', 'shifts', 'jadwalShifts', 'bulan', 'tahun', 'kpi'));
+        // Data pengaturan lokasi
+        $pengaturan = [
+            'lokasi_lat'    => Pengaturan::get('lokasi_lat', '-8.164423'),
+            'lokasi_lng'    => Pengaturan::get('lokasi_lng', '113.709018'),
+            'lokasi_radius' => Pengaturan::get('lokasi_radius', '100'),
+        ];
+
+        return view('admin.presensi', compact('presensis', 'pegawais', 'pengajuans', 'shifts', 'jadwalShifts', 'bulan', 'tahun', 'kpi', 'pengaturan'));
     }
 
     /** Update status persetujuan cuti/izin. */
@@ -346,5 +355,41 @@ class PresensiController extends Controller
         $presensi->delete();
 
         return redirect()->route('admin.presensi')->with('success', 'Data presensi berhasil dihapus.');
+    }
+
+    /** Simpan pengaturan lokasi presensi (lat, lng, radius). */
+    public function updateSettings(Request $request)
+    {
+        $request->validate([
+            'lokasi_lat'    => 'required|numeric|between:-90,90',
+            'lokasi_lng'    => 'required|numeric|between:-180,180',
+            'lokasi_radius' => 'required|integer|min:10|max:5000',
+        ]);
+
+        Pengaturan::set('lokasi_lat',    $request->lokasi_lat);
+        Pengaturan::set('lokasi_lng',    $request->lokasi_lng);
+        Pengaturan::set('lokasi_radius', $request->lokasi_radius);
+
+        return redirect()->route('admin.presensi', ['tab' => 'pengaturan'])
+            ->with('success', 'Pengaturan lokasi presensi berhasil disimpan.');
+    }
+
+    /** Update jam masuk & jam pulang sebuah shift. */
+    public function updateShiftJam(Request $request, $id)
+    {
+        $shift = Shift::findOrFail($id);
+
+        $request->validate([
+            'jam_masuk'  => 'required|date_format:H:i',
+            'jam_pulang' => 'required|date_format:H:i',
+        ]);
+
+        $shift->update([
+            'jam_masuk'  => $request->jam_masuk . ':00',
+            'jam_pulang' => $request->jam_pulang . ':00',
+        ]);
+
+        return redirect()->route('admin.presensi', ['tab' => 'pengaturan'])
+            ->with('success', "Jam shift '{$shift->nama_shift}' berhasil diperbarui.");
     }
 }

@@ -42,6 +42,7 @@ Route::prefix('mobile')->group(function () {
 
         // Presensi
         Route::get('/presensi', [MobilePresensiController::class, 'index']);
+        Route::get('/presensi/settings', [MobilePresensiController::class, 'getSettings']);
         Route::post('/presensi/clock-in', [MobilePresensiController::class, 'clockIn']);
         Route::post('/presensi/clock-out', [MobilePresensiController::class, 'clockOut']);
         Route::post('/presensi/alpa', [MobilePresensiController::class, 'markAlpa']);

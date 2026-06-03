@@ -10,7 +10,7 @@
     .tab-btn.active { border-bottom-color: #1e3a8a; color: #1e3a8a; font-weight: 700; background: #f8fafc; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    
+
     .status-badge { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 12px; border-radius: 99px; }
     .badge-hadir { background: #f0fdf4; color: #166534; }
     .badge-sakit { background: #fffbeb; color: #92400e; }
@@ -18,7 +18,7 @@
     .badge-cuti { background: #f0fdfa; color: #115e59; }
     .badge-alpha { background: #fef2f2; color: #991b1b; }
     .badge-libur { background: #f1f5f9; color: #475569; }
-    
+
     .table-auto-hover tr:hover { background-color: #f8fafc; }
 </style>
 @endpush
@@ -51,24 +51,27 @@
 
 {{-- Tabs Navigation --}}
 <div class="bg-white rounded-t-2xl border-x border-t border-gray-100 shadow-sm overflow-hidden">
-    <div class="flex border-b border-gray-100">
-        <button onclick="switchTab('log')" id="tab-log" class="tab-btn active px-6 py-4 text-sm font-medium text-gray-500 hover:text-blue-900">
+    <div class="flex border-b border-gray-100 overflow-x-auto">
+        <button onclick="switchTab('log')" id="tab-log" class="tab-btn active px-6 py-4 text-sm font-medium text-gray-500 hover:text-blue-900 whitespace-nowrap">
             <i class="fas fa-list-ul mr-2"></i> Log Presensi
         </button>
-        <button onclick="switchTab('persetujuan')" id="tab-persetujuan" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-blue-900 flex items-center">
-            <i class="fas fa-clipboard-check mr-2"></i> Persetujuan 
+        <button onclick="switchTab('persetujuan')" id="tab-persetujuan" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-blue-900 flex items-center whitespace-nowrap">
+            <i class="fas fa-clipboard-check mr-2"></i> Persetujuan
             @if($pengajuans->count() > 0)
                 <span class="ml-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">{{ $pengajuans->count() }}</span>
             @endif
         </button>
-        <button onclick="switchTab('shift')" id="tab-shift" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-blue-900">
+        <button onclick="switchTab('shift')" id="tab-shift" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-blue-900 whitespace-nowrap">
             <i class="fas fa-calendar-day mr-2"></i> Pengaturan Shift
+        </button>
+        <button onclick="switchTab('pengaturan')" id="tab-pengaturan" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-blue-900 whitespace-nowrap">
+            <i class="fas fa-cog mr-2"></i> Pengaturan Lokasi & Shift
         </button>
     </div>
 </div>
 
 <div class="bg-white rounded-b-2xl border border-gray-100 shadow-sm mb-8 overflow-hidden">
-    
+
     {{-- TAB 1: LOG PRESENSI --}}
     <div id="content-log" class="tab-content active">
         <div class="p-6 border-b border-gray-50 flex flex-wrap items-center justify-between gap-4">
@@ -80,7 +83,7 @@
             </div>
             <form method="GET" action="{{ route('admin.presensi') }}" class="flex items-center flex-wrap gap-2">
                 <input type="hidden" name="tab" value="log">
-                
+
                 <select name="status" class="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
                     <option value="">Semua Status</option>
                     @foreach(['Hadir', 'Sakit', 'Izin', 'Cuti', 'Alpha', 'Libur'] as $st)
@@ -239,8 +242,8 @@
                     <tr>
                         <td class="px-6 py-4">
                             <div class="font-bold text-gray-800">
-                                {{ \Carbon\Carbon::parse($p->tanggal_mulai)->translatedFormat('d M') }} 
-                                - 
+                                {{ \Carbon\Carbon::parse($p->tanggal_mulai)->translatedFormat('d M') }}
+                                -
                                 {{ \Carbon\Carbon::parse($p->tanggal_selesai)->translatedFormat('d M Y') }}
                             </div>
                             <div class="text-[10px] text-gray-400">Diajukan pada {{ \Carbon\Carbon::parse($p->tanggal_mulai)->diffForHumans() }}</div>
@@ -305,7 +308,7 @@
                         Periode: {{ date('F Y', mktime(0,0,0,$bulan,10,$tahun)) }}
                     </p>
                 </div>
-                
+
                 {{-- SIMPLE MONTH NAV --}}
                 <div class="flex items-center bg-gray-50 rounded-lg p-1 border border-gray-200 ml-4">
                     @php
@@ -314,12 +317,12 @@
                         $nextMonth = $bulan == 12 ? 1 : $bulan + 1;
                         $nextYear  = $bulan == 12 ? $tahun + 1 : $tahun;
                     @endphp
-                    <a href="{{ route('admin.presensi', ['tab' => 'shift', 'bulan' => $prevMonth, 'tahun' => $prevYear]) }}" 
+                    <a href="{{ route('admin.presensi', ['tab' => 'shift', 'bulan' => $prevMonth, 'tahun' => $prevYear]) }}"
                        class="w-8 h-8 flex items-center justify-center rounded hover:bg-white hover:shadow-sm text-gray-400 hover:text-blue-600 transition-all">
                         <i class="fas fa-chevron-left text-[10px]"></i>
                     </a>
                     <span class="px-4 text-[11px] font-bold text-gray-600">{{ date('M Y', mktime(0,0,0,$bulan,10,$tahun)) }}</span>
-                    <a href="{{ route('admin.presensi', ['tab' => 'shift', 'bulan' => $nextMonth, 'tahun' => $nextYear]) }}" 
+                    <a href="{{ route('admin.presensi', ['tab' => 'shift', 'bulan' => $nextMonth, 'tahun' => $nextYear]) }}"
                        class="w-8 h-8 flex items-center justify-center rounded hover:bg-white hover:shadow-sm text-gray-400 hover:text-blue-600 transition-all">
                         <i class="fas fa-chevron-right text-[10px]"></i>
                     </a>
@@ -329,7 +332,7 @@
             <div class="flex items-center gap-3">
                 <div class="relative">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-[10px]"></i>
-                    <input type="text" id="searchPegawai" onkeyup="filterRoster()" placeholder="Cari nama pegawai..." 
+                    <input type="text" id="searchPegawai" onkeyup="filterRoster()" placeholder="Cari nama pegawai..."
                         class="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-[11px] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-56 transition-all">
                 </div>
                 <div class="flex gap-2 ml-2">
@@ -360,7 +363,7 @@
                 </div> -->
             </div>
         </div>
-        
+
         <div class="w-full overflow-auto max-h-[600px]">
             <table class="w-full min-w-[1500px] text-left border-collapse">
                 <thead class="sticky top-0 z-40">
@@ -373,7 +376,7 @@
                             $todayDate = date('Y-m-d');
                         @endphp
                         @for($d=1; $d<=$daysInMonth; $d++)
-                            @php 
+                            @php
                                 $dateStr = sprintf('%04d-%02d-%02d', $tahun, $bulan, $d);
                                 $isWeekend = in_array(date('N', strtotime($dateStr)), [6, 7]);
                                 $isToday = $dateStr === $todayDate;
@@ -395,7 +398,7 @@
                             <div class="text-[9px] text-gray-400 uppercase">{{ $peg->jabatan->nama_jabatan ?? '-' }}</div>
                         </td>
                         @for($d=1; $d<=$daysInMonth; $d++)
-                            @php 
+                            @php
                                 $cellDate = sprintf('%04d-%02d-%02d', $tahun, $bulan, $d);
                                 // PERBAIKAN: Pastikan akses data jadwal sangat spesifik per pegawai dan tanggal
                                 $assignedShift = null;
@@ -404,17 +407,17 @@
                                 }
                             @endphp
                             <td class="p-0.5 border-r border-gray-50 text-center">
-                                <button type="button" 
+                                <button type="button"
                                     onclick="openShiftModal('{{ $peg->id }}', '{{ $peg->nama }}', '{{ $cellDate }}', '{{ $assignedShift?->shift_id }}')"
                                     class="w-full h-8 rounded transition-all flex items-center justify-center border
-                                    @if(!$assignedShift) 
+                                    @if(!$assignedShift)
                                         border-transparent hover:border-gray-200 hover:bg-gray-100
                                     @else
                                         @if($assignedShift->shift->nama_shift == 'Shift Pagi') bg-green-500 border-green-600 text-white
                                         @elseif($assignedShift->shift->nama_shift == 'Shift Sore') bg-blue-500 border-blue-600 text-white
                                         @else bg-gray-700 border-gray-800 text-white @endif
                                     @endif">
-                                    
+
                                     @if($assignedShift)
                                         <span class="font-black text-[10px]">{{ substr($assignedShift->shift->nama_shift, 6, 1) }}</span>
                                     @else
@@ -456,10 +459,10 @@
             <form id="shiftForm" method="POST" class="p-6 space-y-4">
                 @csrf @method('PUT')
                 <input type="hidden" name="tanggal" id="modalInputTanggal">
-                
+
                 <div class="grid grid-cols-1 gap-3">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Pilih Shift Kerja</label>
-                    
+
                     {{-- Opsi Libur --}}
                     <label class="relative flex items-center p-4 border border-red-100 rounded-xl cursor-pointer hover:bg-red-50 transition group bg-red-50/30">
                         <input type="radio" name="shift_id" value="" class="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300">
@@ -502,7 +505,7 @@
             </div>
             <form action="{{ route('admin.presensi.shift.bulk') }}" method="POST" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
                 @csrf
-                
+
                 <div>
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Pilih Pegawai</label>
                     <div class="max-h-40 overflow-y-auto border border-gray-200 rounded-xl p-3 bg-gray-50 space-y-2">
@@ -566,7 +569,7 @@
             </div>
             <form action="{{ route('admin.presensi.shift.pattern') }}" method="POST" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
                 @csrf
-                
+
                 <div>
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Pilih Pegawai</label>
                     <div class="max-h-32 overflow-y-auto border border-gray-200 rounded-xl p-3 bg-gray-50 space-y-2">
@@ -647,6 +650,178 @@
         </div>
     </div>
 
+    {{-- TAB 4: PENGATURAN LOKASI & SHIFT --}}
+    <div id="content-pengaturan" class="tab-content">
+        <div class="p-6 border-b border-gray-50">
+            <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-cog text-blue-600"></i> Pengaturan Lokasi Presensi & Jam Shift
+            </h3>
+            <p class="text-xs text-gray-400 mt-1">Konfigurasi ini digunakan oleh aplikasi mobile — tidak perlu update kode aplikasi setiap kali ada perubahan.</p>
+        </div>
+
+        @if(session('success'))
+            <div class="mx-6 mt-4 bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 text-sm font-semibold flex items-center gap-2">
+                <i class="fas fa-check-circle text-green-500"></i> {{ session('success') }}
+            </div>
+        @endif
+
+        <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            {{-- ── BAGIAN A: PENGATURAN LOKASI ─────────────────── --}}
+            <div class="space-y-4">
+                <div class="flex items-center gap-3 pb-3 border-b border-gray-100">
+                    <div class="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-map-marker-alt text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm">Lokasi Klinik (Titik Pusat Absensi)</h4>
+                        <p class="text-[11px] text-gray-400">Pegawai harus berada dalam radius ini untuk bisa absen</p>
+                    </div>
+                </div>
+
+                <form action="{{ route('admin.presensi.settings') }}" method="POST" class="space-y-4">
+                    @csrf
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Latitude <span class="text-red-500">*</span></label>
+                            <input type="number" name="lokasi_lat" step="any"
+                                   value="{{ $pengaturan['lokasi_lat'] }}"
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono"
+                                   placeholder="-8.164423" required>
+                            <p class="text-[10px] text-gray-400 mt-1">Rentang: -90 hingga 90</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Longitude <span class="text-red-500">*</span></label>
+                            <input type="number" name="lokasi_lng" step="any"
+                                   value="{{ $pengaturan['lokasi_lng'] }}"
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono"
+                                   placeholder="113.709018" required>
+                            <p class="text-[10px] text-gray-400 mt-1">Rentang: -180 hingga 180</p>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Radius Absensi (meter) <span class="text-red-500">*</span></label>
+                        <div class="flex items-center gap-3">
+                            <input type="number" name="lokasi_radius" min="10" max="5000"
+                                   value="{{ $pengaturan['lokasi_radius'] }}"
+                                   id="radiusInput"
+                                   class="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                   placeholder="100" required
+                                   oninput="document.getElementById('radiusDisplay').textContent = this.value + 'm'">
+                            <span id="radiusDisplay" class="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg font-bold text-sm border border-blue-100">
+                                {{ $pengaturan['lokasi_radius'] }}m
+                            </span>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-1">Min: 10m, Max: 5000m. Rekomendasi: 50–200m</p>
+                    </div>
+
+                    {{-- Preview Koordinat --}}
+                    <div class="bg-slate-50 rounded-xl border border-slate-200 p-4">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase mb-2"><i class="fas fa-info-circle mr-1"></i>Koordinat Tersimpan Saat Ini</p>
+                        <div class="font-mono text-sm text-slate-700 space-y-1.5">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase w-16">Lat</span>
+                                <span class="text-blue-700 font-bold">{{ $pengaturan['lokasi_lat'] }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase w-16">Lng</span>
+                                <span class="text-blue-700 font-bold">{{ $pengaturan['lokasi_lng'] }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase w-16">Radius</span>
+                                <span class="text-emerald-700 font-bold">{{ $pengaturan['lokasi_radius'] }} meter</span>
+                            </div>
+                        </div>
+                        <a href="https://www.google.com/maps?q={{ $pengaturan['lokasi_lat'] }},{{ $pengaturan['lokasi_lng'] }}"
+                           target="_blank"
+                           class="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition">
+                            <i class="fas fa-external-link-alt text-[10px]"></i> Lihat di Google Maps
+                        </a>
+                    </div>
+
+                    <button type="submit" class="w-full px-4 py-3 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl text-sm transition shadow-md flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i> Simpan Pengaturan Lokasi
+                    </button>
+                </form>
+
+                {{-- Panduan mendapatkan koordinat --}}
+                <div class="bg-amber-50 border border-amber-100 rounded-xl p-4">
+                    <p class="text-xs font-bold text-amber-800 mb-2"><i class="fas fa-lightbulb mr-1 text-amber-500"></i>Cara Mendapatkan Koordinat Klinik</p>
+                    <ol class="text-[11px] text-amber-700 space-y-1 list-decimal list-inside">
+                        <li>Buka <strong>Google Maps</strong> di browser</li>
+                        <li>Cari lokasi klinik, lalu klik kanan pada titiknya</li>
+                        <li>Pilih <em>"Bagikan atau sematkan peta"</em> atau lihat koordinat di URL</li>
+                        <li>Format URL: <code class="bg-amber-100 px-1 rounded">maps/@{lat},{lng}</code></li>
+                    </ol>
+                </div>
+            </div>
+
+            {{-- ── BAGIAN B: MANAJEMEN JAM SHIFT ───────────────── --}}
+            <div class="space-y-4">
+                <div class="flex items-center gap-3 pb-3 border-b border-gray-100">
+                    <div class="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-clock text-emerald-600"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm">Pengaturan Jam Shift</h4>
+                        <p class="text-[11px] text-gray-400">Ubah jam masuk dan jam pulang setiap shift kerja</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    @forelse($shifts as $sh)
+                    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                        <div class="px-4 py-3 flex items-center justify-between
+                            @if($sh->nama_shift == 'Shift Pagi') bg-green-50 border-b border-green-100
+                            @elseif($sh->nama_shift == 'Shift Sore') bg-blue-50 border-b border-blue-100
+                            @else bg-gray-50 border-b border-gray-100 @endif">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full
+                                    @if($sh->nama_shift == 'Shift Pagi') bg-green-500
+                                    @elseif($sh->nama_shift == 'Shift Sore') bg-blue-500
+                                    @else bg-gray-500 @endif"></span>
+                                <span class="font-bold text-gray-800 text-sm">{{ $sh->nama_shift }}</span>
+                            </div>
+                            <span class="text-xs text-gray-500 font-mono bg-white px-2 py-0.5 rounded border border-gray-200">
+                                {{ substr($sh->jam_masuk,0,5) }} — {{ substr($sh->jam_pulang,0,5) }}
+                            </span>
+                        </div>
+                        <form action="{{ route('admin.presensi.shift.jam', $sh->id) }}" method="POST" class="p-4">
+                            @csrf @method('PUT')
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">Jam Masuk</label>
+                                    <input type="time" name="jam_masuk"
+                                           value="{{ substr($sh->jam_masuk,0,5) }}"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none font-mono"
+                                           required>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">Jam Pulang</label>
+                                    <input type="time" name="jam_pulang"
+                                           value="{{ substr($sh->jam_pulang,0,5) }}"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none font-mono"
+                                           required>
+                                </div>
+                            </div>
+                            <button type="submit" class="mt-3 w-full px-3 py-2 bg-gray-800 hover:bg-gray-900 text-white text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5">
+                                <i class="fas fa-save"></i> Perbarui Jam {{ $sh->nama_shift }}
+                            </button>
+                        </form>
+                    </div>
+                    @empty
+                    <div class="text-center py-8 text-gray-400">
+                        <i class="fas fa-calendar-times text-3xl mb-2"></i>
+                        <p class="text-sm">Belum ada data shift.</p>
+                    </div>
+                    @endforelse
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
 </div>
 
 @endsection
@@ -673,11 +848,11 @@
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         // Deactivate all buttons
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        
+
         // Show selected
         document.getElementById('content-' + tab).classList.add('active');
         document.getElementById('tab-' + tab).classList.add('active');
-        
+
         // Save to URL to persist on refresh
         const url = new URL(window.location);
         url.searchParams.set('tab', tab);
@@ -714,7 +889,7 @@
     function filterRoster() {
         const query = document.getElementById('searchPegawai').value.toLowerCase();
         const rows = document.querySelectorAll('.roster-row');
-        
+
         rows.forEach(row => {
             const name = row.querySelector('.pegawai-name').innerText.toLowerCase();
             if (name.includes(query)) {

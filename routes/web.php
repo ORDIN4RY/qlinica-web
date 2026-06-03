@@ -128,6 +128,9 @@ Route::middleware(['auth', 'menu:Presensi'])->group(function () {
     Route::put('/admin/presensi/{id}', [PresensiController::class, 'update'])->name('admin.presensi.update')->middleware('menu:Presensi,edit');
     Route::put('/admin/presensi/{id}/shift', [PresensiController::class, 'updateShift'])->name('admin.presensi.shift')->middleware('menu:Presensi,edit');
     Route::delete('/admin/presensi/{id}', [PresensiController::class, 'destroy'])->name('admin.presensi.destroy')->middleware('menu:Presensi,hapus');
+    // Pengaturan lokasi & jam shift
+    Route::post('/admin/presensi/settings', [PresensiController::class, 'updateSettings'])->name('admin.presensi.settings')->middleware('menu:Presensi,edit');
+    Route::put('/admin/presensi/shift-jam/{id}', [PresensiController::class, 'updateShiftJam'])->name('admin.presensi.shift.jam')->middleware('menu:Presensi,edit');
 });
 
 // ── Resep ──

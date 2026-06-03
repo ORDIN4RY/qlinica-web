@@ -5,12 +5,44 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Presensi;
 use App\Models\Pegawai;
+use App\Models\Pengaturan;
+use App\Models\Shift;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class MobilePresensiController extends Controller
 {
     // Menghapus konstanta jam statis karena sekarang menggunakan sistem shift dinamis
+
+    /**
+     * Ambil pengaturan lokasi absensi & daftar shift dari database.
+     * Digunakan mobile agar tidak hardcode koordinat & jam shift.
+     */
+    public function getSettings(Request $request)
+    {
+        $lat    = Pengaturan::get('lokasi_lat',    '-8.164423');
+        $lng    = Pengaturan::get('lokasi_lng',    '113.709018');
+        $radius = Pengaturan::get('lokasi_radius', '100');
+
+        $shifts = Shift::orderBy('jam_masuk')->get()->map(function ($sh) {
+            return [
+                'id'         => $sh->id,
+                'nama_shift' => $sh->nama_shift,
+                'jam_masuk'  => substr($sh->jam_masuk, 0, 5),
+                'jam_pulang' => substr($sh->jam_pulang, 0, 5),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'lokasi'  => [
+                'latitude'  => (float) $lat,
+                'longitude' => (float) $lng,
+                'radius'    => (int)   $radius,
+            ],
+            'shifts'  => $shifts,
+        ]);
+    }
 
 
     /**
