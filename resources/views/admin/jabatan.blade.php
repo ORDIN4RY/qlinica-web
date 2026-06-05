@@ -132,17 +132,6 @@
   .sub-card input[type="checkbox"] { width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer; margin-top: 2px; }
 
   /* Toast */
-  #toast {
-    position: fixed; bottom: 24px; right: 24px;
-    background: #1f2937; color: white; padding: 12px 24px;
-    border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    display: flex; items-center; gap: 12px; font-weight: 500; font-size: 14px;
-    transform: translateY(100px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 9999;
-  }
-  #toast.show { transform: translateY(0); opacity: 1; }
-  #toast.success { background: #166534; border: 1px solid #22c55e; }
-  #toast.error { background: #991b1b; border: 1px solid #ef4444; }
 
   /* Modals */
   .modal-overlay {
@@ -346,11 +335,8 @@
 
 </div>
 
-{{-- Toast Notification --}}
-<div id="toast">
-  <i class="fas fa-check-circle text-xl"></i>
-  <span id="toast-msg">Tersimpan</span>
-</div>
+{{-- Toast Notification handled by global toast system in app.blade.php --}}
+
 
 {{-- MODAL TAMBAH --}}
 <div class="modal-overlay" id="modalTambah">
@@ -539,7 +525,7 @@
     });
 
     if (!isValid) {
-      showToast(errorMessage, 'error');
+      window.showToast('error', errorMessage);
       return; // Berhenti di sini, jangan submit
     }
 
@@ -563,13 +549,13 @@
       const data = await res.json();
 
       if (data.success) {
-        showToast('Berhasil disimpan', 'success');
+        window.showToast('success', 'Berhasil disimpan');
       } else {
-        showToast('Gagal menyimpan', 'error');
+        window.showToast('error', 'Gagal menyimpan');
       }
     } catch (e) {
       console.error(e);
-      showToast('Terjadi kesalahan jaringan', 'error');
+      window.showToast('error', 'Terjadi kesalahan jaringan');
     } finally {
       // Revert UI
       btn.innerHTML = originalText;
@@ -577,22 +563,7 @@
     }
   }
 
-  function showToast(msg, type) {
-    const toast = document.getElementById('toast');
-    const msgEl = document.getElementById('toast-msg');
-    const icon = toast.querySelector('i');
-
-    toast.className = 'show ' + type;
-    msgEl.textContent = msg;
-
-    if(type === 'success') {
-      icon.className = 'fas fa-check-circle text-green-400 text-xl';
-    } else {
-      icon.className = 'fas fa-exclamation-triangle text-red-400 text-xl';
-    }
-
-    setTimeout(() => { toast.classList.remove('show'); }, 3000);
-  }
+  // Local showToast removed — now using global window.showToast from app.blade.php
 
   /* ── Konfirmasi Hapus ── */
   function confirmDelete(jabatanId, namaJabatan) {

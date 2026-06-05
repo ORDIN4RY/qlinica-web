@@ -59,8 +59,8 @@
         </div>
       </div>
 
-      <div class="flex items-center justify-between border-t border-gray-100 pt-4">
-        <div class="flex gap-2">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-t border-gray-100 pt-4 gap-3">
+        <div class="flex flex-wrap gap-2">
           <button type="button" onclick="doPrint()" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition">
             <i class="fas fa-print mr-2"></i> Print Laporan
           </button>
@@ -68,8 +68,8 @@
             <i class="fas fa-file-excel mr-2"></i> Export Excel (CSV)
           </button>
         </div>
-        <div class="flex items-center gap-3">
-          <button type="submit" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-800 text-white text-sm font-semibold rounded-xl transition shadow-md">
+        <div class="flex flex-wrap items-center gap-3">
+          <button type="submit" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-800 text-white text-sm font-semibold rounded-xl transition shadow-md whitespace-nowrap">
             Terapkan Filter
           </button>
           @if(request()->anyFilled(['periode','jenis_pasien','tgl_awal','tgl_akhir']))

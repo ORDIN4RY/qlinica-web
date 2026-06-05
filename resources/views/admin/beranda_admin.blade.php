@@ -179,6 +179,10 @@
        RESPONSIVE
     ============================================================ */
     @media (max-width: 1100px) { .dua-kolom { grid-template-columns: 1fr; } }
+    @media (max-width: 640px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+      .dua-kolom { grid-template-columns: 1fr; }
+    }
     @media (max-width: 480px) {
       .date-drop {
         right: auto;
@@ -200,7 +204,7 @@
 
 @section('content')
 
-  <div id="dateWrapper" style="display:flex; justify-content:flex-end; margin-bottom:16px; position:relative; z-index:99999;">
+  <div id="dateWrapper" style="display:flex; justify-content:flex-end; flex-wrap:wrap; margin-bottom:16px; position:relative; z-index:99999;">
     <div class="date-picker" id="datePicker">
       <div class="date-btn" id="dateBtn">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">

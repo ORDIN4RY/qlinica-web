@@ -38,7 +38,7 @@
           <option value="{{ $option }}" @selected($status === $option)>{{ $option }}</option>
         @endforeach
       </select>
-      <button type="submit" class="px-5 py-2 bg-[#1e3a8a] text-white rounded-xl hover:bg-green-700 transition text-sm font-semibold">Filter</button>
+      <button type="submit" class="px-5 py-2 bg-[#1e3a8a] text-white rounded-xl hover:bg-green-700 transition text-sm font-semibold whitespace-nowrap">Filter</button>
     </form>
   </div>
 

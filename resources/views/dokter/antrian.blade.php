@@ -55,7 +55,7 @@
 
 <!-- List Queue Container -->
 <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-  <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+  <div class="p-5 border-b border-slate-200 flex flex-wrap sm:flex-nowrap sm:items-center justify-between gap-3">
     <div>
       <h2 class="font-extrabold text-slate-800 text-lg flex items-center gap-2">
         Daftar Antrian Hari Ini
@@ -71,10 +71,10 @@
     </div>
 
     {{-- Sort By --}}
-    <form method="GET" action="{{ route('dokter.antrian') }}" class="flex items-center gap-2">
+    <form method="GET" action="{{ route('dokter.antrian') }}" class="flex items-center gap-2 w-full sm:w-auto">
       <label class="text-xs font-bold text-slate-500 whitespace-nowrap">Urutkan:</label>
       <select name="sort" onchange="this.form.submit()"
-        class="text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition cursor-pointer">
+        class="flex-1 sm:flex-none text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition cursor-pointer">
         <option value="default"     {{ $sortBy === 'default'     ? 'selected' : '' }}>Default (Status + Terbaru)</option>
         <option value="nomor_asc"   {{ $sortBy === 'nomor_asc'   ? 'selected' : '' }}>No. Antrian ↑</option>
         <option value="nomor_desc"  {{ $sortBy === 'nomor_desc'  ? 'selected' : '' }}>No. Antrian ↓</option>

@@ -13,7 +13,7 @@
     </div>
     
     <form method="GET" action="{{ route('admin.billing') }}" class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-      <input name="search" value="{{ $search }}" type="text" placeholder="Nama pasien, NIK atau Invoice..." class="flex-grow sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+      <input name="search" value="{{ $search }}" type="text" placeholder="Nama pasien, NIK atau Invoice..." class="flex-1 sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
       
       <select name="status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
         @foreach(['Belum Bayar' => 'Belum Lunas', 'Lunas' => 'Sudah Lunas', 'Batal' => 'Dibatalkan', 'Semua' => 'Semua Status'] as $val => $label)
@@ -21,7 +21,7 @@
         @endforeach
       </select>
       
-      <button type="submit" class="px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition text-sm font-medium">Filter</button>
+      <button type="submit" class="px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition text-sm font-medium whitespace-nowrap">Filter</button>
     </form>
   </div>
 
@@ -35,7 +35,7 @@
     </div>
   @else
     <div class="overflow-x-auto rounded-xl border border-gray-200">
-      <table class="min-w-full divide-y divide-gray-200 text-left text-sm text-gray-700">
+      <table class="min-w-full divide-y divide-gray-200 text-left text-sm text-gray-700" style="min-width:900px">
         <thead class="bg-gray-50 text-xs font-semibold uppercase text-gray-600">
           <tr>
             <th class="px-6 py-4">No. Invoice</th>

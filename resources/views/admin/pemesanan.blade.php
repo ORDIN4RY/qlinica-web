@@ -179,16 +179,17 @@
   }
   .btn-batal:hover { background: #fee2e2; }
 
-  /* ── SEARCH ── */
-  .search-wrap { position: relative; }
+  .search-wrap { position: relative; width: 100%; }
+  @media (min-width: 640px) { .search-wrap { width: auto; } }
   .search-wrap i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 12px; }
   .search-input {
     padding: 8px 14px 8px 32px;
     border: 1.5px solid #e5e7eb; border-radius: 10px;
     font-size: 13px; color: #1e293b; outline: none;
-    transition: all .16s; width: 220px; font-family: inherit;
+    transition: all .16s; width: 100%; font-family: inherit;
     background: #fff;
   }
+  @media (min-width: 640px) { .search-input { width: 220px; } }
   .search-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
 
   /* ── MODAL ── */
@@ -287,7 +288,7 @@
     </div>
   </div>
 
-  <div class="flex items-center gap-3">
+  <div class="flex flex-wrap items-center gap-3">
     {{-- Show Entries --}}
     <div class="flex items-center gap-2">
       <span class="text-xs text-gray-500 font-semibold whitespace-nowrap">Tampilkan</span>
@@ -299,7 +300,7 @@
       <span class="text-xs text-gray-500 font-semibold">baris</span>
     </div>
     {{-- Search --}}
-    <div class="search-wrap">
+    <div class="search-wrap flex-1 sm:flex-none">
       <i class="fas fa-search"></i>
       <input type="text" class="search-input" id="searchInput" placeholder="Cari nama, No RM...">
     </div>

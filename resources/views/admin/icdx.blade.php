@@ -97,7 +97,7 @@
 </div>
 
 {{-- ─── TOOLBAR ────────────────────────────────────────────────────── --}}
-<div class="bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
 
   {{-- Per page --}}
   <div class="flex items-center gap-2 text-sm text-gray-500">
@@ -114,21 +114,21 @@
   </div>
 
   {{-- Search --}}
-  <form method="GET" action="{{ route('admin.icdx') }}" class="flex items-center gap-2">
+  <form method="GET" action="{{ route('admin.icdx') }}" class="flex items-center gap-2 w-full sm:w-auto">
     <input type="hidden" name="per_page" value="{{ $perPage }}">
-    <div class="relative">
+    <div class="relative flex-1 sm:flex-none min-w-0">
       <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
       <input type="text" name="search" id="searchInput" value="{{ $search ?? '' }}"
         placeholder="Cari kode atau nama penyakit..."
-        class="pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 w-72 transition">
+        class="pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 w-full sm:w-72 transition min-w-0">
     </div>
     <button type="submit"
-      class="bg-blue-900 hover:bg-blue-800 text-white text-sm px-4 py-2.5 rounded-xl transition font-semibold">
+      class="bg-blue-900 hover:bg-blue-800 text-white text-sm px-4 py-2.5 rounded-xl transition font-semibold whitespace-nowrap flex-shrink-0">
       Cari
     </button>
     @if($search)
       <a href="{{ route('admin.icdx', ['per_page' => $perPage]) }}"
-        class="text-sm text-gray-500 hover:text-red-500 px-3 py-2.5 rounded-xl border border-gray-200 hover:border-red-200 transition"
+        class="text-sm text-gray-500 hover:text-red-500 px-3 py-2.5 rounded-xl border border-gray-200 hover:border-red-200 transition flex-shrink-0"
         title="Hapus pencarian">
         <i class="fas fa-times"></i>
       </a>
@@ -159,18 +159,18 @@
             {{-- Kode --}}
             <td class="px-5 py-4">
               @if($search)
-                <span class="kode-badge">{!! preg_replace('/(' . preg_quote($search, '/') . ')/i', '<mark>$1</mark>', e($item->kd_icdx)) !!}</span>
+                <span class="kode-badge">{!! preg_replace('/(' . preg_quote($search, '/') . ')/i', '<mark>$1</mark>', e($item->kode)) !!}</span>
               @else
-                <span class="kode-badge">{{ $item->kd_icdx }}</span>
+                <span class="kode-badge">{{ $item->kode }}</span>
               @endif
             </td>
 
             {{-- Nama ICDX --}}
             <td class="px-5 py-4 text-gray-700 font-medium">
-              @if($search && $item->nama_icdx)
-                {!! preg_replace('/(' . preg_quote($search, '/') . ')/i', '<mark>$1</mark>', e($item->nama_icdx)) !!}
+              @if($search && $item->nama)
+                {!! preg_replace('/(' . preg_quote($search, '/') . ')/i', '<mark>$1</mark>', e($item->nama)) !!}
               @else
-                {{ $item->nama_icdx ?? '—' }}
+                {{ $item->nama ?? '—' }}
               @endif
             </td>
           </tr>
@@ -193,7 +193,7 @@
 
   {{-- ─── PAGINATION ─────────────────────────────────────── --}}
   @if($icdxs->hasPages())
-    <div class="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+    <div class="px-4 sm:px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
       <p class="text-xs text-gray-500">
         Menampilkan <strong>{{ $icdxs->firstItem() }}–{{ $icdxs->lastItem() }}</strong>
         dari <strong>{{ number_format($icdxs->total()) }}</strong> kode penyakit
@@ -255,7 +255,7 @@
       </div>
     </div>
   @else
-    <div class="px-6 py-3 border-t border-gray-100">
+    <div class="px-4 sm:px-6 py-3 border-t border-gray-100">
       <p class="text-xs text-gray-400">Total <strong>{{ number_format($icdxs->total()) }}</strong> kode penyakit</p>
     </div>
   @endif

@@ -9,12 +9,12 @@
 {{-- Search Bar --}}
 <div class="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm mb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
   <p class="text-sm text-gray-500">Total <span class="font-bold text-gray-800">{{ $pasiens->total() }}</span> pasien terdaftar</p>
-  <form method="GET" action="{{ route('dokter.pasien') }}" class="flex items-center gap-2">
-    <div class="relative">
+  <form method="GET" action="{{ route('dokter.pasien') }}" class="flex items-center gap-2 w-full sm:w-auto">
+    <div class="relative flex-1 sm:flex-none">
       <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
       <input type="text" name="q" value="{{ request('q') }}"
         placeholder="Cari nama atau No. RM..."
-        class="pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 w-64">
+        class="pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 w-full sm:w-64">
     </div>
     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition">Cari</button>
     @if(request('q'))

@@ -86,36 +86,12 @@
     to   { opacity: 1; transform: none; }
   }
 
-  /* ── TOAST ── */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    padding: 12px 22px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 600;
-    z-index: 999;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: all .25s ease;
-    pointer-events: none;
-    box-shadow: 0 18px 38px rgba(0,0,0,.16);
-  }
-  .toast.show { opacity: 1; transform: translateY(0); }
-  .toast-success { background: #16a34a; color: #fff; }
-  .toast-error   { background: #dc2626; color: #fff; }
 </style>
 @endpush
 
 @section('content')
 
-{{-- ─── FLASH TOAST ──────────────────────────────────────────────────── --}}
-@if(session('success'))
-  <div id="flashToast" class="toast toast-success">{{ session('success') }}</div>
-@elseif(session('error'))
-  <div id="flashToast" class="toast toast-error">{{ session('error') }}</div>
-@endif
+
 
 {{-- ─── STAT BANNER ──────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-7 max-w-5xl mx-auto">
@@ -180,16 +156,16 @@
     <span>entri</span>
   </div>
 
-  <form method="GET" action="{{ route('admin.komentar') }}" class="flex items-center gap-2">
+  <form method="GET" action="{{ route('admin.komentar') }}" class="flex items-center gap-2 w-full sm:w-auto">
     <input type="hidden" name="per_page" value="{{ $perPage }}">
-    <div class="relative">
+    <div class="relative flex-1 sm:flex-none">
       <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
       <input type="text" name="search" value="{{ $search ?? '' }}"
         placeholder="Cari nama pasien atau No RM..."
-        class="pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 w-72 transition">
+        class="pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 w-full sm:w-72 transition">
     </div>
     <button type="submit"
-      class="bg-blue-900 hover:bg-blue-800 text-white text-sm px-4 py-2.5 rounded-xl transition font-semibold">
+      class="bg-blue-900 hover:bg-blue-800 text-white text-sm px-4 py-2.5 rounded-xl transition font-semibold whitespace-nowrap">
       Cari
     </button>
     @if($search)
@@ -444,11 +420,7 @@
     if (e.target === this) closeModal();
   });
 
-  var flash = document.getElementById('flashToast');
-  if (flash) {
-    setTimeout(function() { flash.classList.add('show'); }, 100);
-    setTimeout(function() { flash.classList.remove('show'); }, 3500);
-  }
+
 
   document.querySelectorAll('.table-row').forEach(function(row) {
     row.addEventListener('click', function(e) {

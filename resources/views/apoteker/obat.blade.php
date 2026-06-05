@@ -72,7 +72,7 @@
 <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6 shadow-sm">
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-5 gap-3">
     <h2 class="font-bold text-lg text-gray-800">Daftar Obat</h2>
-    <button onclick="openModal()" class="px-4 py-2 bg-[#1e3a8a] text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2 text-sm font-medium">
+    <button onclick="openModal()" class="px-4 py-2 bg-[#1e3a8a] text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2 text-sm font-medium whitespace-nowrap">
       <i class="fas fa-plus"></i> Tambah Obat
     </button>
   </div>
@@ -102,7 +102,7 @@
 
   {{-- Table --}}
   <div class="overflow-x-auto -mx-4 md:mx-0">
-    <table class="min-w-full text-sm">
+    <table class="min-w-full text-sm" style="min-width:800px">
       <thead class="bg-gray-50 border-b border-gray-200">
         <tr>
           <th class="text-left px-4 py-3 font-semibold text-gray-600 whitespace-nowrap">Kode</th>

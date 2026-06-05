@@ -83,8 +83,8 @@
       </div>
     </div>
 
-    <div class="flex items-center justify-between border-t border-gray-100 pt-4">
-      <div class="flex gap-2">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-t border-gray-100 pt-4 gap-3">
+      <div class="flex flex-wrap gap-2">
         <button type="button" onclick="window.print()" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition">
           <i class="fas fa-print mr-2"></i> Print
         </button>
@@ -92,9 +92,9 @@
           <i class="fas fa-file-excel mr-2"></i> Export CSV
         </button>
       </div>
-      <div class="flex items-center gap-3 w-1/2 justify-end">
-        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Pasien / No RM..." class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm w-64 focus:outline-none focus:border-blue-500">
-        <button type="submit" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-800 text-white text-sm font-semibold rounded-xl transition shadow-md">
+      <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Pasien / No RM..." class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm flex-1 sm:w-64 focus:outline-none focus:border-blue-500">
+        <button type="submit" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-800 text-white text-sm font-semibold rounded-xl transition shadow-md whitespace-nowrap">
           Terapkan Filter
         </button>
         @if(request()->anyFilled(['periode','dokter_id','kasus_penyakit','keadaan_keluar','search','tgl_awal','tgl_akhir']))

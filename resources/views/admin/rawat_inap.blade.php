@@ -66,15 +66,15 @@
 @section('content')
   <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
     <!-- Filter Status -->
-    <div class="flex gap-2">
+    <div class="flex flex-wrap gap-2">
       <a href="{{ route('admin.rawat_inap', ['status' => 'Aktif']) }}"
-        class="px-4 py-2 text-sm font-medium rounded-xl border transition {{ request('status', 'Aktif') == 'Aktif' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }}">Sedang
+        class="px-4 py-2 text-sm font-medium rounded-xl border transition whitespace-nowrap {{ request('status', 'Aktif') == 'Aktif' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }}">Sedang
         Dirawat</a>
       <a href="{{ route('admin.rawat_inap', ['status' => 'Selesai']) }}"
-        class="px-4 py-2 text-sm font-medium rounded-xl border transition {{ request('status') == 'Selesai' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }}">Selesai
+        class="px-4 py-2 text-sm font-medium rounded-xl border transition whitespace-nowrap {{ request('status') == 'Selesai' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }}">Selesai
         / Pulang</a>
       <a href="{{ route('admin.rawat_inap', ['status' => 'Antrian']) }}"
-        class="px-4 py-2 text-sm font-medium rounded-xl border transition {{ request('status') == 'Antrian' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }} flex items-center gap-2">
+        class="px-4 py-2 text-sm font-medium rounded-xl border transition whitespace-nowrap {{ request('status') == 'Antrian' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }} flex items-center gap-2">
         <span>Antrian Masuk</span>
         @if($rekomendasiData->count() > 0)
           <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">

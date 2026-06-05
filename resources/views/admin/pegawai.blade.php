@@ -119,7 +119,7 @@
 </div>
 
 {{-- ─── TOOLBAR ─────────────────────────────────────────────────────── --}}
-<div class="bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 px-4 sm:px-6 py-4 flex flex-wrap items-center gap-3">
   @if(auth()->user()->hasMenuAccess('Pegawai', 'tambah'))
   <button id="btnTambah"
     class="flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-md">
@@ -127,15 +127,15 @@
   </button>
   @endif
 
-  <form method="GET" action="{{ route('admin.pegawai') }}" class="flex items-center gap-2">
-    <div class="relative">
+  <form method="GET" action="{{ route('admin.pegawai') }}" class="flex items-center gap-2 w-full sm:w-auto">
+    <div class="relative flex-1 sm:flex-none">
       <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
       <input type="text" name="search" value="{{ $search ?? '' }}"
         placeholder="Cari nama, NIK, email..."
-        class="pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 w-64 transition">
+        class="pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 w-full sm:w-64 transition">
     </div>
     <button type="submit"
-      class="bg-blue-900 hover:bg-blue-800 text-white text-sm px-4 py-2.5 rounded-xl transition font-semibold">
+      class="bg-blue-900 hover:bg-blue-800 text-white text-sm px-4 py-2.5 rounded-xl transition font-semibold whitespace-nowrap">
       Cari
     </button>
     @if($search)

@@ -53,6 +53,95 @@
       main { padding: 0 !important; overflow: visible !important; }
       body, html { background: white !important; color: black !important; overflow: visible !important; height: auto !important; }
     }
+
+    /* ===== TOAST SYSTEM ===== */
+    #toast-container { pointer-events: none; }
+    .toast-item {
+      pointer-events: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px 16px;
+      min-width: 300px;
+      max-width: 400px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.14), 0 2px 8px rgba(0,0,0,.08);
+      border-left: 4px solid #10b981;
+      position: relative;
+      overflow: hidden;
+      transform: translateX(calc(100% + 32px));
+      opacity: 0;
+      transition: transform .4s cubic-bezier(.34,1.56,.64,1), opacity .35s;
+    }
+    .toast-item.toast-show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    .toast-item.toast-hide {
+      transform: translateX(calc(100% + 32px));
+      opacity: 0;
+      transition: transform .3s ease-in, opacity .25s;
+    }
+    .toast-item.toast-success { border-left-color: #10b981; }
+    .toast-item.toast-error   { border-left-color: #ef4444; }
+    .toast-item.toast-warning { border-left-color: #f59e0b; }
+    .toast-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .toast-success .toast-icon { background: #ecfdf5; color: #10b981; }
+    .toast-error   .toast-icon { background: #fef2f2; color: #ef4444; }
+    .toast-warning .toast-icon { background: #fffbeb; color: #f59e0b; }
+    .toast-body { flex: 1; min-width: 0; }
+    .toast-title {
+      font-size: 13px; font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 2px;
+      line-height: 1.3;
+    }
+    .toast-close {
+      background: none; border: none;
+      color: #9ca3af; cursor: pointer;
+      padding: 2px 4px; border-radius: 6px;
+      font-size: 14px; line-height: 1;
+      transition: color .15s;
+      flex-shrink: 0;
+    }
+    .toast-close:hover { color: #ef4444; }
+    .toast-progress {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .toast-progress-bar {
+      height: 100%;
+      border-radius: 0 0 14px 14px;
+      animation: toastBarShrink 5s linear forwards;
+    }
+    .toast-success .toast-progress-bar { background: #10b981; }
+    .toast-error   .toast-progress-bar { background: #ef4444; }
+    .toast-warning .toast-progress-bar { background: #f59e0b; }
+    @keyframes toastBarShrink {
+      from { width: 100%; }
+      to   { width: 0%; }
+    }
+    @media (max-width: 480px) {
+      #toast-container {
+        left: 12px;
+        right: 12px;
+        top: auto;
+        bottom: 16px;
+      }
+      .toast-item {
+        min-width: 0;
+        max-width: 100%;
+        width: 100%;
+      }
+    }
   </style>
   @stack('styles')
 </head>
@@ -418,31 +507,78 @@
     <!-- Page content -->
     <main class="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden">
       <div class="w-full max-w-6xl mx-auto">
-      @if(session('success'))
-        <div class="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-5 py-4 rounded-2xl shadow-sm no-print">
-          <i class="fas fa-check-circle text-green-500 text-lg"></i>
-          <span>{{ session('success') }}</span>
-        </div>
-      @endif
-      @if(session('error'))
-        <div class="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-2xl shadow-sm no-print">
-          <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
-          <span>{{ session('error') }}</span>
-        </div>
-      @endif
-      @if(session('warning'))
-        <div class="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-2xl shadow-sm no-print">
-          <i class="fas fa-triangle-exclamation text-amber-500 text-lg"></i>
-          <span>{{ session('warning') }}</span>
-        </div>
-      @endif
-      {{-- Error validasi ditangani per-halaman via toast --}}
+
       @yield('content')
       </div>
     </main>
   </div>
 
 </div>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toast-container" class="fixed top-5 right-5 z-[99999] flex flex-col gap-3 no-print" style="min-width:0;"></div>
+
+<script>
+// ===== TOAST SYSTEM =====
+window.showToast = function(type, message, duration) {
+  duration = duration || 5000;
+  var container = document.getElementById('toast-container');
+  if (!container) return;
+
+  var icons = {
+    success: 'fa-check-circle',
+    error: 'fa-exclamation-circle',
+    warning: 'fa-triangle-exclamation'
+  };
+
+  var toast = document.createElement('div');
+  toast.className = 'toast-item toast-' + type;
+  toast.innerHTML =
+    '<div class="toast-icon"><i class="fas ' + (icons[type] || 'fa-info-circle') + '"></i></div>' +
+    '<div class="toast-body"><div class="toast-title">' + message + '</div></div>' +
+    '<button class="toast-close" onclick="this.closest(\'.toast-item\').remove()">&times;</button>' +
+    '<div class="toast-progress"><div class="toast-progress-bar"></div></div>';
+
+  container.appendChild(toast);
+
+  // Trigger animation
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      toast.classList.add('toast-show');
+    });
+  });
+
+  // Auto dismiss
+  var timer = setTimeout(function() {
+    toast.classList.add('toast-hide');
+    setTimeout(function() {
+      if (toast.parentNode) toast.remove();
+    }, 350);
+  }, duration);
+
+  // Cancel auto dismiss on hover
+  toast.addEventListener('mouseenter', function() { clearTimeout(timer); });
+  toast.addEventListener('mouseleave', function() {
+    timer = setTimeout(function() {
+      toast.classList.add('toast-hide');
+      setTimeout(function() { if (toast.parentNode) toast.remove(); }, 350);
+    }, 2000);
+  });
+};
+
+// Auto-show toasts dari session data yang di-render PHP
+document.addEventListener('DOMContentLoaded', function() {
+  @if(session('success'))
+    window.showToast('success', {{ Js::from(session('success')) }});
+  @endif
+  @if(session('error'))
+    window.showToast('error', {{ Js::from(session('error')) }});
+  @endif
+  @if(session('warning'))
+    window.showToast('warning', {{ Js::from(session('warning')) }});
+  @endif
+});
+</script>
 
 @stack('scripts')
 <script>

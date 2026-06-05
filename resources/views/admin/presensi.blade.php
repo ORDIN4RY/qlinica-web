@@ -26,7 +26,7 @@
 @section('content')
 
 {{-- KPI Summary --}}
-<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-6">
     @php
         $stats = [
             ['label' => 'Hadir', 'val' => $kpi['hadir'], 'icon' => 'fa-check-circle', 'bg' => 'bg-blue-50', 'text' => 'text-blue-600'],
@@ -300,7 +300,7 @@
     {{-- TAB 3: PENGATURAN SHIFT (ROSTER SIMPLE) --}}
     <div id="content-shift" class="tab-content">
         {{-- ROSTER CONTROLS --}}
-        <div class="p-6 border-b border-gray-100 flex flex-wrap justify-between items-center gap-4 bg-white sticky top-0 z-30 shadow-sm">
+        <div class="p-4 sm:p-6 border-b border-gray-100 flex flex-wrap justify-between items-start gap-4 bg-white sticky top-0 z-30 shadow-sm">
             <div class="flex items-center gap-4">
                 <div>
                     <h3 class="font-bold text-gray-800">Penjadwalan Roster</h3>
@@ -333,9 +333,9 @@
                 <div class="relative">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-[10px]"></i>
                     <input type="text" id="searchPegawai" onkeyup="filterRoster()" placeholder="Cari nama pegawai..."
-                        class="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-[11px] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-56 transition-all">
+                        class="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-[11px] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-full sm:w-56 transition-all">
                 </div>
-                <div class="flex gap-2 ml-2">
+                <div class="flex flex-wrap gap-2 ml-0 sm:ml-2">
                     <button onclick="openBulkModal()" class="px-3 py-2 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-lg border border-blue-200 hover:bg-blue-100 transition shadow-sm">
                         <i class="fas fa-users mr-1"></i> Atur Massal
                     </button>
